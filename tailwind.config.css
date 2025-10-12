@@ -1,0 +1,22 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        // Uses local Helvetica Neue if available; falls back gracefully
+        sans: ['"Helvetica Neue"', "Helvetica", "Arial", "ui-sans-serif", "system-ui"],
+      },
+      colors: {
+        bg: "#0b0b0b",
+        fg: "#eaeaea",
+        subtle: "#9aa0a6",
+        brand: "#4c8bf5",
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
+

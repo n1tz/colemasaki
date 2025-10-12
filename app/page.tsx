@@ -1,103 +1,99 @@
-import Image from "next/image";
+// app/page.tsx
+export default function HomePage() {
+  const projects = [
+    { title: "Project One", tag: "3D / VFX", href: "#", img: "/placeholder/1.jpg" },
+    { title: "Project Two", tag: "Branding", href: "#", img: "/placeholder/2.jpg" },
+    { title: "Project Three", tag: "Illustration", href: "#", img: "/placeholder/3.jpg" },
+  ];
 
-export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="mx-auto max-w-6xl px-5 py-12 md:py-16">
+      {/* Nav */}
+      <header className="flex items-center justify-between">
+        <a href="/" className="text-lg font-semibold tracking-tight">COLE MASAKI</a>
+        <nav className="hidden gap-6 text-sm text-subtle md:flex">
+          <a href="#about" className="hover:text-fg">About</a>
+          <a href="#work" className="hover:text-fg">Work</a>
+          <a href="#contact" className="hover:text-fg">Contact</a>
+        </nav>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
+      {/* Hero */}
+      <section className="mt-14 md:mt-20">
+        <h1 className="text-4xl leading-tight font-semibold md:text-6xl tracking-tight">
+          Designer, illustrator, and 3D/VFX generalist in Akihabara.
+        </h1>
+        <p className="mt-4 max-w-2xl text-base text-subtle md:text-lg">
+          I build campaign KVs, merchandise, and motion for anime/IP brands. Below is a small selection of work. 
+          For inquiries, email <a href="mailto:hello@example.com" className="text-fg underline decoration-brand/60 underline-offset-4 hover:decoration-brand">hello@example.com</a>.
+        </p>
+
+        <div className="mt-8 flex gap-3">
           <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#work"
+            className="inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+            View Work
           </a>
           <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/ColeMasaki_Resume.pdf"
+            className="inline-flex items-center rounded-lg border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
           >
-            Read our docs
+            Download Résumé
           </a>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      {/* Work */}
+      <section id="work" className="mt-16 md:mt-24">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Selected Work</h2>
+          <a href="/projects" className="text-sm text-subtle hover:text-fg">All projects →</a>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {projects.map((p) => (
+            <a
+              key={p.title}
+              href={p.href}
+              className="group overflow-hidden rounded-2xl border border-white/10 hover:border-white/20"
+            >
+              <div className="aspect-[4/3] w-full bg-white/5">
+                {/* Replace with next/image when you add real assets */}
+                {/* <Image src={p.img} alt={p.title} fill className="object-cover" /> */}
+              </div>
+              <div className="p-4">
+                <div className="text-xs uppercase tracking-wide text-subtle">{p.tag}</div>
+                <div className="mt-1 text-base font-medium group-hover:underline underline-offset-4 decoration-white/20">
+                  {p.title}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* About */}
+      <section id="about" className="mt-16 md:mt-24">
+        <h2 className="text-2xl font-semibold">About</h2>
+        <p className="mt-3 max-w-3xl text-subtle">
+          I’m a Tokyo-based designer focused on anime/IP campaigns, merch, and 3D key visuals.
+          Tools: Blender, ZBrush, Illustrator, Photoshop. Currently at Akihabara Premium Collection / Tokyo Dub Agent.
+        </p>
+      </section>
+
+      {/* Contact / Footer */}
+      <section id="contact" className="mt-16 md:mt-24">
+        <h2 className="text-2xl font-semibold">Contact</h2>
+        <div className="mt-3 text-subtle">
+          <p>Email: <a href="mailto:hello@example.com" className="underline decoration-brand/60 underline-offset-4 hover:text-fg">hello@example.com</a></p>
+          <p>GitHub: <a href="https://github.com/n1tz" className="underline decoration-brand/60 underline-offset-4 hover:text-fg">n1tz</a></p>
+          <p>Instagram: <a href="#" className="underline decoration-brand/60 underline-offset-4 hover:text-fg">@colemasaki</a></p>
+        </div>
+        <footer className="mt-12 border-t border-white/10 pt-6 text-xs text-subtle">
+          © {new Date().getFullYear()} Cole Masaki. All rights reserved.
+        </footer>
+      </section>
+    </main>
   );
 }
