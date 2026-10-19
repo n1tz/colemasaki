@@ -2,6 +2,12 @@ import { chromium } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}), args: ['--no-sandbox'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+function checkLayout(stats, centered=false){
+  const art=stats.motion.art;
+  for(const a of art){const r=a.rect,v=stats.viewport;if(r.left<v.left-1||r.right>v.right+1||r.top<v.top-1||r.bottom>v.bottom+1)throw new Error('Artwork clipped outside exhibition: '+JSON.stringify(a));}
+  for(let i=0;i<art.length;i++)for(let j=i+1;j<art.length;j++){const a=art[i].rect,b=art[j].rect;if(Math.min(a.right,b.right)>Math.max(a.left,b.left)&&Math.min(a.bottom,b.bottom)>Math.max(a.top,b.top))throw new Error('Artwork overlap: '+art[i].category+':'+art[i].item+' / '+art[j].category+':'+art[j].item);}
+  if(centered&&art.length){const center=(Math.min(...art.map(a=>a.rect.left))+Math.max(...art.map(a=>a.rect.right)))/2;if(Math.abs(center-(stats.viewport.left+stats.viewport.right)/2)>5)throw new Error('Selected artwork not centered');}
+}
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 await mkdir('/tmp/cole-check',{recursive:true});
@@ -19,27 +25,29 @@ await page.waitForTimeout(500);
 const stillFrozen=await page.evaluate(()=>window.portfolio.stats().motion);
 if(frozen.time!==stillFrozen.time||JSON.stringify(frozen.art.map(a=>a.position))!==JSON.stringify(stillFrozen.art.map(a=>a.position)))throw new Error('Pause must freeze noise and orbital motion');
 await page.locator('#motion').click();
+checkLayout(await page.evaluate(()=>window.portfolio.stats()));
 await page.screenshot({path:'/tmp/cole-check/desktop.png'});
 console.log('Scene',await page.evaluate(()=>{const {motion,...stats}=window.portfolio.stats();return {...stats,motionEnabled:motion.enabled};}));
 await page.locator('[data-category="0"]').click();await page.waitForTimeout(1500);
 await page.waitForFunction(()=>window.portfolio.stats().motion.art.every(art=>art.facing>.995));
+checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
 await page.screenshot({path:'/tmp/cole-check/category.png'});
+const galleryBox=await page.locator('#space').boundingBox();
+await page.mouse.move(galleryBox.x+galleryBox.width*.5,galleryBox.y+galleryBox.height*.5);await page.mouse.down();await page.mouse.move(galleryBox.x+galleryBox.width*.85,galleryBox.y+galleryBox.height*.6,{steps:12});await page.mouse.up();await page.waitForTimeout(800);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
+await page.locator('[data-category="0"]').click();await page.waitForTimeout(1300);
 const beforeZoom=await page.evaluate(()=>window.portfolio.stats().camera);
 await page.locator('#zoom-in').click();
 const afterZoom=await page.evaluate(()=>window.portfolio.stats().camera);
 if(JSON.stringify(beforeZoom)===JSON.stringify(afterZoom))throw new Error('Camera zoom did not move');
 await page.locator('#zoom-out').click();
-let found=false;
-for(const [x,y] of [[450,310],[620,310],[800,300],[480,450],[600,500],[900,450]]){
-  await page.mouse.move(x,y);
-  if(await page.locator('.hover-label').isVisible()){await page.mouse.click(x,y);found=true;break;}
-}
-if(!found||!await page.locator('.viewer').isVisible())throw new Error('Raycast artwork click failed');
+const firstArt=await page.evaluate(()=>window.portfolio.stats().motion.art[0].rect);
+await page.mouse.click((firstArt.left+firstArt.right)/2,(firstArt.top+firstArt.bottom)/2);
+if(!await page.locator('.viewer').isVisible())throw new Error('Raycast artwork click failed');
 await page.keyboard.press('Escape');
 await page.locator('#view-collection').click();await page.locator('.view-body img').waitFor();
 await page.locator('#next').click();if(await page.locator('.page-label').textContent()!=='02 / 10')throw new Error('Image navigation failed');
 await page.keyboard.press('Escape');
-await page.locator('[data-category="2"]').click();await page.locator('#view-collection').click();await page.locator('#next').click();
+await page.locator('[data-category="2"]').click();await page.waitForTimeout(1300);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/zine-collection.png'});await page.locator('#view-collection').click();await page.locator('#next').click();
 if(await page.locator('.view-body img').count()!==2)throw new Error('Desktop zine spread missing');
 await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
 await page.screenshot({path:'/tmp/cole-check/zine.png'});
@@ -48,7 +56,19 @@ await page.keyboard.press('Escape');await page.locator('[data-category="3"]').cl
 if(!await page.locator('#view-collection').isHidden())throw new Error('Empty collection opens nonexistent art');
 await page.locator('#open-index').click();if(await page.locator('.index-item').count()!==34)throw new Error('Incomplete index');await page.keyboard.press('Escape');
 await page.locator('#home').click();await page.waitForTimeout(1500);
+const overviewBox=await page.locator('#space').boundingBox();
+for(const direction of [1,-1]){await page.mouse.move(overviewBox.x+overviewBox.width*.5,overviewBox.y+overviewBox.height*.5);await page.mouse.down();await page.mouse.move(overviewBox.x+overviewBox.width*(direction>0?.95:.05),overviewBox.y+overviewBox.height*.5,{steps:12});await page.mouse.up();await page.waitForTimeout(600);checkLayout(await page.evaluate(()=>window.portfolio.stats()));}
+await page.setViewportSize({width:1280,height:720});await page.waitForTimeout(1300);checkLayout(await page.evaluate(()=>window.portfolio.stats()));
+await page.locator('[data-category="0"]').click();await page.waitForTimeout(1300);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/laptop-collection.png'});
+await page.locator('#home').click();await page.waitForTimeout(1300);
 await page.setViewportSize({width:390,height:844});await page.waitForTimeout(1500);await page.screenshot({path:'/tmp/cole-check/mobile.png'});
+checkLayout(await page.evaluate(()=>window.portfolio.stats()));
+await page.locator('[data-category="0"]').click();await page.waitForTimeout(1300);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
+if(await page.evaluate(()=>window.portfolio.stats().artworks)!==4)throw new Error('Mobile artwork group should show four works');
+await page.screenshot({path:'/tmp/cole-check/mobile-collection.png'});
+await page.locator('#collection-next').click();await page.waitForTimeout(1300);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
+if(await page.evaluate(()=>window.portfolio.stats().motion.art[0].item)!==4)throw new Error('Mobile pagination lost artwork order');
+await page.locator('#collection-next').click();await page.waitForTimeout(1300);if(await page.evaluate(()=>window.portfolio.stats().artworks)!==2)throw new Error('Mobile final works missing');
 if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw new Error('Horizontal overflow');
 await page.locator('[data-category="2"]').click();await page.locator('#view-collection').click();await page.locator('#next').click();if(await page.locator('.view-body img').count()!==1)throw new Error('Mobile zine should show one page');await page.locator('#next').click();await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));await page.screenshot({path:'/tmp/cole-check/mobile-zine.png'});
 await page.keyboard.press('Escape');
@@ -62,12 +82,12 @@ const reducedEnd=await reduced.evaluate(()=>window.portfolio.stats().motion);
 if(reducedStart.time!==0||reducedEnd.time!==0||JSON.stringify(reducedStart.art.map(a=>a.position))!==JSON.stringify(reducedEnd.art.map(a=>a.position)))throw new Error('Reduced motion must stop the noise and artwork animation');
 await reduced.locator('[data-category="1"]').click();
 const target=await reduced.evaluate(()=>window.portfolio.stats().target);
-if(Math.abs(target[0]-6)>.01)throw new Error('Reduced motion camera did not move immediately');
+if(Math.abs(target[0])>.01)throw new Error('Reduced motion camera did not move immediately');
 await reduced.close();
 const fallback=await browser.newPage();
 await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:original.call(this,type,...args);};});
 await fallback.goto(process.env.REVIEW_URL || 'http://localhost:3010/');await fallback.locator('.fallback').waitFor();await fallback.locator('.fallback button').click();
 if(await fallback.locator('.index-item').count()!==34)throw new Error('WebGL fallback lost artwork access');await fallback.close();
 console.log('Browser errors',errors);if(errors.length)throw new Error(errors.join('\n'));
-console.log('PASS: animation clock, orbit, pause, shaders, desktop/mobile navigation, raycast clicks, zoom, image viewer, zine sequence, empty states, index, help, overflow, reduced motion, WebGL fallback.');
+console.log('PASS: non-overlapping artwork, centered collections, mobile pagination, animation clock, bounded motion, pause, shaders, desktop/mobile navigation, raycast clicks, zoom, image viewer, zine sequence, empty states, index, help, overflow, reduced motion, WebGL fallback.');
 await browser.close();

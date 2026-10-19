@@ -23,9 +23,12 @@ float fieldFBM(vec3 p) {
 
 export function createFieldMaterials() {
   const time = { value: 0 };
+  const strength = { value: 1 };
   const metal = new THREE.MeshStandardMaterial({ color: '#d8d9d1', roughness: .27, metalness: .72, envMapIntensity: .7 });
   metal.onBeforeCompile = shader => {
     shader.uniforms.uFieldTime = time;
+    shader.uniforms.uSculptureStrength = strength;
+    shader.fragmentShader = `uniform float uSculptureStrength;\n${shader.fragmentShader}`.replace('#include <opaque_fragment>', 'outgoingLight *= uSculptureStrength;\n#include <opaque_fragment>');
     shader.vertexShader = `uniform float uFieldTime;\n${noiseGLSL}\n${shader.vertexShader}`;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', /* glsl */`
       #include <begin_vertex>
@@ -35,7 +38,7 @@ export function createFieldMaterials() {
       transformed *= mix(.26, 1.82, smoothstep(.08, .93, wave * .72 + drift * .28));
     `);
   };
-  metal.customProgramCacheKey = () => 'noise-wave-cubes-v1';
+  metal.customProgramCacheKey = () => 'noise-wave-cubes-v2';
 
   function wire(opacity) {
     return new THREE.ShaderMaterial({
@@ -69,5 +72,5 @@ export function createFieldMaterials() {
       `,
     });
   }
-  return { time, metal, wire: wire(.72), vacantWire: wire(.28) };
+  return { time, strength, metal, wire: wire(.72), vacantWire: wire(.28) };
 }

@@ -1,6 +1,6 @@
 # Cole Masaki — Portfolio
 
-A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Five collections occupy a recursive sculpture. Orbit, pan, zoom, or use the collection navigation to travel directly. There is no scrolling page behind the scene.
+A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Five collections occupy distinct recursive sculptures. The overview shows representative work from each populated collection; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. There is no scrolling page behind the scene.
 
 ## Run
 
@@ -31,13 +31,15 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 
 ## Controls and accessibility
 
-- Drag to orbit; wheel or pinch to zoom; right-drag or two fingers to pan.
+- Drag to orbit; wheel or pinch to zoom. Overview rotation is bounded to preserve collection separation; the selected sculpture can be explored around the centered artwork.
 - Click artwork to open the full image. Keys 1–5 select collections; 0 returns to overview.
 - Arrow keys navigate the viewer; Escape closes dialogs. Images can be enlarged and opened separately.
 - Work index provides keyboard access to every item and remains available if WebGL fails.
 - Cubes expand in coherent noise-driven waves; wireframe opacity follows a separate scrolling noise field. These run on the GPU through `src/motion.js`.
-- Artwork orbits its collection slowly and smoothly turns to face the camera. Hovering holds that work in place for selection. The camera stays still until you navigate.
-- The pause button freezes the noise and orbital motion. Reduced-motion preference disables both and makes camera travel and billboarding immediate.
+- Artwork occupies ordered, camera-facing slots with restrained noise motion inside fixed gutters. The entire collection stays centered as you rotate its sculpture. A separate final render pass guarantees that neither solid geometry nor transparent wireframes can draw over images. The camera stays still until you navigate.
+- Desktop personal work is arranged in rows; logos have a two-by-two arrangement. The zine shows six sequential pages at a time. Mobile shows four artworks or two zine pages at a time with previous/next controls; no work is omitted. `src/layout.js` owns these arrangements and page sizes.
+- Numbered labels establish work/page order. Opening an artwork still uses the full-resolution viewer, and the zine reader retains its facing-page sequence.
+- The pause button freezes the noise and bounded artwork motion. Reduced-motion preference disables both and makes camera travel immediate.
 - Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load only in the viewer.
 
 ## Checks
