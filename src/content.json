@@ -1,0 +1,336 @@
+[
+  {
+    "id": "personal",
+    "label": "2D Personal Work",
+    "items": [
+      {
+        "id": "personal-01",
+        "source": "aifood7.jpg",
+        "src": "/art/personal-01.webp",
+        "thumb": "/art/personal-01-thumb.webp",
+        "width": 1800,
+        "height": 1800,
+        "alt": "2D Personal Work, work 1"
+      },
+      {
+        "id": "personal-02",
+        "source": "disgust.jpg",
+        "src": "/art/personal-02.webp",
+        "thumb": "/art/personal-02-thumb.webp",
+        "width": 2796,
+        "height": 2796,
+        "alt": "2D Personal Work, work 2"
+      },
+      {
+        "id": "personal-03",
+        "source": "fractalpass2.png",
+        "src": "/art/personal-03.webp",
+        "thumb": "/art/personal-03-thumb.webp",
+        "width": 1080,
+        "height": 1080,
+        "alt": "2D Personal Work, work 3"
+      },
+      {
+        "id": "personal-04",
+        "source": "Horse.png",
+        "src": "/art/personal-04.webp",
+        "thumb": "/art/personal-04-thumb.webp",
+        "width": 753,
+        "height": 818,
+        "alt": "2D Personal Work, work 4"
+      },
+      {
+        "id": "personal-05",
+        "source": "Jiraiya.jpg",
+        "src": "/art/personal-05.webp",
+        "thumb": "/art/personal-05-thumb.webp",
+        "width": 1024,
+        "height": 1280,
+        "alt": "2D Personal Work, work 5"
+      },
+      {
+        "id": "personal-06",
+        "source": "kaz6crop1s.jpg",
+        "src": "/art/personal-06.webp",
+        "thumb": "/art/personal-06-thumb.webp",
+        "width": 4133,
+        "height": 4133,
+        "alt": "2D Personal Work, work 6"
+      },
+      {
+        "id": "personal-07",
+        "source": "kitsunetest.png",
+        "src": "/art/personal-07.webp",
+        "thumb": "/art/personal-07-thumb.webp",
+        "width": 2000,
+        "height": 2000,
+        "alt": "2D Personal Work, work 7"
+      },
+      {
+        "id": "personal-08",
+        "source": "recessionchan_1.jpg",
+        "src": "/art/personal-08.webp",
+        "thumb": "/art/personal-08-thumb.webp",
+        "width": 2161,
+        "height": 2161,
+        "alt": "2D Personal Work, work 8"
+      },
+      {
+        "id": "personal-09",
+        "source": "temp.jpg",
+        "src": "/art/personal-09.webp",
+        "thumb": "/art/personal-09-thumb.webp",
+        "width": 4800,
+        "height": 4800,
+        "alt": "2D Personal Work, work 9"
+      },
+      {
+        "id": "personal-10",
+        "source": "UMesh_FemaleHead1.png",
+        "src": "/art/personal-10.webp",
+        "thumb": "/art/personal-10-thumb.webp",
+        "width": 1800,
+        "height": 1800,
+        "alt": "2D Personal Work, work 10"
+      }
+    ]
+  },
+  {
+    "id": "logos",
+    "label": "Logo Design",
+    "items": [
+      {
+        "id": "logos-01",
+        "source": "blocklogosample.jpg",
+        "src": "/art/logos-01.webp",
+        "thumb": "/art/logos-01-thumb.webp",
+        "width": 1783,
+        "height": 1500,
+        "alt": "Logo Design, work 1"
+      },
+      {
+        "id": "logos-02",
+        "source": "blocklogosample1.jpg",
+        "src": "/art/logos-02.webp",
+        "thumb": "/art/logos-02-thumb.webp",
+        "width": 2046,
+        "height": 2046,
+        "alt": "Logo Design, work 2"
+      },
+      {
+        "id": "logos-03",
+        "source": "blocklogosample2.jpg",
+        "src": "/art/logos-03.webp",
+        "thumb": "/art/logos-03-thumb.webp",
+        "width": 2057,
+        "height": 2057,
+        "alt": "Logo Design, work 3"
+      },
+      {
+        "id": "logos-04",
+        "source": "blocklogosample3.jpg",
+        "src": "/art/logos-04.webp",
+        "thumb": "/art/logos-04-thumb.webp",
+        "width": 1999,
+        "height": 1999,
+        "alt": "Logo Design, work 4"
+      }
+    ]
+  },
+  {
+    "id": "zine",
+    "label": "Zine",
+    "items": [
+      {
+        "id": "zine-01",
+        "source": "Page01.ai",
+        "src": "/art/zine-01.webp",
+        "thumb": "/art/zine-01-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 1"
+      },
+      {
+        "id": "zine-02",
+        "source": "Page02.ai",
+        "src": "/art/zine-02.webp",
+        "thumb": "/art/zine-02-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 2"
+      },
+      {
+        "id": "zine-03",
+        "source": "Page03.ai",
+        "src": "/art/zine-03.webp",
+        "thumb": "/art/zine-03-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 3"
+      },
+      {
+        "id": "zine-04",
+        "source": "Page04.ai",
+        "src": "/art/zine-04.webp",
+        "thumb": "/art/zine-04-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 4"
+      },
+      {
+        "id": "zine-05",
+        "source": "Page05.ai",
+        "src": "/art/zine-05.webp",
+        "thumb": "/art/zine-05-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 5"
+      },
+      {
+        "id": "zine-06",
+        "source": "Page06.ai",
+        "src": "/art/zine-06.webp",
+        "thumb": "/art/zine-06-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 6"
+      },
+      {
+        "id": "zine-07",
+        "source": "Page07.ai",
+        "src": "/art/zine-07.webp",
+        "thumb": "/art/zine-07-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 7"
+      },
+      {
+        "id": "zine-08",
+        "source": "Page08.ai",
+        "src": "/art/zine-08.webp",
+        "thumb": "/art/zine-08-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 8"
+      },
+      {
+        "id": "zine-09",
+        "source": "Page09.ai",
+        "src": "/art/zine-09.webp",
+        "thumb": "/art/zine-09-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 9"
+      },
+      {
+        "id": "zine-10",
+        "source": "Page10.ai",
+        "src": "/art/zine-10.webp",
+        "thumb": "/art/zine-10-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 10"
+      },
+      {
+        "id": "zine-11",
+        "source": "Page11.ai",
+        "src": "/art/zine-11.webp",
+        "thumb": "/art/zine-11-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 11"
+      },
+      {
+        "id": "zine-12",
+        "source": "Page12.ai",
+        "src": "/art/zine-12.webp",
+        "thumb": "/art/zine-12-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 12"
+      },
+      {
+        "id": "zine-13",
+        "source": "Page13.ai",
+        "src": "/art/zine-13.webp",
+        "thumb": "/art/zine-13-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 13"
+      },
+      {
+        "id": "zine-14",
+        "source": "Page14.ai",
+        "src": "/art/zine-14.webp",
+        "thumb": "/art/zine-14-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 14"
+      },
+      {
+        "id": "zine-15",
+        "source": "Page15.ai",
+        "src": "/art/zine-15.webp",
+        "thumb": "/art/zine-15-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 15"
+      },
+      {
+        "id": "zine-16",
+        "source": "Page16.ai",
+        "src": "/art/zine-16.webp",
+        "thumb": "/art/zine-16-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 16"
+      },
+      {
+        "id": "zine-17",
+        "source": "Page17.ai",
+        "src": "/art/zine-17.webp",
+        "thumb": "/art/zine-17-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 17"
+      },
+      {
+        "id": "zine-18",
+        "source": "Page18.ai",
+        "src": "/art/zine-18.webp",
+        "thumb": "/art/zine-18-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 18"
+      },
+      {
+        "id": "zine-19",
+        "source": "Page19.ai",
+        "src": "/art/zine-19.webp",
+        "thumb": "/art/zine-19-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 19"
+      },
+      {
+        "id": "zine-20",
+        "source": "Page20.ai",
+        "src": "/art/zine-20.webp",
+        "thumb": "/art/zine-20-thumb.webp",
+        "width": 1426,
+        "height": 2000,
+        "alt": "Zine, page 20"
+      }
+    ]
+  },
+  {
+    "id": "game",
+    "label": "Video Game",
+    "items": []
+  },
+  {
+    "id": "drawings",
+    "label": "Drawings & Paintings",
+    "items": []
+  }
+]
