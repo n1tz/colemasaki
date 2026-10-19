@@ -35,7 +35,9 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 - Click artwork to open the full image. Keys 1–5 select collections; 0 returns to overview.
 - Arrow keys navigate the viewer; Escape closes dialogs. Images can be enlarged and opened separately.
 - Work index provides keyboard access to every item and remains available if WebGL fails.
-- Automatic rotation is opt-in, disabled with reduced-motion preference. Camera travel is instant with reduced motion.
+- Cubes expand in coherent noise-driven waves; wireframe opacity follows a separate scrolling noise field. These run on the GPU through `src/motion.js`.
+- Artwork orbits its collection slowly and smoothly turns to face the camera. Hovering holds that work in place for selection. The camera stays still until you navigate.
+- The pause button freezes the noise and orbital motion. Reduced-motion preference disables both and makes camera travel and billboarding immediate.
 - Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load only in the viewer.
 
 ## Checks
@@ -48,6 +50,12 @@ node scripts/browser-check.mjs
 ```
 
 Browser checks expect a server at `http://localhost:3010`; override with `REVIEW_URL`. `CHROME_PATH` can select an existing browser executable. Screenshots are written under `/tmp/cole-check`.
+
+## Typography
+
+Large display text uses Helvetica Neue Bold when installed. The bundled Nimbus Sans Bold provides a consistent Helvetica-compatible fallback on devices without Helvetica Neue. A licensed Helvetica Neue webfont can replace that fallback if one is supplied. The font stack is defined by `--display` in `src/style.css`.
+
+The unmodified fallback font is from [Artifex's URW base35 collection](https://github.com/ArtifexSoftware/urw-base35-fonts). Its distribution license and copyright notices are retained in `public/fonts/LICENSE` and `public/fonts/COPYING`; the source repository contains its original font files.
 
 ## Vercel
 

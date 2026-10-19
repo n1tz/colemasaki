@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
+import { createFieldMaterials } from './motion.js';
 
 // Each collection occupies a persistent location. Content is independent of geometry.
-const locations = [[-6, 2, 2], [6, 3, -2], [1, -5, 5], [-8, -5, -5], [8, -6, -5]];
+const locations = [[-4, .5, 0], [6, 2, -3], [1, -3.5, 2.5], [-8, -5, -5], [8, -6, -5]];
 export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
@@ -14,6 +17,11 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
   host.appendChild(renderer.domElement);
+  const environment = new RoomEnvironment();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const environmentMap = pmrem.fromScene(environment, .04);
+  scene.environment = environmentMap.texture;
+  environment.dispose(); pmrem.dispose();
   const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, 180);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -31,9 +39,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const rim = new THREE.DirectionalLight(0xe2e4dd, 2.5); rim.position.set(15, -3, -10); scene.add(rim);
 
   const boxes = new THREE.BoxGeometry(1, 1, 1);
-  const metal = new THREE.MeshStandardMaterial({ color: '#bebfb6', roughness: .38, metalness: .55 });
-  const lineMat = new THREE.LineBasicMaterial({ color: '#9e9f91', transparent: true, opacity: .34 });
-  const vacantMat = new THREE.LineBasicMaterial({ color: '#9e9f91', transparent: true, opacity: .18 });
+  const field = createFieldMaterials();
+  const { metal, wire: lineMat, vacantWire: vacantMat } = field;
+  const noise = new ImprovedNoise();
   const groups = []; const artworks = []; const hitTargets = [];
   const manager = new THREE.LoadingManager(onReady);
   const loader = new THREE.TextureLoader(manager);
@@ -58,6 +66,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
         instanced.setColorAt(i,new THREE.Color().setScalar(.38 + ((i*17)%29)/50));
       });
       instanced.instanceMatrix.needsUpdate = true; group.add(instanced);
+      // GPU displacement can enlarge the outermost cubes beyond their static bounds.
+      instanced.computeBoundingSphere(); instanced.boundingSphere.radius += .5;
     }
     // A second lattice extends beyond the solid volume, following the same recursion.
     const edge = new THREE.EdgesGeometry(boxes);
@@ -82,27 +92,30 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       const z = 5.5 + ((i%3)*.6);
       const texture=loader.load(item.thumb, undefined, undefined,()=>{}); texture.colorSpace=THREE.SRGBColorSpace; texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,toneMapped:false}));
-      mesh.position.set(x,y,z); mesh.userData={category:ci,item:collection.items.indexOf(item)};
-      const backing = new THREE.Mesh(new THREE.BoxGeometry(width+.055,height+.055,.055), new THREE.MeshStandardMaterial({color:'#22231d',roughness:.6}));
-      backing.position.copy(mesh.position); backing.position.z-=.04; group.add(backing,mesh); artworks.push(mesh);
+      mesh.position.set(x,y,z);
+      mesh.rotation.set((i%3-1)*.12, (i%2 ? -.28 : .3), 0);
+      mesh.userData={category:ci,item:collection.items.indexOf(item),origin:new THREE.Vector3(x,y,z),phase:0,seed:i*1.71+ci*4.3};
+      group.add(mesh); artworks.push(mesh);
     });
   });
   // Thin connective members make the archive read as one continuous object.
   const branches=[];
   locations.forEach((point,i)=>{if(i===0)return; const a=locations[i-1];branches.push(...a,point[0],a[1],a[2],point[0],a[1],a[2],...point);});
   const branchGeometry=new THREE.BufferGeometry(); branchGeometry.setAttribute('position',new THREE.Float32BufferAttribute(branches,3));
-  scene.add(new THREE.LineSegments(branchGeometry,new THREE.LineBasicMaterial({color:'#717468',transparent:true,opacity:.35})));
+  const connections = new THREE.LineSegments(branchGeometry,new THREE.LineBasicMaterial({color:'#717468',transparent:true,opacity:.16}));
+  scene.add(connections);
   let active=-1, tween=null, paused=false, frame=0, last=performance.now();
-  let currentRotation = false;
+  let motionEnabled = !reducedMotion;
   const homeTarget = new THREE.Vector3(0,-1,0);
-  function homePosition(){return host.clientWidth<800 ? new THREE.Vector3(32,22,76) : new THREE.Vector3(19,13,36);}
+  function homePosition(){return host.clientWidth<800 ? new THREE.Vector3(26,18,62) : new THREE.Vector3(15.5,10.5,29.5);}
   camera.position.copy(homePosition());controls.target.copy(homeTarget);controls.update();
   function travel(position,target) {
     tween={start:performance.now(),from:camera.position.clone(),to:position,fromTarget:controls.target.clone(),toTarget:target};
     if(reducedMotion){camera.position.copy(position);controls.target.copy(target);tween=null;controls.update();}
   }
   function select(index){
-    active=index;controls.autoRotate=currentRotation && index<0 && !reducedMotion;
+    active=index;
+    connections.visible=index<0;
     groups.forEach((g,i)=>{g.visible=index<0||i===index;});
     if(index<0) travel(homePosition(),homeTarget.clone());
     else {const target=new THREE.Vector3(...locations[index]).add(new THREE.Vector3(0,0,2));
@@ -129,6 +142,36 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   });
   const labelElements=collections.map((c,i)=>document.querySelector(`[data-marker="${i}"]`));
   const projected=new THREE.Vector3();
+  const artWorld=new THREE.Vector3();
+  const facingMatrix=new THREE.Matrix4();
+  const facingQuaternion=new THREE.Quaternion();
+  function animateArt(delta){
+    if(motionEnabled) field.time.value+=delta;
+    artworks.forEach(mesh=>{
+      if(!mesh.parent.visible)return;
+      const data=mesh.userData;
+      if(motionEnabled && mesh!==hovered && !down){
+        data.phase+=delta;
+        const angle=data.phase*.038;
+        const drift=noise.noise(data.seed,data.phase*.12,3.7);
+        // Each work has its own lane; a complete orbit takes roughly three minutes.
+        // The hovered work holds still so selecting it never becomes a chase.
+        const radius=1+drift*.035;
+        mesh.position.set(
+          (data.origin.x*Math.cos(angle)+data.origin.z*Math.sin(angle))*radius,
+          data.origin.y+noise.noise(data.seed,2.3,data.phase*.15)*.65,
+          (-data.origin.x*Math.sin(angle)+data.origin.z*Math.cos(angle))*radius
+        );
+      }
+      // Spherical billboarding settles gently after the camera moves.
+      // A paused scene can still be navigated; reduced motion snaps without easing.
+      mesh.getWorldPosition(artWorld);
+      facingMatrix.lookAt(camera.position,artWorld,camera.up);
+      facingQuaternion.setFromRotationMatrix(facingMatrix);
+      if(reducedMotion)mesh.quaternion.copy(facingQuaternion);
+      else mesh.quaternion.slerp(facingQuaternion,1-Math.exp(-delta*3.8));
+    });
+  }
   function labels(){
     groups.forEach((g,i)=>{
       const el=labelElements[i];
@@ -144,7 +187,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     frame=requestAnimationFrame(tick);const delta=Math.min((now-last)/1000,.05);last=now;
     if(paused||document.hidden)return;
     if(tween){const t=Math.min((now-tween.start)/1350,1);const ease=t*t*(3-2*t);camera.position.lerpVectors(tween.from,tween.to,ease);controls.target.lerpVectors(tween.fromTarget,tween.toTarget,ease);if(t===1)tween=null;}
-    controls.update(delta);labels();renderer.render(scene,camera);
+    controls.update(delta);animateArt(delta);labels();renderer.render(scene,camera);
   }
   frame=requestAnimationFrame(tick);
   const resize=new ResizeObserver(()=>{camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight);if(active===-1)select(-1);});resize.observe(host);
@@ -153,8 +196,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     select,
     zoom(factor){tween=null;const offset=camera.position.clone().sub(controls.target).multiplyScalar(factor);offset.clampLength(controls.minDistance,controls.maxDistance);camera.position.copy(controls.target).add(offset);controls.update();},
     setPaused(value){paused=value;controls.enabled=!value;},
-    setMotion(value){currentRotation=value;controls.autoRotate=value&&active<0&&!reducedMotion;},
-    stats(){return {drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,artworks:artworks.length,camera:camera.position.toArray(),target:controls.target.toArray()};},
-    dispose(){cancelAnimationFrame(frame);resize.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{m.map?.dispose();m.dispose();});}});renderer.dispose();}
+    setMotion(value){motionEnabled=value&&!reducedMotion;},
+    stats(){return {drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,artworks:artworks.length,camera:camera.position.toArray(),target:controls.target.toArray(),motion:{enabled:motionEnabled,time:field.time.value,art:artworks.filter(o=>o.parent.visible).map(o=>({position:o.position.toArray(),quaternion:o.quaternion.toArray(),facing:new THREE.Vector3(0,0,1).applyQuaternion(o.quaternion).dot(camera.position.clone().sub(o.getWorldPosition(new THREE.Vector3())).normalize())}))}};},
+    dispose(){cancelAnimationFrame(frame);resize.disconnect();controls.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{m.map?.dispose();m.dispose();});}});environmentMap.dispose();renderer.dispose();}
   };
 }
