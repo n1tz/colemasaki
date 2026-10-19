@@ -8,7 +8,7 @@ const total=collections.reduce((n,c)=>n+c.items.length,0);
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let active=-1, space, viewing=null, returnFocus=null, motionEnabled=!reducedMotion;
 $('#app').innerHTML=`
-  <main id="space" aria-label="Interactive 3D artwork gallery"></main>
+  <div id="exhibition-frame" aria-hidden="true"></div><main id="space" aria-label="Interactive 3D artwork gallery"></main>
   <div class="border" aria-hidden="true"></div>
   <header class="topline"><span>PORTFOLIO / COLE MASAKI</span><div class="top-actions"><span class="desktop">ART / DESIGN / INDEPENDENT WORK</span><button id="help" aria-label="Navigation help">[ ? ]</button></div></header>
   <div class="brand"><h1>COLE<span>MASAKI</span></h1><p><span class="smallcross">✳</span>PERSONAL WORK & SELECTED DESIGN</p></div>
@@ -28,6 +28,7 @@ $('#app').innerHTML=`
 `;
 
 function select(index,updateHash=true){
+  const heading=$('.brand h1');heading.getAnimations().forEach(a=>a.cancel());const before=heading.getBoundingClientRect();
   active=index;
   $('#app').classList.toggle('focused',index>=0);
   document.querySelectorAll('.category').forEach((b,i)=>{b.classList.toggle('active',i===index);b.setAttribute('aria-pressed',String(i===index));});
@@ -38,6 +39,11 @@ function select(index,updateHash=true){
   $('#view-collection').innerHTML=index===2?'READ ZINE <span>↗</span>':'VIEW WORKS <span>↗</span>';
   $('#click-action').textContent=index<0?'ENTER COLLECTION':'OPEN WORK';
   space?.select(index);
+  if(!reducedMotion){
+    const after=heading.getBoundingClientRect();
+    heading.animate([{transform:`translate(${before.left-after.left}px,${before.top-after.top}px) scale(${before.width/after.width},${before.height/after.height})`},{transform:'none'}],{duration:1000,easing:'cubic-bezier(.16,1,.3,1)'});
+    document.querySelectorAll('.stage-caption > *').forEach((el,i)=>{el.getAnimations().forEach(a=>a.cancel());el.animate([{opacity:0,transform:'translateY(24px)',clipPath:'inset(100% 0 0)'},{opacity:1,transform:'none',clipPath:'inset(0)'}],{duration:700,delay:i*65,easing:'cubic-bezier(.16,1,.3,1)',fill:'backwards'});});
+  }
   if(updateHash)history.replaceState(null,'',index<0?location.pathname:`#${collections[index].id}`);
 }
 function pauseForDialog(){space?.setPaused(Boolean(document.querySelector('dialog[open]')));}
@@ -91,10 +97,12 @@ addEventListener('keydown',e=>{
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
 });
 let wasWide=innerWidth>800;addEventListener('resize',()=>{const changed=wasWide!==(innerWidth>800);wasWide=innerWidth>800;if(viewing&&changed){if(spreadMode()&&viewing.index>0&&viewing.index%2===0&&viewing.index<collections[viewing.category].items.length-1)viewing.index--;renderWork();}});
-function fallback(message){$('.loading').hidden=true;$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
+function finishLoading(){ $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
+function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
 function onPage(layout){$('.collection-pager').hidden=!layout||layout.pages<2;if(!layout)return;$('#collection-range').textContent=`${pad(layout.start+1)}–${pad(layout.end)} / ${pad(collections[active]?.items.length??0)}`;$('#collection-previous').disabled=layout.page===0;$('#collection-next').disabled=layout.page===layout.pages-1;}
 $('#collection-previous').onclick=()=>space?.turnExhibition(-1);$('#collection-next').onclick=()=>space?.turnExhibition(1);
-try{space=createSpace($('#space'),collections,{onOpen:openWork,onSelect:select,onHover,onPage,reducedMotion,onReady:message=>{if(message)fallback(message);else $('.loading').hidden=true;}});}catch(error){console.warn('3D unavailable:',error);fallback('The 3D view is unavailable on this device. All artwork is available in the work index.');}
+$('#app').inert=true;
+try{space=createSpace($('#space'),collections,{onOpen:openWork,onSelect:select,onHover,onPage,reducedMotion,onProgress:value=>{const boot=$('#boot');if(boot){boot.style.setProperty('--progress',value);$('#boot-percent').textContent=Math.round(value*100)+'%';}},onReady:message=>{if(message)fallback(message);else finishLoading();}});}catch(error){console.warn('3D unavailable:',error);fallback('The 3D view is unavailable on this device. All artwork is available in the work index.');}
 const route=collections.findIndex(c=>c.id===location.hash.slice(1));if(route>=0)select(route,false);
 addEventListener('hashchange',()=>select(collections.findIndex(c=>c.id===location.hash.slice(1)),false));
 // Read-only diagnostics for browser checks and performance inspection.

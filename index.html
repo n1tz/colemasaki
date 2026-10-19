@@ -7,10 +7,19 @@
     <meta name="description" content="Cole Masaki — personal work, logo design, and zine. An explorable spatial portfolio." />
     <title>Cole Masaki — Works</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      #boot{position:fixed;inset:0;z-index:999;background:#11120f;color:#fff;display:grid;place-items:center;transition:transform .7s cubic-bezier(.76,0,.24,1),visibility .7s;--progress:0}
+      #boot.ready{transform:translateY(-100%);visibility:hidden;pointer-events:none}
+      .boot-inner{width:260px}.boot-name{font:700 30px/1 "Helvetica Neue",Helvetica,"Nimbus Sans",Arial,sans-serif;letter-spacing:-1.5px}
+      .boot-track{height:1px;background:#363831;margin:24px 0 12px}.boot-track:after{content:"";display:block;height:100%;background:#fff;transform:scaleX(var(--progress));transform-origin:left;transition:transform .2s}
+      .boot-status{display:flex;justify-content:space-between;font:10px monospace;letter-spacing:.06em}
+      @media(prefers-reduced-motion:reduce){#boot,.boot-track:after{transition:none}}
+    </style>
   </head>
   <body>
+    <div id="boot" role="status" aria-label="Loading artwork"><div class="boot-inner"><div class="boot-name">COLE MASAKI</div><div class="boot-track"></div><div class="boot-status"><span>LOADING WORKS</span><span id="boot-percent">0%</span></div></div></div>
     <div id="app"></div>
-    <noscript>This portfolio requires JavaScript. Find Cole Masaki on <a href="https://www.instagram.com/colemasaki/">Instagram</a>.</noscript>
+    <noscript><style>#boot{display:none}</style>This portfolio requires JavaScript. Find Cole Masaki on <a href="https://www.instagram.com/colemasaki/">Instagram</a>.</noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

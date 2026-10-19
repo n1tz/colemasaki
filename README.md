@@ -42,6 +42,14 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 - The pause button freezes the noise and bounded artwork motion. Reduced-motion preference disables both and makes camera travel immediate.
 - Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load only in the viewer.
 
+## Full-screen world and transitions
+
+The WebGL canvas fills the viewport. An invisible `#exhibition-frame` defines the artwork area; the camera uses an offset frustum to preserve that composition while rendering the world behind the interface. Header text uses CSS difference blending.
+
+`src/depth-field.js` adds three fogged layers of distant fractals with 3,136 instanced cubes and two draw calls. Section changes use a curved camera flight, a brief field-of-view expansion, sculpture rotation, and staggered artwork unfolding. Reduced motion skips these transitions.
+
+The initial HTML contains the loading screen, so it appears before the JavaScript bundle arrives. Its progress tracks thumbnail loading; it exits after fonts and the first rendered scene are ready. The work index remains available if WebGL fails.
+
 ## Checks
 
 ```sh
@@ -49,6 +57,7 @@ npm run check
 npm run build
 npx playwright install chromium
 node scripts/browser-check.mjs
+node scripts/experience-check.mjs
 ```
 
 Browser checks expect a server at `http://localhost:3010`; override with `REVIEW_URL`. `CHROME_PATH` can select an existing browser executable. Screenshots are written under `/tmp/cole-check`.

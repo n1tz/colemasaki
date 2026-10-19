@@ -3,14 +3,16 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { createFieldMaterials } from './motion.js';
+import { createDepthField } from './depth-field.js';
 import { exhibitionLayout } from './layout.js';
 
 const desktopLocations = [[-9, 0, 0], [0, 1.2, -1], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 
-export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, reducedMotion }) {
+export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
+  const depthField = createDepthField(); scene.add(depthField);
   scene.fog = new THREE.FogExp2('#11120f', .006);
   // Artwork is rendered last with cleared depth. Neither opaque cubes nor
   // transparent wires can ever cross an image, including during camera travel.
@@ -26,7 +28,19 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const environment = new RoomEnvironment(), pmrem = new THREE.PMREMGenerator(renderer);
   const environmentMap = pmrem.fromScene(environment, .04);
   scene.environment = environmentMap.texture; environment.dispose(); pmrem.dispose();
-  const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, 180);
+  const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, 300);
+  const layoutFrame = document.querySelector('#exhibition-frame');
+  let viewportSignature = '';
+  function syncViewport() {
+    const rect = layoutFrame.getBoundingClientRect(), hostRect = host.getBoundingClientRect();
+    const signature = [rect.left,rect.top,rect.width,rect.height,hostRect.width,hostRect.height].join(',');
+    if(signature === viewportSignature)return false;
+    viewportSignature=signature;
+    camera.setViewOffset(rect.width,rect.height,hostRect.left-rect.left,hostRect.top-rect.top,hostRect.width,hostRect.height);
+    renderer.setSize(hostRect.width,hostRect.height);
+    return true;
+  }
+  syncViewport();
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .075; controls.enablePan = false;
   controls.minDistance = 6; controls.maxDistance = 110; controls.rotateSpeed = .4; controls.zoomSpeed = .65;
@@ -35,7 +49,10 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const rim = new THREE.DirectionalLight(0xe2e4dd, 1.8); rim.position.set(15, -3, -10); scene.add(rim);
   const boxes = new THREE.BoxGeometry(1, 1, 1), field = createFieldMaterials(), noise = new ImprovedNoise();
   const groups = [], boards = [], artworks = [], hitTargets = [], layouts = [];
-  const manager = new THREE.LoadingManager(onReady), loader = new THREE.TextureLoader(manager), dummy = new THREE.Object3D();
+  let assetsReady=false, fontsReady=false, ready=false;
+  document.fonts.ready.then(()=>{fontsReady=true;});
+  const manager = new THREE.LoadingManager(()=>{assetsReady=true;}), loader = new THREE.TextureLoader(manager), dummy = new THREE.Object3D();
+  manager.onProgress=(_url,loaded,total)=>onProgress?.(loaded/total*.9);
   let active = -1, page = 0, tween = null, paused = false, frame = 0, last = performance.now();
   let motionEnabled = !reducedMotion, down = null, hovered = null;
   const isMobile = () => innerWidth <= 800;
@@ -73,7 +90,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     collection.items.forEach((item, i) => {
       const texture = loader.load(item.thumb, undefined, undefined, () => {}); texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false }));
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false, transparent: true }));
       mesh.userData = { category: ci, item: i, origin: new THREE.Vector3(), seed: i * 1.71 + ci * 4.3, phase: 0 };
       board.add(mesh); artworks.push(mesh);
     });
@@ -86,7 +103,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
       boards[ci].children.forEach(mesh => {
         const slot = layout.slots.find(s => s.index === mesh.userData.item); mesh.visible = Boolean(slot); if (!slot) return;
-        mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1);
+        mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1); mesh.userData.baseScale=mesh.scale.clone(); mesh.userData.order=layout.slots.indexOf(slot);
       });
     });
     field.metal.envMapIntensity = active < 0 ? .55 : .22;
@@ -98,24 +115,25 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   function destination() {
     const target = active < 0 ? new THREE.Vector3(0, isMobile() ? -1.3 : -.8, 0) : groups[active].position.clone();
     const layout = active < 0 ? { width: isMobile() ? 15.6 : 28, height: isMobile() ? 15.5 : 12.5 } : layouts[active];
-    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const tan = Math.tan(THREE.MathUtils.degToRad(43 / 2));
     const distance = 2.3 + Math.max(layout.width / (2 * tan * camera.aspect), (layout.height + (active < 0 ? 0 : .65)) / (2 * tan)) * (active < 0 ? 1 : 1.12);
     return { target, position: target.clone().add(new THREE.Vector3(0, distance * .07, distance)) };
   }
   function travel(instant = false) {
+    camera.fov=43;camera.updateProjectionMatrix();
     const { position, target } = destination();
     controls.minAzimuthAngle = active < 0 ? -.26 : -Math.PI; controls.maxAzimuthAngle = active < 0 ? .26 : Math.PI;
     controls.minPolarAngle = active < 0 ? 1.25 : .35; controls.maxPolarAngle = active < 0 ? 1.75 : Math.PI - .35;
-    if (instant || reducedMotion) { camera.position.copy(position); controls.target.copy(target); tween = null; controls.update(); }
-    else tween = { start: performance.now(), from: camera.position.clone(), to: position, fromTarget: controls.target.clone(), toTarget: target };
+    if (instant || reducedMotion) { camera.position.copy(position); controls.target.copy(target); tween = null; controls.enabled=!paused; controls.update(); }
+    else { controls.enabled=false; tween = { start: performance.now(), from: camera.position.clone(), to: position, fromTarget: controls.target.clone(), toTarget: target }; }
   }
   function select(index) {
     active = index; page = 0; hovered = null; onHover(null);
-    camera.aspect = host.clientWidth / host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight);
+    syncViewport();
     arrange(); travel();
   }
   function turnExhibition(direction) { if (active < 0) return; page += direction; arrange(); travel(); }
-  arrange(); travel(true); controls.addEventListener('start', () => { tween = null; });
+  arrange(); travel(true);
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
   const visibleArt = () => artworks.filter(o => o.visible && o.parent.visible);
   function intersects(event, objects) {
@@ -124,11 +142,12 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   renderer.domElement.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; });
   renderer.domElement.addEventListener('pointermove', e => {
-    if (e.buttons) return; hovered = intersects(e, visibleArt())?.object; renderer.domElement.style.cursor = hovered ? 'pointer' : 'grab'; onHover(hovered?.userData, e.clientX, e.clientY);
+    if (e.buttons || tween) return; hovered = intersects(e, visibleArt())?.object; renderer.domElement.style.cursor = hovered ? 'pointer' : 'grab'; onHover(hovered?.userData, e.clientX, e.clientY);
   });
   renderer.domElement.addEventListener('pointerleave', () => { hovered = null; onHover(null); });
   renderer.domElement.addEventListener('pointercancel', () => { down = null; });
   renderer.domElement.addEventListener('pointerup', e => {
+    if (tween) {down=null;return;}
     if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) { down = null; return; } down = null;
     const hit = intersects(e, visibleArt());
     if (hit) { const { category, item } = hit.object.userData; active < 0 ? onSelect(category) : onOpen(category, item); return; }
@@ -140,6 +159,13 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const projected = new THREE.Vector3(), direction = new THREE.Vector3();
   function animateArt(delta) {
     if (motionEnabled) field.time.value += delta;
+    const progress=tween?Math.min((performance.now()-tween.start)/1450,1):1;
+    const pulse=Math.sin(progress*Math.PI);
+    groups.forEach(group=>{
+      const base=active<0?(isMobile()?.65:.86):.85;
+      group.scale.setScalar(base*(1+pulse*.28));
+      group.rotation.set(pulse*.16,pulse*.65,pulse*-.12);
+    });
     boards.forEach((board, ci) => {
       if (!board.visible) return;
       direction.copy(camera.position).sub(groups[ci].position).normalize(); board.position.copy(groups[ci].position).addScaledVector(direction, 2.3);
@@ -147,6 +173,10 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       board.quaternion.copy(camera.quaternion);
       board.children.forEach(mesh => {
         if (!mesh.visible) return; const data = mesh.userData;
+        const reveal=tween?THREE.MathUtils.smoothstep(progress,.18+data.order*.018,.66+data.order*.018):1;
+        mesh.scale.copy(data.baseScale);mesh.scale.x*=.82+.18*reveal;mesh.scale.y*=.025+.975*reveal;
+        mesh.material.opacity=reveal;
+        mesh.rotation.y=(1-reveal)*.7;
         if (motionEnabled && mesh !== hovered && !down) {
           data.phase += delta; const amplitude = active < 0 ? .045 : .018;
           mesh.position.set(data.origin.x + noise.noise(data.seed, data.phase * .12, 3.7) * amplitude, data.origin.y + noise.noise(data.seed, 2.3, data.phase * .12) * amplitude, 0);
@@ -156,14 +186,14 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   function labels() {
     const rect = host.getBoundingClientRect();
-    workLabels.hidden = active < 0;
+    workLabels.hidden = active < 0 || Boolean(tween);
     if(active >= 0) artworks.forEach((mesh,i)=>{
       const el=itemLabels[i]; el.hidden=!mesh.visible||!mesh.parent.visible; if(el.hidden)return;
       projected.set(-.5,-.5,0).applyMatrix4(mesh.matrixWorld).project(camera);
       el.style.left=`${(projected.x*.5+.5)*rect.width}px`;el.style.top=`${(-projected.y*.5+.5)*rect.height+7}px`;
     });
     groups.forEach((g, i) => {
-      const el = labelElements[i]; if (active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
+      const el = labelElements[i]; if (tween || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
       projected.set(0, -layouts[i].height / 2 - .65, 0).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
       const x = (projected.x * .5 + .5) * rect.width, y = (-projected.y * .5 + .5) * rect.height;
       el.hidden = projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height;
@@ -172,11 +202,20 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   function tick(now) {
     frame = requestAnimationFrame(tick); const delta = Math.min((now - last) / 1000, .05); last = now; if (paused || document.hidden) return;
-    if (tween) { const t = Math.min((now - tween.start) / 1100, 1), ease = t * t * (3 - 2 * t); camera.position.lerpVectors(tween.from, tween.to, ease); controls.target.lerpVectors(tween.fromTarget, tween.toTarget, ease); if (t === 1) tween = null; }
+    if (tween) {
+      const t=Math.min((now-tween.start)/1450,1), ease=t*t*t*(t*(t*6-15)+10), arc=Math.sin(Math.PI*t);
+      camera.position.lerpVectors(tween.from,tween.to,ease);
+      camera.position.x+=arc*(tween.toTarget.x>=tween.fromTarget.x?1:-1)*4;
+      camera.position.y+=arc*2.8;camera.position.z+=arc*7;
+      controls.target.lerpVectors(tween.fromTarget,tween.toTarget,ease);
+      camera.fov=43+arc*7;camera.updateProjectionMatrix();
+      if(t===1){tween=null;controls.enabled=!paused;}
+    }
     controls.update(delta); animateArt(delta); renderer.info.reset(); renderer.clear(); renderer.render(scene, camera); renderer.clearDepth(); renderer.render(artScene, camera); labels();
+    if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
   }
   frame = requestAnimationFrame(tick);
-  const resize = new ResizeObserver(() => { camera.aspect = host.clientWidth / host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight); arrange(); travel(); }); resize.observe(host);
+  const resize = new ResizeObserver(() => { if(syncViewport()){arrange(); travel(true);} }); resize.observe(host);resize.observe(layoutFrame);
   renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); onReady('The 3D view is unavailable. Use the work index.'); });
   function artworkStats(o) {
     const rect = host.getBoundingClientRect();
@@ -186,9 +225,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   return {
     select, turnExhibition,
-    zoom(factor) { tween = null; const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
-    setPaused(value) { paused = value; controls.enabled = !value; }, setMotion(value) { motionEnabled = value && !reducedMotion; },
-    stats() { const rect = host.getBoundingClientRect(); return { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page,
+    zoom(factor) { tween = null; controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
+    setPaused(value) { paused = value; controls.enabled = !value && !tween; }, setMotion(value) { motionEnabled = value && !reducedMotion; },
+    stats() { const rect = layoutFrame.getBoundingClientRect(); return { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
     dispose() { cancelAnimationFrame(frame); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); environmentMap.dispose(); renderer.dispose(); }
   };
