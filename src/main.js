@@ -1,6 +1,7 @@
 import './style.css';
 import collections from './content.json';
 import { createSpace } from './scene.js';
+import { createTitle } from './title.js';
 
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
@@ -11,7 +12,7 @@ $('#app').innerHTML=`
   <div id="exhibition-frame" aria-hidden="true"></div><main id="space" aria-label="Interactive 3D artwork gallery"></main>
   <div class="border" aria-hidden="true"></div>
   <header class="topline"><span>PORTFOLIO / COLE MASAKI</span><div class="top-actions"><span class="desktop">ART / DESIGN / INDEPENDENT WORK</span><button id="help" aria-label="Navigation help">[ ? ]</button></div></header>
-  <div class="brand"><h1>COLE<span>MASAKI</span></h1><p><span class="smallcross">✳</span>PERSONAL WORK & SELECTED DESIGN</p></div>
+  <div class="brand"><h1 aria-label="COLE MASAKI">COLE MASAKI</h1><p><span class="smallcross">✳</span>PERSONAL WORK & SELECTED DESIGN</p></div>
   <nav class="collection-nav" aria-label="Collections"><div class="nav-heading"><span>COLLECTIONS</span><span>01—05</span></div>
     ${collections.map((c,i)=>`<button class="category ${c.items.length?'':'pending'}" data-category="${i}" aria-pressed="false"><span class="number">${pad(i+1)}</span><span class="category-label" data-short="${['2D Work','Logos','Zine','Game','Drawing'][i]}">${c.label}${c.items.length?'':'<small>To be added</small>'}</span><span class="count">${c.items.length?pad(c.items.length):'—'}</span></button>`).join('')}
     <button class="index-button" id="open-index">WORK INDEX <span>↗</span></button>
@@ -27,9 +28,15 @@ $('#app').innerHTML=`
   <dialog class="help-dialog" aria-label="Navigation help"><div class="dialog-head"><span class="title">NAVIGATION</span><button class="close" data-close="help-dialog" aria-label="Close help">CLOSE ×</button></div><div class="help-content"><dl><dt>Rotate</dt><dd>Drag / one finger</dd><dt>Zoom</dt><dd>Scroll / pinch / + −</dd><dt>Enter collection</dt><dd>Click a collection preview</dd><dt>Open work</dt><dd>Click an artwork</dd><dt>Change collection</dt><dd>Menu / keys 1–5</dd><dt>Overview</dt><dd>Key 0 / overview button</dd><dt>Previous / next work</dt><dd>← → in the viewer</dd><dt>Close viewer</dt><dd>Escape</dd><dt>Pause animation</dt><dd>Ⅱ in the camera controls</dd></dl><p>Use the work index for direct access to every image. The zine reads in page order; select an image to enlarge it.</p></div></dialog>
 `;
 
+const title=createTitle($('.brand h1'),reducedMotion);
+let titleReady=false;
+const titleText=()=>active<0?'COLE MASAKI':collections[active].label.toUpperCase();
+title.set(titleText(),{animate:false});
+
 function select(index,updateHash=true){
-  const heading=$('.brand h1');heading.getAnimations().forEach(a=>a.cancel());const before=heading.getBoundingClientRect();
+  const changed=index!==active;
   active=index;
+  if(changed)title.set(titleText(),{animate:titleReady});
   $('#app').classList.toggle('focused',index>=0);
   document.querySelectorAll('.category').forEach((b,i)=>{b.classList.toggle('active',i===index);b.setAttribute('aria-pressed',String(i===index));});
   $('#location').textContent=index<0?'00 / OVERVIEW':`${pad(index+1)} / ROOM`;
@@ -40,8 +47,6 @@ function select(index,updateHash=true){
   $('#click-action').textContent=index<0?'ENTER COLLECTION':'OPEN WORK';
   space?.select(index);
   if(!reducedMotion){
-    const after=heading.getBoundingClientRect();
-    heading.animate([{transform:`translate(${before.left-after.left}px,${before.top-after.top}px) scale(${before.width/after.width},${before.height/after.height})`},{transform:'none'}],{duration:1000,easing:'cubic-bezier(.16,1,.3,1)'});
     document.querySelectorAll('.stage-caption > *').forEach((el,i)=>{el.getAnimations().forEach(a=>a.cancel());el.animate([{opacity:0,transform:'translateY(24px)',clipPath:'inset(100% 0 0)'},{opacity:1,transform:'none',clipPath:'inset(0)'}],{duration:700,delay:i*65,easing:'cubic-bezier(.16,1,.3,1)',fill:'backwards'});});
   }
   if(updateHash)history.replaceState(null,'',index<0?location.pathname:`#${collections[index].id}`);
@@ -97,7 +102,7 @@ addEventListener('keydown',e=>{
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
 });
 let wasWide=innerWidth>800;addEventListener('resize',()=>{const changed=wasWide!==(innerWidth>800);wasWide=innerWidth>800;if(viewing&&changed){if(spreadMode()&&viewing.index>0&&viewing.index%2===0&&viewing.index<collections[viewing.category].items.length-1)viewing.index--;renderWork();}});
-function finishLoading(){ $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
+function finishLoading(){ if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
 function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
 function onPage(layout){$('.collection-pager').hidden=!layout||layout.pages<2;if(!layout)return;$('#collection-range').textContent=`${pad(layout.start+1)}–${pad(layout.end)} / ${pad(collections[active]?.items.length??0)}`;$('#collection-previous').disabled=layout.page===0;$('#collection-next').disabled=layout.page===layout.pages-1;}
 $('#collection-previous').onclick=()=>space?.turnExhibition(-1);$('#collection-next').onclick=()=>space?.turnExhibition(1);

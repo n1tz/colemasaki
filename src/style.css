@@ -95,3 +95,8 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
  .collection-nav,.focused .collection-nav,.stage-caption,.focused .stage-caption{top:140px}
  #exhibition-frame,.focused #exhibition-frame{inset:135px 250px 130px}.category{padding:10px 0}.collection-pager{bottom:100px}
 }
+
+.brand h1 span.title-run{display:inline-block;margin:0;white-space:nowrap}
+.brand h1 span.title-letter{display:inline-grid;position:relative;margin:0;white-space:pre;vertical-align:baseline}
+.brand h1 .title-letter b{font:inherit;visibility:hidden}
+.brand h1 .title-letter i{position:absolute;inset:0;font:inherit;text-align:center;overflow:hidden}
