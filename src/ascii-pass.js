@@ -27,10 +27,12 @@ export function createAsciiPass(renderer) {
         float index=floor(density*7.);
         float glyph=texture2D(glyphs,vec2((index+local.x)/8.,local.y)).r;
         vec3 ink=mix(vec3(.0056,.006,.0048),vec3(mix(.065,.46,travel))*(.45+density*.55),glyph);
-        // A slow diagonal reading band passes through the architecture every 18s.
-        float phase=mod(time*.055,1.);
-        float band=1.-smoothstep(.055,.17,abs(vUv.x*.65+vUv.y*.35-(phase*1.6-.3)));
-        float idle=band*.94;
+        // One complete horizontal cycle keeps half of every row in ASCII.
+        // A slow diagonal drift and gentle curvature move the boundary continuously.
+        float phase=vUv.x+vUv.y*.28+time*.018
+          +.055*sin(vUv.y*6.283185-time*.13);
+        float mask=smoothstep(-.12,.12,sin(phase*6.283185));
+        float idle=mask*.94;
         float amount=enabled*max(idle,travel);
         gl_FragColor=vec4(mix(original,ink,amount),1.);
         #include <colorspace_fragment>
