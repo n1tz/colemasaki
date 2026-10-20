@@ -76,6 +76,7 @@ if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))thro
 await page.locator('[data-category="2"]').click();await page.locator('#view-collection').click();await page.locator('#next').click();if(await page.locator('.view-body img').count()!==1)throw new Error('Mobile zine should show one page');await page.locator('#next').click();await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));await page.screenshot({path:'/tmp/cole-check/mobile-zine.png'});
 await page.keyboard.press('Escape');
 await page.locator('#help').click();await page.keyboard.press('Escape');
+await page.close();
 const reduced=await browser.newPage({reducedMotion:'reduce',viewport:{width:1280,height:800}});
 await reduced.goto(process.env.REVIEW_URL || 'http://localhost:3010/');await reduced.waitForFunction(()=>document.querySelector('.loading').hidden);
 if(!await reduced.locator('#motion').isDisabled())throw new Error('Reduced motion rotation is enabled');

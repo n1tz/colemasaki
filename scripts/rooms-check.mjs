@@ -2,6 +2,7 @@ import { chromium } from '@playwright/test';
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try {
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
   page.setDefaultTimeout(60000);
   await page.goto(process.env.REVIEW_URL||'http://localhost:3010/');
   await page.waitForFunction(()=>!document.querySelector('#boot'));
@@ -10,7 +11,19 @@ try {
   const origin=await page.evaluate(()=>window.portfolio.stats().target);
   await page.locator('[data-category="0"]').click();
   await page.waitForFunction(()=>window.portfolio.stats().transitioning);
+  await page.waitForFunction(()=>window.portfolio.stats().asciiTravel>.75);
+  const mid=await page.evaluate(()=>window.portfolio.stats());
+  if(Math.abs(mid.cameraFov-43)>.01||Math.abs(mid.cameraRotation[2])>.01)throw Error('Camera lens or horizon is unstable');
+  await page.screenshot({path:'/tmp/cole-check/ascii-travel.png'});
   await page.waitForFunction(()=>!window.portfolio.stats().transitioning);
+  const beforePause=await page.evaluate(()=>window.portfolio.stats().architectureTime);
+  await page.locator('#motion').click();
+  await page.waitForTimeout(300);
+  const frozen=await page.evaluate(()=>window.portfolio.stats().architectureTime);
+  await page.waitForTimeout(300);
+  if(await page.evaluate(()=>window.portfolio.stats().architectureTime)!==frozen)throw Error('Architecture did not pause');
+  await page.locator('#motion').click();
+  await page.waitForFunction(t=>window.portfolio.stats().architectureTime>t+.1,beforePause);
   const room=await page.evaluate(()=>window.portfolio.stats().target);
   if(Math.hypot(...room.map((n,i)=>n-origin[i]))<100)throw Error('Collection must inhabit a separate room');
   await page.locator('[data-category="2"]').click();
@@ -22,5 +35,19 @@ try {
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   if(!await centered())throw Error('Mobile library is not screen-centered');
-  console.log('PASS: centered desktop/mobile library, separate room destinations, interrupted flights, draw-call budget.');
+  await page.close();
+  const reduced=await browser.newPage({reducedMotion:'reduce',viewport:{width:900,height:700}});
+  reduced.on('pageerror',e=>errors.push(e.message));
+  await reduced.goto(process.env.REVIEW_URL||'http://localhost:3010/');
+  await reduced.waitForFunction(()=>!document.querySelector('#boot'));
+  await reduced.locator('[data-category="1"]').click();
+  const still=await reduced.evaluate(()=>window.portfolio.stats());
+  if(still.transitioning||still.architectureTime!==0||still.asciiTravel!==0||still.target[0]!==90)throw Error('Reduced motion did not suppress the effects');
+  await reduced.close();
+  const fallback=await browser.newPage();
+  await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:original.call(this,type,...args);};});
+  await fallback.goto(process.env.REVIEW_URL||'http://localhost:3010/');await fallback.locator('.fallback button').click();
+  if(await fallback.locator('.index-item').count()!==34)throw Error('Fallback lost artwork');
+  if(errors.length)throw Error(errors.join('\n'));
+  console.log('PASS: centered desktop/mobile library, separate room destinations, interrupted flights, stable lens/horizon, ASCII travel, architecture pause, draw-call budget, reduced motion, WebGL fallback, no shader errors.');
 } finally { await browser.close(); }

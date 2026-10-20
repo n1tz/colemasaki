@@ -4,8 +4,8 @@ export const roomLocations = [[-82, 16, -110], [90, -20, -190], [0, 65, -290], [
 
 // A continuous architecture: six chambers, open ribs, recursively split masonry.
 // All masonry is instanced; all outlines are merged into one draw call.
-export function createDepthField() {
-  const group = new THREE.Group(), cells = [], lines = [];
+export function createDepthField(time) {
+  const group = new THREE.Group(), cells = [], lines = [], centers = [];
   const cube = new THREE.BoxGeometry(1, 1, 1), edge = new THREE.EdgesGeometry(cube);
   const source = edge.attributes.position.array;
   function block(x,y,z,w,h,d,shade=.5) { cells.push([x,y,z,w,h,d,shade]); }
@@ -41,16 +41,44 @@ export function createDepthField() {
   }
   cube.setAttribute('color',new THREE.Float32BufferAttribute(faceColors,3));
   const material=new THREE.MeshBasicMaterial({color:'#666966',vertexColors:true});
+  const pulseGLSL=`
+    uniform float uArchitectureTime;
+    vec3 breathe(vec3 center,vec3 offset){
+      float wave=sin(center.z*.09+center.x*.035-uArchitectureTime*.62);
+      float undertow=sin(center.y*.12+center.z*.023+uArchitectureTime*.37);
+      return center+offset*vec3(1.+wave*.11,1.+undertow*.11,1.+wave*.32+undertow*.12);
+    }
+  `;
+  material.onBeforeCompile=shader=>{
+    shader.uniforms.uArchitectureTime=time;
+    shader.vertexShader=pulseGLSL+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+      vec3 center=instanceMatrix[3].xyz;
+      vec3 expanded=breathe(center,transformed);
+      transformed=expanded-center;
+    `);
+  };
+  material.customProgramCacheKey=()=> 'breathing-architecture';
   const mesh=new THREE.InstancedMesh(cube,material,cells.length),dummy=new THREE.Object3D();
   cells.forEach(([x,y,z,w,h,d,shade],i)=>{
     dummy.position.set(x,y,z);dummy.scale.set(w,h,d);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
     mesh.setColorAt(i,new THREE.Color().setScalar(shade));
     if(i%2)return;
-    for(let j=0;j<source.length;j+=3)lines.push(x+source[j]*w*1.08,y+source[j+1]*h*1.08,z+source[j+2]*d*1.08);
+    for(let j=0;j<source.length;j+=3){lines.push(x+source[j]*w*1.08,y+source[j+1]*h*1.08,z+source[j+2]*d*1.08);centers.push(x,y,z);}
   });
   mesh.instanceMatrix.needsUpdate=true;group.add(mesh);
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(lines,3));
-  group.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:'#a3aaa0',transparent:true,opacity:.09,depthWrite:false})));
+  geometry.setAttribute('aCenter',new THREE.Float32BufferAttribute(centers,3));
+  const wire=new THREE.LineBasicMaterial({color:'#a3aaa0',transparent:true,opacity:.09,depthWrite:false});
+  wire.onBeforeCompile=shader=>{
+    shader.uniforms.uArchitectureTime=time;
+    shader.vertexShader='attribute vec3 aCenter;\n'+pulseGLSL+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed=breathe(aCenter,position-aCenter);');
+  };
+  wire.customProgramCacheKey=()=> 'breathing-architecture-wire';
+  mesh.computeBoundingSphere();mesh.boundingSphere.radius+=4;
+  geometry.computeBoundingSphere();geometry.boundingSphere.radius+=4;
+  group.add(new THREE.LineSegments(geometry,wire));
   edge.dispose();group.userData.instances=cells.length;
   return group;
 }

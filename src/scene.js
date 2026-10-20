@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { createFieldMaterials } from './motion.js';
 import { createDepthField, roomLocations } from './depth-field.js';
+import { createAsciiPass } from './ascii-pass.js';
 import { exhibitionLayout } from './layout.js';
 
 const desktopLocations = [[-9, 0, 0], [0, 0, 0], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
@@ -12,7 +13,8 @@ const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], 
 export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
-  const depthField = createDepthField(); scene.add(depthField);
+  const architectureTime={value:0};
+  const depthField = createDepthField(architectureTime); scene.add(depthField);
   scene.fog = new THREE.FogExp2('#11120f', .0035);
   // Artwork is rendered last with cleared depth. Neither opaque cubes nor
   // transparent wires can ever cross an image, including during camera travel.
@@ -25,6 +27,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   renderer.toneMappingExposure = 1.05;
   renderer.autoClear = false; renderer.info.autoReset = false;
   host.appendChild(renderer.domElement);
+  const ascii=createAsciiPass(renderer);
   const environment = new RoomEnvironment(), pmrem = new THREE.PMREMGenerator(renderer);
   const environmentMap = pmrem.fromScene(environment, .04);
   scene.environment = environmentMap.texture; environment.dispose(); pmrem.dispose();
@@ -37,7 +40,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     if(signature === viewportSignature)return false;
     viewportSignature=signature;
     camera.setViewOffset(rect.width,rect.height,hostRect.left-rect.left,hostRect.top-rect.top,hostRect.width,hostRect.height);
-    renderer.setSize(hostRect.width,hostRect.height);
+    renderer.setSize(hostRect.width,hostRect.height);ascii.resize(hostRect.width,hostRect.height);
     return true;
   }
   syncViewport();
@@ -120,23 +123,27 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     return { target, position: target.clone().add(new THREE.Vector3(0, 0, distance)) };
   }
   function travel(instant = false) {
-    // Clear residual drag inertia before taking ownership of the camera.
+    const savedPosition=camera.position.clone(),savedRotation=camera.quaternion.clone(),savedFov=camera.fov;
     controls.enableDamping=false;controls.update();controls.enableDamping=true;
-    camera.fov=43;camera.updateProjectionMatrix();
+    camera.position.copy(savedPosition);camera.quaternion.copy(savedRotation);
     const { position, target } = destination();
     controls.minAzimuthAngle = active < 0 ? -.26 : -Math.PI; controls.maxAzimuthAngle = active < 0 ? .26 : Math.PI;
     controls.minPolarAngle = active < 0 ? 1.25 : .35; controls.maxPolarAngle = active < 0 ? 1.75 : Math.PI - .35;
-    if (instant || reducedMotion) { camera.up.set(0,1,0); camera.position.copy(position); controls.target.copy(target); tween = null; controls.enabled=!paused; controls.update(); }
-    else {
+    if (instant || reducedMotion) {
+      camera.fov=43;camera.updateProjectionMatrix();camera.up.set(0,1,0);camera.position.copy(position);controls.target.copy(target);tween=null;controls.enabled=!paused;controls.update();
+    } else {
       controls.enabled=false;
-      const from=camera.position.clone(), fromTarget=controls.target.clone();
-      const length=from.distanceTo(position), sign=target.x>=fromTarget.x?1:-1;
-      const departing=from.clone().add(new THREE.Vector3(sign*18,12,-26));
-      const arriving=position.clone().add(new THREE.Vector3(-sign*24,18,38));
-      const path=new THREE.CatmullRomCurve3([from,departing,arriving,position],false,'centripetal');
-      tween={start:performance.now(),duration:length>50?2600:1300,from,to:position,fromTarget,toTarget:target,path,sign};
+      const from=camera.position.clone(),fromTarget=controls.target.clone();
+      const distance=from.distanceTo(position),offset=position.clone().sub(from);
+      // A single broad dolly arc, with no reversing approach or moving look-at target.
+      const lift=new THREE.Vector3(0,Math.min(distance*.045,7),0);
+      const path=new THREE.CubicBezierCurve3(from,from.clone().addScaledVector(offset,.32).add(lift),from.clone().addScaledVector(offset,.68).add(lift),position);
+      const endCamera=camera.clone();endCamera.up.set(0,1,0);endCamera.position.copy(position);endCamera.lookAt(target);
+      tween={elapsed:0,progress:0,duration:distance>10?Math.min(4.6,3.1+distance*.003):.8,path,
+        fromTarget,toTarget:target,fromRotation:savedRotation,toRotation:endCamera.quaternion.clone(),fromFov:savedFov};
     }
   }
+
   function select(index) {
     active = index; page = 0; hovered = null; onHover(null);
     syncViewport();
@@ -168,13 +175,13 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const itemLabels = artworks.map(mesh => { const el = document.createElement('span'); el.className = 'work-label'; el.textContent = `${collections[mesh.userData.category].id === 'zine' ? 'PAGE ' : ''}${String(mesh.userData.item + 1).padStart(2, '0')}`; workLabels.appendChild(el); return el; });
   const projected = new THREE.Vector3(), direction = new THREE.Vector3();
   function animateArt(delta) {
-    if (motionEnabled) field.time.value += delta;
-    const progress=tween?Math.min((performance.now()-tween.start)/tween.duration,1):1;
+    if (motionEnabled) {field.time.value += delta;architectureTime.value+=delta;}
+    const progress=tween?tween.progress:1;
     const pulse=Math.sin(progress*Math.PI);
     groups.forEach(group=>{
       const base=active<0?(isMobile()?.65:.86):.85;
-      group.scale.setScalar(base*(1+pulse*.28));
-      group.rotation.set(pulse*.16,pulse*.65,pulse*-.12);
+      group.scale.setScalar(base*(1+pulse*.08));
+      group.rotation.set(0,pulse*.12,0);
     });
     boards.forEach((board, ci) => {
       if (!board.visible) return;
@@ -211,19 +218,20 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     });
   }
   function tick(now) {
-    frame = requestAnimationFrame(tick); const delta = Math.max(0, Math.min((now - last) / 1000, .05)); last = now; if (paused || document.hidden) return;
+    frame = requestAnimationFrame(tick); const elapsed = Math.max(0,(now-last)/1000), delta = Math.min(elapsed,.05); last = now; if (paused || document.hidden) return;
     if (tween) {
-      const t=Math.min((now-tween.start)/tween.duration,1), ease=t*t*(3-2*t), arc=Math.sin(Math.PI*t);
+      tween.elapsed+=Math.min(elapsed,.25);
+      const t=Math.min(tween.elapsed/tween.duration,1);
+      tween.progress=t;
+      const ease=t*t*t*(10+t*(-15+6*t));
       tween.path.getPoint(ease,camera.position);
       controls.target.lerpVectors(tween.fromTarget,tween.toTarget,ease);
-      const ahead=tween.path.getPoint(Math.min(1,ease+.06));
-      const look=controls.target.clone().lerp(ahead,Math.sin(Math.PI*t)*.7);
-      camera.up.set(Math.sin(arc*.32*tween.sign),Math.cos(arc*.32),0);
-      camera.lookAt(look);
-      camera.fov=43+arc*24;camera.updateProjectionMatrix();
+      camera.quaternion.slerpQuaternions(tween.fromRotation,tween.toRotation,ease);
+      camera.fov=THREE.MathUtils.lerp(tween.fromFov,43,ease);
+      camera.updateProjectionMatrix();
       if(t===1){tween=null;camera.up.set(0,1,0);controls.enabled=!paused;controls.update();}
     }
-    if(!tween)controls.update(delta); animateArt(delta); renderer.info.reset(); renderer.clear(); renderer.render(scene, camera); renderer.clearDepth(); renderer.render(artScene, camera); labels();
+    if(!tween)controls.update(delta); animateArt(delta); renderer.info.reset(); ascii.render(scene,camera,architectureTime.value,tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,!reducedMotion); renderer.clearDepth(); renderer.render(artScene, camera); labels();
     if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
   }
   frame = requestAnimationFrame(tick);
@@ -239,8 +247,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     select, turnExhibition,
     zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
     setPaused(value) { paused = value; controls.enabled = !value && !tween; }, setMotion(value) { motionEnabled = value && !reducedMotion; },
-    stats() { const rect = layoutFrame.getBoundingClientRect(); return { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, canvas:{width:host.clientWidth,height:host.clientHeight},
+    stats() { const rect = layoutFrame.getBoundingClientRect(); return { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
-    dispose() { cancelAnimationFrame(frame); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); environmentMap.dispose(); renderer.dispose(); }
+    dispose() { cancelAnimationFrame(frame); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
   };
 }
