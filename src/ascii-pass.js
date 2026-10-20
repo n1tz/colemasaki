@@ -23,14 +23,14 @@ export function createAsciiPass(renderer) {
         vec2 cell=floor(vUv*grid),local=fract(vUv*grid);
         vec3 sampled=texture2D(image,(cell+.5)/grid).rgb;
         float luminance=dot(sampled,vec3(.2126,.7152,.0722));
-        float density=clamp(sqrt(max(luminance-.006,0.))*4.2,0.,1.);
+        float density=clamp(sqrt(max(luminance-.006,0.))*7.5,0.,1.);
         float index=floor(density*7.);
         float glyph=texture2D(glyphs,vec2((index+local.x)/8.,local.y)).r;
-        vec3 ink=mix(vec3(.0056,.006,.0048),vec3(.46)*(.45+density*.55),glyph);
+        vec3 ink=mix(vec3(.0056,.006,.0048),vec3(mix(.065,.46,travel))*(.45+density*.55),glyph);
         // A slow diagonal reading band passes through the architecture every 18s.
         float phase=mod(time*.055,1.);
-        float band=1.-smoothstep(.035,.13,abs(vUv.x*.65+vUv.y*.35-(phase*1.6-.3)));
-        float idle=band*.58;
+        float band=1.-smoothstep(.055,.17,abs(vUv.x*.65+vUv.y*.35-(phase*1.6-.3)));
+        float idle=band*.94;
         float amount=enabled*max(idle,travel);
         gl_FragColor=vec4(mix(original,ink,amount),1.);
         #include <colorspace_fragment>

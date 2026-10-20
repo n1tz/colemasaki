@@ -40,7 +40,7 @@ export function createDepthField(time) {
     faceColors.push(light,light,light);
   }
   cube.setAttribute('color',new THREE.Float32BufferAttribute(faceColors,3));
-  const material=new THREE.MeshBasicMaterial({color:'#666966',vertexColors:true});
+  const material=new THREE.MeshBasicMaterial({color:'#363936',vertexColors:true});
   const pulseGLSL=`
     uniform float uArchitectureTime;
     vec3 breathe(vec3 center,vec3 offset){
@@ -69,7 +69,7 @@ export function createDepthField(time) {
   mesh.instanceMatrix.needsUpdate=true;group.add(mesh);
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(lines,3));
   geometry.setAttribute('aCenter',new THREE.Float32BufferAttribute(centers,3));
-  const wire=new THREE.LineBasicMaterial({color:'#a3aaa0',transparent:true,opacity:.09,depthWrite:false});
+  const wire=new THREE.LineBasicMaterial({color:'#a3aaa0',transparent:true,opacity:.035,depthWrite:false});
   wire.onBeforeCompile=shader=>{
     shader.uniforms.uArchitectureTime=time;
     shader.vertexShader='attribute vec3 aCenter;\n'+pulseGLSL+shader.vertexShader;
