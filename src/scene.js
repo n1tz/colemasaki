@@ -3,17 +3,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { createFieldMaterials } from './motion.js';
-import { createDepthField } from './depth-field.js';
+import { createDepthField, roomLocations } from './depth-field.js';
 import { exhibitionLayout } from './layout.js';
 
-const desktopLocations = [[-9, 0, 0], [0, 1.2, -1], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
+const desktopLocations = [[-9, 0, 0], [0, 0, 0], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 
 export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
   const depthField = createDepthField(); scene.add(depthField);
-  scene.fog = new THREE.FogExp2('#11120f', .006);
+  scene.fog = new THREE.FogExp2('#11120f', .0035);
   // Artwork is rendered last with cleared depth. Neither opaque cubes nor
   // transparent wires can ever cross an image, including during camera travel.
   const artScene = new THREE.Scene();
@@ -28,7 +28,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const environment = new RoomEnvironment(), pmrem = new THREE.PMREMGenerator(renderer);
   const environmentMap = pmrem.fromScene(environment, .04);
   scene.environment = environmentMap.texture; environment.dispose(); pmrem.dispose();
-  const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, 300);
+  const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, 900);
   const layoutFrame = document.querySelector('#exhibition-frame');
   let viewportSignature = '';
   function syncViewport() {
@@ -97,7 +97,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   });
   function arrange() {
     groups.forEach((group, ci) => {
-      group.position.fromArray(locations()[ci]);
+      group.position.fromArray(active < 0 ? locations()[ci] : roomLocations[ci]);
       group.visible = active < 0 ? !(isMobile() && !collections[ci].items.length) : ci === active;
       group.scale.setScalar(active < 0 ? (isMobile() ? .65 : .86) : .85); boards[ci].visible = group.visible;
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
@@ -113,19 +113,29 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     if (active >= 0) { page = layouts[active].page; onPage?.(layouts[active]); } else onPage?.(null);
   }
   function destination() {
-    const target = active < 0 ? new THREE.Vector3(0, isMobile() ? -1.3 : -.8, 0) : groups[active].position.clone();
+    const target = active < 0 ? new THREE.Vector3(0, isMobile() ? -1.3 : 0, 0) : groups[active].position.clone();
     const layout = active < 0 ? { width: isMobile() ? 15.6 : 28, height: isMobile() ? 15.5 : 12.5 } : layouts[active];
     const tan = Math.tan(THREE.MathUtils.degToRad(43 / 2));
     const distance = 2.3 + Math.max(layout.width / (2 * tan * camera.aspect), (layout.height + (active < 0 ? 0 : .65)) / (2 * tan)) * (active < 0 ? 1 : 1.12);
-    return { target, position: target.clone().add(new THREE.Vector3(0, distance * .07, distance)) };
+    return { target, position: target.clone().add(new THREE.Vector3(0, 0, distance)) };
   }
   function travel(instant = false) {
+    // Clear residual drag inertia before taking ownership of the camera.
+    controls.enableDamping=false;controls.update();controls.enableDamping=true;
     camera.fov=43;camera.updateProjectionMatrix();
     const { position, target } = destination();
     controls.minAzimuthAngle = active < 0 ? -.26 : -Math.PI; controls.maxAzimuthAngle = active < 0 ? .26 : Math.PI;
     controls.minPolarAngle = active < 0 ? 1.25 : .35; controls.maxPolarAngle = active < 0 ? 1.75 : Math.PI - .35;
-    if (instant || reducedMotion) { camera.position.copy(position); controls.target.copy(target); tween = null; controls.enabled=!paused; controls.update(); }
-    else { controls.enabled=false; tween = { start: performance.now(), from: camera.position.clone(), to: position, fromTarget: controls.target.clone(), toTarget: target }; }
+    if (instant || reducedMotion) { camera.up.set(0,1,0); camera.position.copy(position); controls.target.copy(target); tween = null; controls.enabled=!paused; controls.update(); }
+    else {
+      controls.enabled=false;
+      const from=camera.position.clone(), fromTarget=controls.target.clone();
+      const length=from.distanceTo(position), sign=target.x>=fromTarget.x?1:-1;
+      const departing=from.clone().add(new THREE.Vector3(sign*18,12,-26));
+      const arriving=position.clone().add(new THREE.Vector3(-sign*24,18,38));
+      const path=new THREE.CatmullRomCurve3([from,departing,arriving,position],false,'centripetal');
+      tween={start:performance.now(),duration:length>50?2600:1300,from,to:position,fromTarget,toTarget:target,path,sign};
+    }
   }
   function select(index) {
     active = index; page = 0; hovered = null; onHover(null);
@@ -159,7 +169,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const projected = new THREE.Vector3(), direction = new THREE.Vector3();
   function animateArt(delta) {
     if (motionEnabled) field.time.value += delta;
-    const progress=tween?Math.min((performance.now()-tween.start)/1450,1):1;
+    const progress=tween?Math.min((performance.now()-tween.start)/tween.duration,1):1;
     const pulse=Math.sin(progress*Math.PI);
     groups.forEach(group=>{
       const base=active<0?(isMobile()?.65:.86):.85;
@@ -173,7 +183,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       board.quaternion.copy(camera.quaternion);
       board.children.forEach(mesh => {
         if (!mesh.visible) return; const data = mesh.userData;
-        const reveal=tween?THREE.MathUtils.smoothstep(progress,.18+data.order*.018,.66+data.order*.018):1;
+        const reveal=tween?THREE.MathUtils.smoothstep(progress,.65+data.order*.012,.85+data.order*.012):1;
         mesh.scale.copy(data.baseScale);mesh.scale.x*=.82+.18*reveal;mesh.scale.y*=.025+.975*reveal;
         mesh.material.opacity=reveal;
         mesh.rotation.y=(1-reveal)*.7;
@@ -201,17 +211,19 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     });
   }
   function tick(now) {
-    frame = requestAnimationFrame(tick); const delta = Math.min((now - last) / 1000, .05); last = now; if (paused || document.hidden) return;
+    frame = requestAnimationFrame(tick); const delta = Math.max(0, Math.min((now - last) / 1000, .05)); last = now; if (paused || document.hidden) return;
     if (tween) {
-      const t=Math.min((now-tween.start)/1450,1), ease=t*t*t*(t*(t*6-15)+10), arc=Math.sin(Math.PI*t);
-      camera.position.lerpVectors(tween.from,tween.to,ease);
-      camera.position.x+=arc*(tween.toTarget.x>=tween.fromTarget.x?1:-1)*4;
-      camera.position.y+=arc*2.8;camera.position.z+=arc*7;
+      const t=Math.min((now-tween.start)/tween.duration,1), ease=t*t*(3-2*t), arc=Math.sin(Math.PI*t);
+      tween.path.getPoint(ease,camera.position);
       controls.target.lerpVectors(tween.fromTarget,tween.toTarget,ease);
-      camera.fov=43+arc*7;camera.updateProjectionMatrix();
-      if(t===1){tween=null;controls.enabled=!paused;}
+      const ahead=tween.path.getPoint(Math.min(1,ease+.06));
+      const look=controls.target.clone().lerp(ahead,Math.sin(Math.PI*t)*.7);
+      camera.up.set(Math.sin(arc*.32*tween.sign),Math.cos(arc*.32),0);
+      camera.lookAt(look);
+      camera.fov=43+arc*24;camera.updateProjectionMatrix();
+      if(t===1){tween=null;camera.up.set(0,1,0);controls.enabled=!paused;controls.update();}
     }
-    controls.update(delta); animateArt(delta); renderer.info.reset(); renderer.clear(); renderer.render(scene, camera); renderer.clearDepth(); renderer.render(artScene, camera); labels();
+    if(!tween)controls.update(delta); animateArt(delta); renderer.info.reset(); renderer.clear(); renderer.render(scene, camera); renderer.clearDepth(); renderer.render(artScene, camera); labels();
     if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
   }
   frame = requestAnimationFrame(tick);
@@ -225,7 +237,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   return {
     select, turnExhibition,
-    zoom(factor) { tween = null; controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
+    zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
     setPaused(value) { paused = value; controls.enabled = !value && !tween; }, setMotion(value) { motionEnabled = value && !reducedMotion; },
     stats() { const rect = layoutFrame.getBoundingClientRect(); return { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },

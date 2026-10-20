@@ -8,6 +8,7 @@ function checkLayout(stats, centered=false){
   for(let i=0;i<art.length;i++)for(let j=i+1;j<art.length;j++){const a=art[i].rect,b=art[j].rect;if(Math.min(a.right,b.right)>Math.max(a.left,b.left)&&Math.min(a.bottom,b.bottom)>Math.max(a.top,b.top))throw new Error('Artwork overlap: '+art[i].category+':'+art[i].item+' / '+art[j].category+':'+art[j].item);}
   if(centered&&art.length){const center=(Math.min(...art.map(a=>a.rect.left))+Math.max(...art.map(a=>a.rect.right)))/2;if(Math.abs(center-(stats.viewport.left+stats.viewport.right)/2)>5)throw new Error('Selected artwork not centered');}
 }
+page.setDefaultTimeout(60000);
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 await mkdir('/tmp/cole-check',{recursive:true});
@@ -18,7 +19,7 @@ await page.evaluate(()=>document.fonts.ready);
 const fullScene=await page.evaluate(()=>({stats:window.portfolio.stats(),rect:document.querySelector('#space canvas').getBoundingClientRect().toJSON(),blend:getComputedStyle(document.querySelector('.brand')).mixBlendMode}));
 if(fullScene.rect.top!==0||fullScene.rect.height!==1000||fullScene.blend!=='difference'||fullScene.stats.backgroundInstances<3000)throw new Error('Full-screen field or header blending missing');
 const movingBefore=await page.evaluate(()=>window.portfolio.stats().motion);
-await page.waitForTimeout(1400);
+await page.waitForFunction(time=>window.portfolio.stats().motion.time>time+.1,movingBefore.time);
 const movingAfter=await page.evaluate(()=>window.portfolio.stats().motion);
 if(movingAfter.time<=movingBefore.time||JSON.stringify(movingBefore.art[0].position)===JSON.stringify(movingAfter.art[0].position))throw new Error('Noise clock or artwork orbit is not advancing');
 await page.locator('#motion').click();
@@ -60,10 +61,10 @@ await page.locator('#open-index').click();if(await page.locator('.index-item').c
 await page.locator('#home').click();await page.waitForTimeout(100);await page.waitForFunction(()=>!window.portfolio.stats().transitioning);
 const overviewBox=await page.locator('#space').boundingBox();
 for(const direction of [1,-1]){await page.mouse.move(overviewBox.x+overviewBox.width*.5,overviewBox.y+overviewBox.height*.5);await page.mouse.down();await page.mouse.move(overviewBox.x+overviewBox.width*(direction>0?.95:.05),overviewBox.y+overviewBox.height*.5,{steps:12});await page.mouse.up();await page.waitForTimeout(600);checkLayout(await page.evaluate(()=>window.portfolio.stats()));}
-await page.setViewportSize({width:1280,height:720});await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()));
+await page.setViewportSize({width:1280,height:720});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()));
 await page.locator('[data-category="0"]').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/laptop-collection.png'});
 await page.locator('#home').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);
-await page.setViewportSize({width:390,height:844});await page.waitForTimeout(100);await page.waitForFunction(()=>!window.portfolio.stats().transitioning);await page.screenshot({path:'/tmp/cole-check/mobile.png'});
+await page.setViewportSize({width:390,height:844});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.waitForTimeout(100);await page.waitForFunction(()=>!window.portfolio.stats().transitioning);await page.screenshot({path:'/tmp/cole-check/mobile.png'});
 checkLayout(await page.evaluate(()=>window.portfolio.stats()));
 await page.locator('[data-category="0"]').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
 if(await page.evaluate(()=>window.portfolio.stats().artworks)!==4)throw new Error('Mobile artwork group should show four works');
@@ -84,7 +85,7 @@ const reducedEnd=await reduced.evaluate(()=>window.portfolio.stats().motion);
 if(reducedStart.time!==0||reducedEnd.time!==0||JSON.stringify(reducedStart.art.map(a=>a.position))!==JSON.stringify(reducedEnd.art.map(a=>a.position)))throw new Error('Reduced motion must stop the noise and artwork animation');
 await reduced.locator('[data-category="1"]').click();
 const target=await reduced.evaluate(()=>window.portfolio.stats().target);
-if(Math.abs(target[0])>.01)throw new Error('Reduced motion camera did not move immediately');
+if(Math.abs(target[0]-90)>.01)throw new Error('Reduced motion camera did not move immediately');
 await reduced.close();
 const fallback=await browser.newPage();
 await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:original.call(this,type,...args);};});

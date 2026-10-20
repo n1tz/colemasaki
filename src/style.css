@@ -52,3 +52,46 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
 #app{isolation:isolate}#space{inset:0}#exhibition-frame{position:absolute;visibility:hidden;pointer-events:none}.brand,.topline{mix-blend-mode:difference;color:#fff;z-index:3}.brand p,.brand .smallcross{color:inherit}
 
 .brand h1{transform-origin:top left}
+
+/* Symmetric gallery field, surrounded by compact instrument windows. */
+.brand,.focused .brand{left:38px;right:38px;top:76px;text-align:center}
+.brand h1,.focused .brand h1{font-size:clamp(40px,5vw,76px);line-height:.9;margin:0;letter-spacing:-.055em}
+.brand h1 span,.focused .brand h1 span{display:inline;margin-left:.24em}
+.brand p,.focused .brand p{display:none}
+.collection-nav,.focused .collection-nav{left:38px;right:auto;top:200px;width:204px;padding:14px;background:#11120fed;border:1px solid #55584d}
+.nav-heading{margin:-14px -14px 0;padding:12px 14px;border-bottom:1px solid #55584d;color:var(--ink)}
+.category{padding:15px 0}.category span:nth-child(2){font-size:13px}.category.active{padding-left:4px}.category.active:before{content:none}
+.index-button{padding:15px 0 2px}
+.stage-caption,.focused .stage-caption{left:auto;right:38px;top:200px;bottom:auto;width:204px;border:1px solid #55584d;padding:14px;background:#11120fed}
+.stage-caption .eyebrow{border-bottom:1px solid #55584d;margin:-14px -14px 16px;padding:12px 14px;color:var(--ink)}
+.stage-caption h2,.focused .stage-caption h2{font-size:25px;padding:0;max-width:none;line-height:1.05}
+.stage-caption p,.focused .stage-caption p{font-size:10px;line-height:1.7;max-width:none}
+.stage-caption button,.focused .stage-caption button{position:static;margin-top:20px;font-size:9px;gap:20px}
+#exhibition-frame,.focused #exhibition-frame{inset:190px 270px 190px}
+.collection-pager{left:270px;right:270px;bottom:140px;background:#11120fed;border:1px solid var(--line);width:max-content;max-width:calc(100% - 40px);margin:auto;padding:0 12px}
+.controls{background:#11120fed}.bottom-right{padding:12px 14px;border:1px solid #55584d;background:#11120fed}.bottom-right .copyright{margin-top:6px}
+.marker{padding:9px 12px;border:1px solid #55584d;background:#11120fed}.marker-count{margin-left:0}
+@media(min-width:1600px){#exhibition-frame,.focused #exhibition-frame{inset:200px 290px 200px}}
+@media(max-width:1100px) and (min-width:801px){
+ .collection-nav,.focused .collection-nav{left:28px;width:172px}.stage-caption,.focused .stage-caption{right:28px;width:172px}.stage-caption h2,.focused .stage-caption h2{font-size:21px}
+ #exhibition-frame,.focused #exhibition-frame{inset:180px 220px 180px}.category span:nth-child(2){font-size:11px}.marker-count{display:none}
+}
+@media(max-width:800px){
+ .brand,.focused .brand{top:66px;left:24px;right:24px}.brand h1,.focused .brand h1{font-size:clamp(31px,8vw,55px);line-height:1}.brand h1 span,.focused .brand h1 span{margin-left:.2em}
+ .collection-nav,.focused .collection-nav{left:20px;right:20px;top:125px;width:auto;padding:0 10px 4px;gap:5px;background:#11120fed;grid-template-rows:30px auto;border:1px solid #55584d}
+ .nav-heading{display:flex;grid-column:1/-1;margin:0 -10px;padding:8px 10px;font-size:8px}.category{padding:8px 0 4px;min-height:45px}.category.active{padding-left:0}.category .category-label:before{font-size:9px}
+ .index-button{top:0;right:10px;height:29px;padding:0;font-size:8px;gap:12px}.nav-heading span:last-child{display:none}
+ #exhibition-frame,.focused #exhibition-frame{inset:230px 22px 230px}
+ .stage-caption,.focused .stage-caption,#app:not(.focused) .stage-caption{top:auto;bottom:145px;left:20px;right:20px;width:auto;padding:10px 12px;min-height:66px}
+ .stage-caption .eyebrow{margin:0 0 7px;padding:0;border:0;font-size:8px}
+ .stage-caption h2,.focused .stage-caption h2,#app:not(.focused) .stage-caption h2{display:block;font-size:20px;margin:0}
+ .stage-caption p,.focused .stage-caption p{display:none}.stage-caption button,.focused .stage-caption button{position:absolute;right:12px;top:17px;margin:0;font-size:8px}
+ .collection-pager{bottom:214px;left:20px;right:20px;border:0;background:transparent;height:28px;font-size:8px}.collection-pager button{height:28px}
+ .bottom-bar{left:20px;right:20px;bottom:25px}.bottom-right{padding:8px;font-size:7px}.bottom-right .copyright{font-size:6px}.instructions{font-size:7px}
+ .marker{padding:6px;font-size:7px}
+}
+@media(max-height:700px) and (min-width:801px){
+ .brand,.focused .brand{top:65px}.brand h1,.focused .brand h1{font-size:44px}
+ .collection-nav,.focused .collection-nav,.stage-caption,.focused .stage-caption{top:140px}
+ #exhibition-frame,.focused #exhibition-frame{inset:135px 250px 130px}.category{padding:10px 0}.collection-pager{bottom:100px}
+}

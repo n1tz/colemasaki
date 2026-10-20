@@ -46,7 +46,7 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 
 The WebGL canvas fills the viewport. An invisible `#exhibition-frame` defines the artwork area; the camera uses an offset frustum to preserve that composition while rendering the world behind the interface. Header text uses CSS difference blending.
 
-`src/depth-field.js` adds three fogged layers of distant fractals with 3,136 instanced cubes and two draw calls. Section changes use a curved camera flight, a brief field-of-view expansion, sculpture rotation, and staggered artwork unfolding. Reduced motion skips these transitions.
+`src/depth-field.js` builds a central library and five separated chambers from 7,488 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. `roomLocations` defines the collection destinations. Section changes follow 2.6-second Catmull–Rom camera paths with banking, forward-looking turns, a 43–67° field-of-view expansion, and artwork reveals on arrival. Reduced motion moves directly to the destination. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
 
 The initial HTML contains the loading screen, so it appears before the JavaScript bundle arrives. Its progress tracks thumbnail loading; it exits after fonts and the first rendered scene are ready. The work index remains available if WebGL fails.
 
@@ -58,6 +58,7 @@ npm run build
 npx playwright install chromium
 node scripts/browser-check.mjs
 node scripts/experience-check.mjs
+node scripts/rooms-check.mjs
 ```
 
 Browser checks expect a server at `http://localhost:3010`; override with `REVIEW_URL`. `CHROME_PATH` can select an existing browser executable. Screenshots are written under `/tmp/cole-check`.

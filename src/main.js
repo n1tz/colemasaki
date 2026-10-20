@@ -17,7 +17,7 @@ $('#app').innerHTML=`
     <button class="index-button" id="open-index">WORK INDEX <span>↗</span></button>
   </nav>
   <div id="markers" aria-hidden="true">${collections.map((c,i)=>`<button class="marker" data-marker="${i}" tabindex="-1">${pad(i+1)} / ${c.id==='personal'?'2D PERSONAL WORK':c.label.toUpperCase()} <span class="marker-count">${pad(c.items.length)} ${c.id==='zine'?'PAGES':'WORKS'} ↗</span></button>`).join('')}</div>
-  <section class="stage-caption" aria-live="polite"><div class="eyebrow" id="location">00 / OVERVIEW</div><h2 id="section-name">Works in space.</h2><p id="section-info">Select a collection.<br>Or find your own way through.</p><button id="view-collection" hidden>VIEW WORKS <span>↗</span></button></section>
+  <section class="stage-caption" aria-live="polite"><div class="eyebrow" id="location">00 / OVERVIEW</div><h2 id="section-name">Portfolio library.</h2><p id="section-info">Select a room to enter.</p><button id="view-collection" hidden>VIEW WORKS <span>↗</span></button></section>
   <div class="collection-pager" hidden><button id="collection-previous" aria-label="Previous group of artworks">←</button><span id="collection-range"></span><button id="collection-next" aria-label="Next group of artworks">→</button></div>
   <footer class="bottom-bar"><div><div class="controls" aria-label="Camera controls"><button class="home" id="home" aria-label="Return to overview">↖ OVERVIEW</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="motion" aria-label="Pause animation" title="Pause animation" aria-pressed="true">Ⅱ</button></div><div class="instructions"><span>DRAG</span> ROTATE &nbsp; <span>SCROLL</span> ZOOM<br><span>CLICK</span> <span id="click-action">ENTER COLLECTION</span> &nbsp; <button id="help-bottom">? CONTROLS</button></div></div><div class="bottom-right"><a href="https://www.instagram.com/colemasaki/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><div class="copyright">© COLE MASAKI<br>${pad(total)} FILES / 05 COLLECTIONS</div></div></footer>
   <div class="axis" aria-hidden="true"><svg viewBox="0 0 84 58"><g stroke="#b5b7aa" stroke-width=".7"><path d="M42 36V7M42 36L15 49M42 36L69 49"/><circle cx="42" cy="36" r="3" fill="#11120f"/></g><text x="38" y="6">Y</text><text x="6" y="54">X</text><text x="74" y="54">Z</text></svg></div>
@@ -32,9 +32,9 @@ function select(index,updateHash=true){
   active=index;
   $('#app').classList.toggle('focused',index>=0);
   document.querySelectorAll('.category').forEach((b,i)=>{b.classList.toggle('active',i===index);b.setAttribute('aria-pressed',String(i===index));});
-  $('#location').textContent=index<0?'00 / OVERVIEW':`${pad(index+1)} / COLLECTION`;
-  $('#section-name').textContent=index<0?'Works in space.':collections[index].label;
-  $('#section-info').innerHTML=index<0?'Select a collection.<br>Or find your own way through.':collections[index].items.length?`${pad(collections[index].items.length)} ${index===2?'pages':'works'} / Click an image to open.`:'No work added yet.';
+  $('#location').textContent=index<0?'00 / OVERVIEW':`${pad(index+1)} / ROOM`;
+  $('#section-name').textContent=index<0?'Portfolio library.':collections[index].label;
+  $('#section-info').innerHTML=index<0?'Select a room to enter.':collections[index].items.length?`${pad(collections[index].items.length)} ${index===2?'pages':'works'} / Click an image to open.`:'No work added yet.';
   $('#view-collection').hidden=index<0||!collections[index].items.length;
   $('#view-collection').innerHTML=index===2?'READ ZINE <span>↗</span>':'VIEW WORKS <span>↗</span>';
   $('#click-action').textContent=index<0?'ENTER COLLECTION':'OPEN WORK';

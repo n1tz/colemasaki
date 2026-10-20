@@ -1,45 +1,56 @@
 import * as THREE from 'three';
 
-// A deep, finite field reads as continuous space through perspective and fog.
-// All repeated cubes share one draw call; all fine edges share a second one.
+export const roomLocations = [[-82, 16, -110], [90, -20, -190], [0, 65, -290], [-150, -55, -350], [160, 80, -420]];
+
+// A continuous architecture: six chambers, open ribs, recursively split masonry.
+// All masonry is instanced; all outlines are merged into one draw call.
 export function createDepthField() {
-  const group = new THREE.Group();
-  const cells = [];
-  function branch(x, y, z, size, depth) {
-    if (!depth) { cells.push([x, y, z, size]); return; }
-    const s = size / 3;
-    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) {
-      if ((a === 0) + (b === 0) + (c === 0) < 2) continue;
-      branch(x + a * s, y + b * s, z + c * s, s, depth - 1);
-    }
+  const group = new THREE.Group(), cells = [], lines = [];
+  const cube = new THREE.BoxGeometry(1, 1, 1), edge = new THREE.EdgesGeometry(cube);
+  const source = edge.attributes.position.array;
+  function block(x,y,z,w,h,d,shade=.5) { cells.push([x,y,z,w,h,d,shade]); }
+  function branch(x,y,z,size,depth) {
+    if(!depth){block(x,y,z,size*.76,size*.76,size*.76,.35);return;}
+    const s=size/3;
+    for(const [a,b,c] of [[0,0,0],[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]])branch(x+a*s,y+b*s,z+c*s,s,depth-1);
   }
-  const layers = [
-    { z: -22, step: 18, size: 15, rows: 4, columns: 5 },
-    { z: -61, step: 28, size: 24, rows: 4, columns: 6 },
-    { z: -112, step: 44, size: 38, rows: 4, columns: 5 },
-  ];
-  layers.forEach((layer, n) => {
-    for (let y = 0; y < layer.rows; y++) for (let x = 0; x < layer.columns; x++) {
-      branch((x - (layer.columns - 1) / 2) * layer.step + (n % 2 ? 5 : 0),
-        (y - 1.5) * layer.step + 8, layer.z - (x % 2) * 3, layer.size, 2);
+  [[0,0,0],...roomLocations].forEach(([cx,cy,cz],room)=>{
+    // Rotating rectangular colonnades surround an empty gallery aperture.
+    for(let ring=0;ring<15;ring++){
+      const z=cz+36-ring*9, radius=22+Math.sin(ring*.55+room)*3;
+      const angle=(room===2?Math.PI/4:0)+Math.sin(ring*.25+room)*.12;
+      for(let side=0;side<4;side++)for(let n=-5;n<=5;n++){
+        let x=side%2?radius* (side===1?1:-1):n*radius/5;
+        let y=side%2?n*radius/5:radius*(side===0?1:-1);
+        const rx=x*Math.cos(angle)-y*Math.sin(angle),ry=x*Math.sin(angle)+y*Math.cos(angle);
+        const size=1.1+((n+ring+12)%3)*.45;
+        block(cx+rx,cy+ry,z,size,size,3.3,.4+ring%3*.12);
+      }
+    }
+    for(let i=0;i<12;i++){
+      const a=i*Math.PI/6+room*.3;
+      branch(cx+Math.cos(a)*36,cy+Math.sin(a)*36,cz-25-(i%4)*18,17,2);
     }
   });
-  const cube = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({ color: '#32352e', fog: true });
-  const mesh = new THREE.InstancedMesh(cube, material, cells.length);
-  const dummy = new THREE.Object3D();
-  const edge = new THREE.EdgesGeometry(cube), source = edge.attributes.position.array, lines = [];
-  cells.forEach(([x, y, z, size], i) => {
-    dummy.position.set(x, y, z); dummy.scale.setScalar(size * .68); dummy.updateMatrix(); mesh.setMatrixAt(i, dummy.matrix);
-    mesh.setColorAt(i, new THREE.Color().setScalar(.55 + (i % 7) * .06));
-    // The sparser wire envelope leaves quiet gaps rather than a background grid.
-    if (i % 3) return;
-    for (let j = 0; j < source.length; j += 3) lines.push(x + source[j] * size, y + source[j + 1] * size, z + source[j + 2] * size);
+  // Baked face shading keeps the distant architecture cheap: no per-pixel lighting.
+  const faceColors=[];
+  for(let i=0;i<cube.attributes.normal.count;i++){
+    const normal=cube.attributes.normal;
+    const light=.36+Math.max(0,normal.getY(i))*.5+Math.abs(normal.getZ(i))*.23;
+    faceColors.push(light,light,light);
+  }
+  cube.setAttribute('color',new THREE.Float32BufferAttribute(faceColors,3));
+  const material=new THREE.MeshBasicMaterial({color:'#666966',vertexColors:true});
+  const mesh=new THREE.InstancedMesh(cube,material,cells.length),dummy=new THREE.Object3D();
+  cells.forEach(([x,y,z,w,h,d,shade],i)=>{
+    dummy.position.set(x,y,z);dummy.scale.set(w,h,d);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
+    mesh.setColorAt(i,new THREE.Color().setScalar(shade));
+    if(i%2)return;
+    for(let j=0;j<source.length;j+=3)lines.push(x+source[j]*w*1.08,y+source[j+1]*h*1.08,z+source[j+2]*d*1.08);
   });
-  mesh.instanceMatrix.needsUpdate = true; group.add(mesh);
-  const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
-  group.add(new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: '#656b5d', opacity: .12, transparent: true, depthWrite: false, fog: true })));
-  edge.dispose();
-  group.userData.instances = cells.length;
+  mesh.instanceMatrix.needsUpdate=true;group.add(mesh);
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(lines,3));
+  group.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:'#a3aaa0',transparent:true,opacity:.09,depthWrite:false})));
+  edge.dispose();group.userData.instances=cells.length;
   return group;
 }
