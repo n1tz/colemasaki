@@ -25,6 +25,13 @@ for(const group of merch){
   console.log(id,title);
  }
 }
+// Preserve the selected opening sequence when refreshing the imported work.
+const featuredAwards=['WVDTcOhlbNsEewnWqacn','DPF3f6tjWBTJLPeI2mIX','6etsydbMQYPQjMO5W0Gp'];
+const featuredRank=item=>{
+ const rank=featuredAwards.findIndex(id=>item.source.includes(id));
+ return rank<0?featuredAwards.length:rank;
+};
+professional.sort((a,b)=>featuredRank(a)-featuredRank(b));
 const websites=[];
 for(const [slug,title,url] of [['mirailoom','Mirai Loom','https://mirailoom.com/'],['akihabara-global','AKIBA Tourism & Promotion','https://akihabara.global/'],['akihabara-premium','Akihabara Premium Collection','https://www.akihabara-premium.com/'],['dub-agent','Tokyo Dub Agent','https://dub-agent.com/']]){
  websites.push(await image('website-'+slug,'/tmp/cole-sources/'+slug+'.png',{title,alt:title+' — website homepage',source:url,url,origin:'website-screenshot'}));
