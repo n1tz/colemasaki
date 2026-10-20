@@ -59,6 +59,7 @@ npm run check
 npm run build
 npx playwright install chromium
 node scripts/browser-check.mjs
+node scripts/content-check.mjs
 node scripts/experience-check.mjs
 node scripts/rooms-check.mjs
 ```
@@ -73,7 +74,7 @@ The unmodified fallback font is from [Artifex's URW base35 collection](https://g
 
 ## Vercel
 
-Import this Git repository into Vercel, choose Vite, and deploy. `vercel.json` defines the build command and `dist` output. No environment variables or backend services are required. Alternatively, run `npx vercel` from this directory. This version has not been published to a public domain.
+Import this Git repository into Vercel, choose Vite, and deploy. `vercel.json` defines the build command and `dist` output. No environment variables or backend services are required. Alternatively, run `npx vercel` from this directory. Production is deployed to https://colemasaki.com on the `colemasaki` Vercel project; https://www.colemasaki.com also serves the portfolio. The GitHub remote is `n1tz/colemasaki`.
 
 ## Sources
 
