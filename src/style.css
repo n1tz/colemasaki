@@ -99,4 +99,7 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
 .brand h1 span.title-run{display:inline-block;margin:0;white-space:nowrap}
 .brand h1 span.title-letter{display:inline-grid;position:relative;margin:0;white-space:pre;vertical-align:baseline}
 .brand h1 .title-letter b{font:inherit;visibility:hidden}
-.brand h1 .title-letter i{position:absolute;inset:0;font:inherit;text-align:center;overflow:hidden}
+.brand h1 .title-letter i{position:absolute;inset:0;font:inherit;text-align:center;overflow:visible}
+
+/* Full cap-height clearance and open tracking for the animated display titles. */
+.brand h1,.focused .brand h1{line-height:1.12;letter-spacing:.015em}
