@@ -1,6 +1,6 @@
 # Cole Masaki — Portfolio
 
-A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Five collections occupy distinct recursive sculptures. The overview shows representative work from each populated collection; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. There is no scrolling page behind the scene.
+A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Seven collections occupy distinct recursive sculptures. The overview shows representative work from Professional Work, Websites, and Personal Work; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. There is no scrolling page behind the scene.
 
 ## Run
 
@@ -27,17 +27,17 @@ To regenerate all optimized assets from the original folder structure (`2DPerson
 npm run import:art -- /absolute/path/to/AIFOOD
 ```
 
-This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It overwrites `src/content.json` and matching generated images, so commit any manual content edits first. Originals are never modified. If a system-wide libvips causes Sharp installation to attempt a source build, install with `SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm ci`.
+This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It refreshes local personal, logo, and zine items while preserving imported work and the other collections. Commit manual edits to local items first. Originals are never modified. If a system-wide libvips causes Sharp installation to attempt a source build, install with `SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm ci`.
 
 ## Controls and accessibility
 
 - Drag to orbit; wheel or pinch to zoom. Overview rotation is bounded to preserve collection separation; the selected sculpture can be explored around the centered artwork.
-- Click artwork to open the full image. Keys 1–5 select collections; 0 returns to overview.
+- Click artwork to open the full image. Keys 1–7 select collections; 0 returns to overview.
 - Arrow keys navigate the viewer; Escape closes dialogs. Images can be enlarged and opened separately.
 - Work index provides keyboard access to every item and remains available if WebGL fails.
 - Cubes expand in coherent noise-driven waves; wireframe opacity follows a separate scrolling noise field. These run on the GPU through `src/motion.js`.
 - Artwork occupies ordered, camera-facing slots with restrained noise motion inside fixed gutters. The entire collection stays centered as you rotate its sculpture. A separate final render pass guarantees that neither solid geometry nor transparent wireframes can draw over images. The camera stays still until you navigate.
-- Desktop personal work is arranged in rows; logos have a two-by-two arrangement. The zine shows six sequential pages at a time. Mobile shows four artworks or two zine pages at a time with previous/next controls; no work is omitted. `src/layout.js` owns these arrangements and page sizes.
+- Desktop personal and professional work show up to eight images per page; logos have a two-by-two arrangement. The zine shows six sequential pages at a time. Mobile shows four artworks or two zine pages at a time with previous/next controls; no work is omitted. `src/layout.js` owns these arrangements and page sizes.
 - Numbered labels establish work/page order. Opening an artwork still uses the full-resolution viewer, and the zine reader retains its facing-page sequence.
 - The pause button freezes the noise and bounded artwork motion. Reduced-motion preference disables both and makes camera travel immediate.
 - Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load only in the viewer.
@@ -46,7 +46,7 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 
 The WebGL canvas fills the viewport. An invisible `#exhibition-frame` defines the artwork area; the camera uses an offset frustum to preserve that composition while rendering the world behind the interface. Header text uses CSS difference blending.
 
-`src/depth-field.js` builds a central library and five separated chambers from 7,488 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. Its blocks and outlines share a GPU wave deformation, producing slow changes in depth and width without per-frame instance uploads. `roomLocations` defines the collection destinations. Section changes follow broad cubic Bézier dolly paths, lasting roughly 3–4.6 seconds depending on distance. Quintic easing gives zero endpoint velocity and acceleration; quaternion interpolation keeps the horizon stable and the lens stays at 43°. Pagination uses a short reveal without an unnecessary room excursion. Reduced motion moves directly to the destination and disables ambient deformation and ASCII conversion. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
+`src/depth-field.js` builds a central library and seven separated chambers from 9,984 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. Its blocks and outlines share a GPU wave deformation, producing slow changes in depth and width without per-frame instance uploads. `roomLocations` defines the collection destinations. Section changes follow broad cubic Bézier dolly paths, lasting roughly 3–4.6 seconds depending on distance. Quintic easing gives zero endpoint velocity and acceleration; quaternion interpolation keeps the horizon stable and the lens stays at 43°. Pagination uses a short reveal without an unnecessary room excursion. Reduced motion moves directly to the destination and disables ambient deformation and ASCII conversion. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
 
 `src/ascii-pass.js` samples the live world into a monospace glyph atlas in one fullscreen GPU pass. Conversion peaks during room travel and covers roughly half the screen at rest, with a slowly drifting curved boundary. Artwork is rendered afterwards and remains unprocessed. The animation pause control freezes the shared environment/effect clock.
 
@@ -77,4 +77,10 @@ Import this Git repository into Vercel, choose Vite, and deploy. `vercel.json` d
 
 ## Sources
 
-Artwork: the supplied AIFOOD folder. Instagram is linked, but no Instagram assets were imported. Primary visual reference: https://styles.refero.design/style/a7891223-a93e-4731-a1aa-4079f1ee928b . No generated artwork or invented project descriptions are included.
+Artwork: the supplied AIFOOD folder. Public Instagram posts from @colemasaki, merchandise product images from lot.akiba-eden.com, and homepage screenshots from the four linked websites are saved locally. Source links are retained on each imported item. Primary visual reference: https://styles.refero.design/style/a7891223-a93e-4731-a1aa-4079f1ee928b . No generated artwork or invented project descriptions are included.
+
+## Imported work
+
+Collections are ordered for hiring: Professional Work, Websites, Personal Work, Logo Design, Zine, Video Game, Drawings & Paintings. `shortLabel` supplies compact mobile navigation. Optional item `title` is shown in the viewer and index; `url` opens the original project, website, or Instagram post. `origin` marks imported items so local imports preserve them.
+
+The current import includes 15 T-shirt and hoodie images across ten merchandise collections, four website previews, and seven additional public Instagram photos (the visible video post was excluded). Existing local artwork is retained; four duplicate Instagram posts link from their higher-resolution local versions. `src/imported-work.json` records the imported selection. To refresh source captures, run `node scripts/inspect-sources.mjs`, then `node scripts/fetch-merch.mjs`, then `node scripts/import-web-work.mjs` with network access and Chromium available. Intermediate captures live in `/tmp/cole-sources`. Review the curated merchandise group selection and Instagram post/image pairing before refreshing; public feeds can change.

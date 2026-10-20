@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const roomLocations = [[-82, 16, -110], [90, -20, -190], [0, 65, -290], [-150, -55, -350], [160, 80, -420]];
+export const roomLocations = [[-82, 16, -110], [90, -20, -190], [0, 65, -290], [-150, -55, -350], [160, 80, -420], [-70, 125, -490], [110, -95, -550]];
 
 // A continuous architecture: six chambers, open ribs, recursively split masonry.
 // All masonry is instanced; all outlines are merged into one draw call.

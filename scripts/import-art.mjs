@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { readdir, mkdir, writeFile } from 'node:fs/promises';
+import { readdir, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { join } from 'node:path';
@@ -11,7 +11,7 @@ const exec = promisify(execFile);
 const out = new URL('../public/art/', import.meta.url).pathname;
 await mkdir(out, { recursive: true });
 const collections = [
-  { id: 'personal', label: '2D Personal Work', folder: '2DPersonal', items: [] },
+  { id: 'personal', label: 'Personal Work', folder: '2DPersonal', items: [] },
   { id: 'logos', label: 'Logo Design', folder: 'Logo', items: [] },
   { id: 'zine', label: 'Zine', folder: 'Zine/PRINT', items: [] },
   { id: 'game', label: 'Video Game', items: [] },
@@ -37,4 +37,8 @@ for (const collection of collections) {
   }
   delete collection.folder;
 }
-await writeFile(new URL('../src/content.json', import.meta.url), JSON.stringify(collections, null, 2) + '\n');
+const manifest = new URL('../src/content.json', import.meta.url);
+const existing = JSON.parse(await readFile(manifest, 'utf8'));
+const local = new Map(collections.filter(c => ['personal','logos','zine'].includes(c.id)).map(c => [c.id,c]));
+const merged = existing.map(c => local.has(c.id) ? {...c, items:[...c.items.filter(item => item.origin), ...local.get(c.id).items.map(item=>({...item,...(c.items.find(old=>old.id===item.id)?.url?{url:c.items.find(old=>old.id===item.id).url}:{})}))]} : c);
+await writeFile(manifest, JSON.stringify(merged, null, 2) + '\n');

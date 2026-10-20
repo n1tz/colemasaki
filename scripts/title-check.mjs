@@ -16,11 +16,11 @@ try{
  await settled('COLE MASAKI');
  await page.locator('[data-category="0"]').click();
  if(await title.getAttribute('data-resolving')!=='true')throw Error('No section scramble');
- await settled('2D PERSONAL WORK');
+ await settled('PROFESSIONAL WORK');
  await page.locator('[data-category="1"]').click();
- await page.locator('[data-category="2"]').click();
+ await page.locator('[data-category="4"]').click();
  await settled('ZINE');
- await page.locator('[data-category="4"]').click();await settled('DRAWINGS & PAINTINGS');
+ await page.locator('[data-category="6"]').click();await settled('DRAWINGS & PAINTINGS');
  await page.screenshot({path:'/tmp/cole-check/title-mobile.png'});
  await page.locator('#home').click();await settled('COLE MASAKI');
  await page.close();

@@ -1,5 +1,7 @@
 import { chromium } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
+const collections=JSON.parse(await readFile(new URL('../src/content.json',import.meta.url),'utf8'));
+const total=collections.reduce((sum,c)=>sum+c.items.length,0);
 const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}), args: ['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 function checkLayout(stats, centered=false){
@@ -48,16 +50,24 @@ await page.mouse.click((firstArt.left+firstArt.right)/2,(firstArt.top+firstArt.b
 if(!await page.locator('.viewer').isVisible())throw new Error('Raycast artwork click failed');
 await page.keyboard.press('Escape');
 await page.locator('#view-collection').click();await page.locator('.view-body img').waitFor();
-await page.locator('#next').click();if(await page.locator('.page-label').textContent()!=='02 / 10')throw new Error('Image navigation failed');
+await page.locator('#next').click();if(await page.locator('.page-label').textContent()!==`02 / ${collections[0].items.length}`)throw new Error('Image navigation failed');
 await page.keyboard.press('Escape');
-await page.locator('[data-category="2"]').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/zine-collection.png'});await page.locator('#view-collection').click();await page.locator('#next').click();
+for(const id of ['websites','personal']){
+ const index=collections.findIndex(c=>c.id===id);
+ await page.locator(`[data-category="${index}"]`).click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);
+ checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
+ await page.locator('#view-collection').click();
+ if(await page.locator('#original').getAttribute('href')!==collections[index].items[0].url)throw Error('Missing project source link');
+ await page.keyboard.press('Escape');
+}
+await page.locator('[data-category="4"]').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/zine-collection.png'});await page.locator('#view-collection').click();await page.locator('#next').click();
 if(await page.locator('.view-body img').count()!==2)throw new Error('Desktop zine spread missing');
 await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
 await page.screenshot({path:'/tmp/cole-check/zine.png'});
 await page.locator('#page-range').fill('20');if(await page.locator('.page-label').textContent()!=='20 / 20')throw new Error('Zine last page missing');
-await page.keyboard.press('Escape');await page.locator('[data-category="3"]').click();
+await page.keyboard.press('Escape');await page.locator('[data-category="5"]').click();
 if(!await page.locator('#view-collection').isHidden())throw new Error('Empty collection opens nonexistent art');
-await page.locator('#open-index').click();if(await page.locator('.index-item').count()!==34)throw new Error('Incomplete index');await page.keyboard.press('Escape');
+await page.locator('#open-index').click();if(await page.locator('.index-item').count()!==total)throw new Error('Incomplete index');await page.keyboard.press('Escape');
 await page.locator('#home').click();await page.waitForTimeout(100);await page.waitForFunction(()=>!window.portfolio.stats().transitioning);
 const overviewBox=await page.locator('#space').boundingBox();
 for(const direction of [1,-1]){await page.mouse.move(overviewBox.x+overviewBox.width*.5,overviewBox.y+overviewBox.height*.5);await page.mouse.down();await page.mouse.move(overviewBox.x+overviewBox.width*(direction>0?.95:.05),overviewBox.y+overviewBox.height*.5,{steps:12});await page.mouse.up();await page.waitForTimeout(600);checkLayout(await page.evaluate(()=>window.portfolio.stats()));}
@@ -71,9 +81,9 @@ if(await page.evaluate(()=>window.portfolio.stats().artworks)!==4)throw new Erro
 await page.screenshot({path:'/tmp/cole-check/mobile-collection.png'});
 await page.locator('#collection-next').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);
 if(await page.evaluate(()=>window.portfolio.stats().motion.art[0].item)!==4)throw new Error('Mobile pagination lost artwork order');
-await page.locator('#collection-next').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);if(await page.evaluate(()=>window.portfolio.stats().artworks)!==2)throw new Error('Mobile final works missing');
+await page.locator('#collection-next').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);if(await page.evaluate(()=>window.portfolio.stats().artworks)!==4)throw new Error('Mobile final works missing');
 if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw new Error('Horizontal overflow');
-await page.locator('[data-category="2"]').click();await page.locator('#view-collection').click();await page.locator('#next').click();if(await page.locator('.view-body img').count()!==1)throw new Error('Mobile zine should show one page');await page.locator('#next').click();await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));await page.screenshot({path:'/tmp/cole-check/mobile-zine.png'});
+await page.locator('[data-category="4"]').click();await page.locator('#view-collection').click();await page.locator('#next').click();if(await page.locator('.view-body img').count()!==1)throw new Error('Mobile zine should show one page');await page.locator('#next').click();await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));await page.screenshot({path:'/tmp/cole-check/mobile-zine.png'});
 await page.keyboard.press('Escape');
 await page.locator('#help').click();await page.keyboard.press('Escape');
 await page.close();
@@ -91,7 +101,7 @@ await reduced.close();
 const fallback=await browser.newPage();
 await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:original.call(this,type,...args);};});
 await fallback.goto(process.env.REVIEW_URL || 'http://localhost:3010/');await fallback.locator('.fallback').waitFor();await fallback.locator('.fallback button').click();
-if(await fallback.locator('.index-item').count()!==34)throw new Error('WebGL fallback lost artwork access');await fallback.close();
+if(await fallback.locator('.index-item').count()!==total)throw new Error('WebGL fallback lost artwork access');await fallback.close();
 console.log('Browser errors',errors);if(errors.length)throw new Error(errors.join('\n'));
 console.log('PASS: non-overlapping artwork, centered collections, mobile pagination, animation clock, bounded motion, pause, shaders, desktop/mobile navigation, raycast clicks, zoom, image viewer, zine sequence, empty states, index, help, overflow, reduced motion, WebGL fallback.');
 await browser.close();

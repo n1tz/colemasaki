@@ -100,8 +100,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   });
   function arrange() {
     groups.forEach((group, ci) => {
-      group.position.fromArray(active < 0 ? locations()[ci] : roomLocations[ci]);
-      group.visible = active < 0 ? !(isMobile() && !collections[ci].items.length) : ci === active;
+      group.position.fromArray(active < 0 ? (locations()[ci]||roomLocations[ci]) : roomLocations[ci]);
+      group.visible = active < 0 ? ci < 3 : ci === active;
       group.scale.setScalar(active < 0 ? (isMobile() ? .65 : .86) : .85); boards[ci].visible = group.visible;
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
       boards[ci].children.forEach(mesh => {
@@ -210,7 +210,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       el.style.left=`${(projected.x*.5+.5)*rect.width}px`;el.style.top=`${(-projected.y*.5+.5)*rect.height+7}px`;
     });
     groups.forEach((g, i) => {
-      const el = labelElements[i]; if (tween || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
+      const el = labelElements[i]; if (tween || !g.visible || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
       projected.set(0, -layouts[i].height / 2 - .65, 0).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
       const x = (projected.x * .5 + .5) * rect.width, y = (-projected.y * .5 + .5) * rect.height;
       el.hidden = projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height;
