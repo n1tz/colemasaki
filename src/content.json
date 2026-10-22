@@ -498,22 +498,13 @@
         "alt": "Zine, page 1"
       },
       {
-        "id": "zine-02",
-        "source": "Page02.ai",
-        "src": "/art/zine-02.webp",
-        "thumb": "/art/zine-02-thumb.webp",
-        "width": 1426,
-        "height": 2000,
-        "alt": "Zine, page 2"
-      },
-      {
         "id": "zine-03",
         "source": "Page03.ai",
         "src": "/art/zine-03.webp",
         "thumb": "/art/zine-03-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 3"
+        "alt": "Zine, page 2"
       },
       {
         "id": "zine-04",
@@ -522,7 +513,7 @@
         "thumb": "/art/zine-04-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 4"
+        "alt": "Zine, page 3"
       },
       {
         "id": "zine-05",
@@ -531,7 +522,7 @@
         "thumb": "/art/zine-05-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 5"
+        "alt": "Zine, page 4"
       },
       {
         "id": "zine-06",
@@ -540,7 +531,7 @@
         "thumb": "/art/zine-06-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 6"
+        "alt": "Zine, page 5"
       },
       {
         "id": "zine-07",
@@ -549,7 +540,7 @@
         "thumb": "/art/zine-07-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 7"
+        "alt": "Zine, page 6"
       },
       {
         "id": "zine-08",
@@ -558,7 +549,7 @@
         "thumb": "/art/zine-08-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 8"
+        "alt": "Zine, page 7"
       },
       {
         "id": "zine-09",
@@ -567,7 +558,7 @@
         "thumb": "/art/zine-09-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 9"
+        "alt": "Zine, page 8"
       },
       {
         "id": "zine-10",
@@ -576,7 +567,7 @@
         "thumb": "/art/zine-10-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 10"
+        "alt": "Zine, page 9"
       },
       {
         "id": "zine-11",
@@ -585,7 +576,7 @@
         "thumb": "/art/zine-11-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 11"
+        "alt": "Zine, page 10"
       },
       {
         "id": "zine-12",
@@ -594,7 +585,7 @@
         "thumb": "/art/zine-12-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 12"
+        "alt": "Zine, page 11"
       },
       {
         "id": "zine-13",
@@ -603,7 +594,7 @@
         "thumb": "/art/zine-13-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 13"
+        "alt": "Zine, page 12"
       },
       {
         "id": "zine-14",
@@ -612,7 +603,7 @@
         "thumb": "/art/zine-14-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 14"
+        "alt": "Zine, page 13"
       },
       {
         "id": "zine-15",
@@ -621,7 +612,7 @@
         "thumb": "/art/zine-15-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 15"
+        "alt": "Zine, page 14"
       },
       {
         "id": "zine-16",
@@ -630,7 +621,7 @@
         "thumb": "/art/zine-16-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 16"
+        "alt": "Zine, page 15"
       },
       {
         "id": "zine-17",
@@ -639,7 +630,7 @@
         "thumb": "/art/zine-17-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 17"
+        "alt": "Zine, page 16"
       },
       {
         "id": "zine-18",
@@ -648,16 +639,7 @@
         "thumb": "/art/zine-18-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 18"
-      },
-      {
-        "id": "zine-19",
-        "source": "Page19.ai",
-        "src": "/art/zine-19.webp",
-        "thumb": "/art/zine-19-thumb.webp",
-        "width": 1426,
-        "height": 2000,
-        "alt": "Zine, page 19"
+        "alt": "Zine, page 17"
       },
       {
         "id": "zine-20",
@@ -666,7 +648,7 @@
         "thumb": "/art/zine-20-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 20"
+        "alt": "Zine, page 18"
       }
     ],
     "shortLabel": "Zine"

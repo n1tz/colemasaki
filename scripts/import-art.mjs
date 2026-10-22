@@ -22,6 +22,8 @@ for (const collection of collections) {
   const names = (await readdir(join(root, collection.folder))).filter(n => /\.(png|jpe?g|ai)$/i.test(n)).sort((a,b) => a.localeCompare(b, 'en', { numeric: true }));
   for (let i = 0; i < names.length; i++) {
     const name = names[i];
+    // Blank inside covers are omitted from the online edition; preserve source IDs.
+    if (collection.id === 'zine' && ['Page02.ai', 'Page19.ai'].includes(name)) continue;
     const id = `${collection.id}-${String(i + 1).padStart(2, '0')}`;
     let source = join(root, collection.folder, name);
     if (name.endsWith('.ai')) {
@@ -32,7 +34,7 @@ for (const collection of collections) {
     const metadata = await sharp(source).metadata();
     await sharp(source).rotate().resize(2000, 2000, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 90 }).toFile(join(out, `${id}.webp`));
     await sharp(source).rotate().resize(640, 640, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }).toFile(join(out, `${id}-thumb.webp`));
-    collection.items.push({ id, source: name, src: `/art/${id}.webp`, thumb: `/art/${id}-thumb.webp`, width: metadata.width, height: metadata.height, alt: collection.id === 'zine' ? `Zine, page ${i+1}` : `${collection.label}, work ${i+1}` });
+    collection.items.push({ id, source: name, src: `/art/${id}.webp`, thumb: `/art/${id}-thumb.webp`, width: metadata.width, height: metadata.height, alt: collection.id === 'zine' ? `Zine, page ${collection.items.length+1}` : `${collection.label}, work ${i+1}` });
     console.log(id, name);
   }
   delete collection.folder;
