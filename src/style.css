@@ -108,3 +108,5 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
 @media(max-width:800px){.collection-nav,.focused .collection-nav{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.category .category-label:before{font-size:8px}.category .number{font-size:7px}}
 .dialog-head .title{overflow-wrap:anywhere;line-height:1.5}
 .index-item span{line-height:1.5}
+
+.site-logo{display:block;width:32px;height:32px}.site-logo img{display:block;width:100%;height:100%}

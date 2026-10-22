@@ -106,6 +106,15 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
       boards[ci].children.forEach(mesh => {
         const slot = layout.slots.find(s => s.index === mesh.userData.item); mesh.visible = Boolean(slot); if (!slot) return;
+        // Fetch full detail only for works entering an exhibition, not the entire library.
+        if(active === ci && !mesh.userData.fullRequested){
+          mesh.userData.fullRequested=true;
+          loader.load(collections[ci].items[mesh.userData.item].src, texture=>{
+            texture.colorSpace=THREE.SRGBColorSpace;
+            texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);
+            mesh.material.map.dispose();mesh.material.map=texture;
+          },undefined,()=>{mesh.userData.fullRequested=false;});
+        }
         mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1); mesh.userData.baseScale=mesh.scale.clone(); mesh.userData.order=layout.slots.indexOf(slot);
       });
     });
@@ -139,7 +148,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       const lift=new THREE.Vector3(0,Math.min(distance*.045,7),0);
       const path=new THREE.CubicBezierCurve3(from,from.clone().addScaledVector(offset,.32).add(lift),from.clone().addScaledVector(offset,.68).add(lift),position);
       const endCamera=camera.clone();endCamera.up.set(0,1,0);endCamera.position.copy(position);endCamera.lookAt(target);
-      tween={elapsed:0,progress:0,duration:distance>10?Math.min(4.6,3.1+distance*.003):.8,path,
+      tween={elapsed:0,progress:0,duration:distance>10?Math.min(4.6,3.1+distance*.003)/2:.4,path,
         fromTarget,toTarget:target,fromRotation:savedRotation,toRotation:endCamera.quaternion.clone(),fromFov:savedFov};
     }
   }
@@ -174,7 +183,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const workLabels = document.createElement('div'); workLabels.className = 'work-labels'; workLabels.setAttribute('aria-hidden', 'true'); host.appendChild(workLabels);
   const itemLabels = artworks.map(mesh => { const el = document.createElement('span'); el.className = 'work-label'; el.textContent = `${collections[mesh.userData.category].id === 'zine' ? 'PAGE ' : ''}${String(mesh.userData.item + 1).padStart(2, '0')}`; workLabels.appendChild(el); return el; });
   const projected = new THREE.Vector3(), direction = new THREE.Vector3();
-  function animateArt(delta) {
+  function animateArt(delta, elapsed = delta) {
     if (motionEnabled) {field.time.value += delta;architectureTime.value+=delta;}
     const progress=tween?tween.progress:1;
     const pulse=Math.sin(progress*Math.PI);
@@ -188,6 +197,17 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       direction.copy(camera.position).sub(groups[ci].position).normalize(); board.position.copy(groups[ci].position).addScaledVector(direction, 2.3);
       // One facing plane per collection keeps ordered slots from crossing.
       board.quaternion.copy(camera.quaternion);
+      // Scale the whole ordered exhibition in camera space: spacing and image
+      // proportions stay intact, even while orbiting. Leave room for work labels.
+      let desiredScale=1;
+      if(active === ci){
+        const depth=board.position.clone().sub(camera.position).applyQuaternion(camera.quaternion.clone().invert());
+        const visibleHeight=2*Math.max(.1,-depth.z)*Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+        const layout=layouts[ci];
+        desiredScale=Math.min(visibleHeight*camera.aspect*.94/layout.width,visibleHeight*.90/(layout.height+.24));
+      }
+      const blend=reducedMotion?1:1-Math.exp(-elapsed*18);
+      board.scale.lerp(new THREE.Vector3().setScalar(desiredScale),blend);
       board.children.forEach(mesh => {
         if (!mesh.visible) return; const data = mesh.userData;
         const reveal=tween?THREE.MathUtils.smoothstep(progress,.65+data.order*.012,.85+data.order*.012):1;
@@ -220,7 +240,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   function tick(now) {
     frame = requestAnimationFrame(tick); const elapsed = Math.max(0,(now-last)/1000), delta = Math.min(elapsed,.05); last = now; if (paused || document.hidden) return;
     if (tween) {
-      tween.elapsed+=Math.min(elapsed,.25);
+      tween.elapsed+=elapsed;
       const t=Math.min(tween.elapsed/tween.duration,1);
       tween.progress=t;
       const ease=t*t*t*(10+t*(-15+6*t));
@@ -231,7 +251,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       camera.updateProjectionMatrix();
       if(t===1){tween=null;camera.up.set(0,1,0);controls.enabled=!paused;controls.update();}
     }
-    if(!tween)controls.update(delta); animateArt(delta); renderer.info.reset(); ascii.render(scene,camera,architectureTime.value,tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,!reducedMotion); renderer.clearDepth(); renderer.render(artScene, camera); labels();
+    if(!tween)controls.update(delta); animateArt(delta, elapsed); renderer.info.reset(); ascii.render(scene,camera,architectureTime.value,tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,!reducedMotion); renderer.clearDepth(); renderer.render(artScene, camera); labels();
     if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
   }
   frame = requestAnimationFrame(tick);

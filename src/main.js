@@ -13,7 +13,7 @@ let active=-1, space, viewing=null, returnFocus=null, motionEnabled=!reducedMoti
 $('#app').innerHTML=`
   <div id="exhibition-frame" aria-hidden="true"></div><main id="space" aria-label="Interactive 3D artwork gallery"></main>
   <div class="border" aria-hidden="true"></div>
-  <header class="topline"><span>PORTFOLIO / COLE MASAKI</span><div class="top-actions"><span class="desktop">ART / DESIGN / INDEPENDENT WORK</span><button id="help" aria-label="Navigation help">[ ? ]</button></div></header>
+  <header class="topline"><a class="site-logo" href="/" aria-label="Cole Masaki — overview"><img src="/favicon.svg" alt="" width="32" height="32" /></a><div class="top-actions"><span class="desktop">ART / DESIGN / INDEPENDENT WORK</span><button id="help" aria-label="Navigation help">[ ? ]</button></div></header>
   <div class="brand"><h1 aria-label="COLE MASAKI">COLE MASAKI</h1><p><span class="smallcross">✳</span>PERSONAL WORK & SELECTED DESIGN</p></div>
   <nav class="collection-nav" aria-label="Collections"><div class="nav-heading"><span>COLLECTIONS</span><span>01—${pad(collections.length)}</span></div>
     ${collections.map((c,i)=>`<button class="category ${c.items.length?'':'pending'}" data-category="${i}" aria-pressed="false"><span class="number">${pad(i+1)}</span><span class="category-label" data-short="${c.shortLabel||c.label}">${c.label}${c.items.length?'':'<small>To be added</small>'}</span><span class="count">${c.items.length?pad(c.items.length):'—'}</span></button>`).join('')}
