@@ -41,3 +41,33 @@ function bounds(slots, extra) {
   slots.forEach(slot => { slot.x -= centerX; slot.y -= centerY; });
   return { slots, width: maxX - minX, height: maxY - minY, ...extra };
 }
+
+// Reflow ordered rows as one composition, retaining gutters and image ratios.
+export function focusLayout(layout, focusedIndex, maxHeight) {
+  if (focusedIndex == null) return layout.slots;
+  const rows = [];
+  for (const slot of layout.slots) {
+    let row = rows.find(row => Math.abs(row.y - slot.y) < .01);
+    if (!row) { row = { y: slot.y, slots: [] }; rows.push(row); }
+    const scale = slot.index === focusedIndex ? 1.48 : .74;
+    row.slots.push({ ...slot, width: slot.width * scale, height: slot.height * scale });
+  }
+  const gap = .5;
+  rows.forEach(row => {
+    row.width = row.slots.reduce((sum, slot) => sum + slot.width, 0) + gap * (row.slots.length - 1);
+    row.height = Math.max(...row.slots.map(slot => slot.height));
+  });
+  const height = rows.reduce((sum, row) => sum + row.height, 0) + gap * (rows.length - 1);
+  const fit = Math.min(1, layout.width / Math.max(...rows.map(row => row.width)), maxHeight / height);
+  let top = height / 2;
+  return rows.flatMap(row => {
+    let left = -row.width / 2;
+    const slots = row.slots.map(slot => {
+      const result = { ...slot, x: (left + slot.width / 2) * fit, y: (top - row.height / 2) * fit, width: slot.width * fit, height: slot.height * fit };
+      left += slot.width + gap;
+      return result;
+    });
+    top -= row.height + gap;
+    return slots;
+  });
+}

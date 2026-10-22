@@ -5,7 +5,7 @@ import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { createFieldMaterials } from './motion.js';
 import { createDepthField, roomLocations } from './depth-field.js';
 import { createAsciiPass } from './ascii-pass.js';
-import { exhibitionLayout } from './layout.js';
+import { exhibitionLayout, focusLayout } from './layout.js';
 
 const desktopLocations = [[-9, 0, 0], [0, 0, 0], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], [5, -6.5, -4]];
@@ -115,7 +115,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
             mesh.material.map.dispose();mesh.material.map=texture;
           },undefined,()=>{mesh.userData.fullRequested=false;});
         }
-        mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1); mesh.userData.baseScale=mesh.scale.clone(); mesh.userData.order=layout.slots.indexOf(slot);
+        mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1); mesh.userData.baseScale=mesh.scale.clone(); mesh.userData.displayScale=mesh.scale.clone(); mesh.userData.order=layout.slots.indexOf(slot);
       });
     });
     field.metal.envMapIntensity = active < 0 ? .55 : .22;
@@ -158,7 +158,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     syncViewport();
     arrange(); travel();
   }
-  function turnExhibition(direction) { if (active < 0) return; page += direction; arrange(); travel(); }
+  function turnExhibition(direction) { if (active < 0) return; page += direction; hovered = null; onHover(null); arrange(); travel(); }
   arrange(); travel(true);
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
   const visibleArt = () => artworks.filter(o => o.visible && o.parent.visible);
@@ -166,9 +166,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     const rect = renderer.domElement.getBoundingClientRect(); pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);
     raycaster.setFromCamera(pointer, camera); return raycaster.intersectObjects(objects, false)[0];
   }
-  renderer.domElement.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; });
+  renderer.domElement.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; hovered = null; onHover(null); });
   renderer.domElement.addEventListener('pointermove', e => {
-    if (e.buttons || tween) return; hovered = intersects(e, visibleArt())?.object; renderer.domElement.style.cursor = hovered ? 'pointer' : 'grab'; onHover(hovered?.userData, e.clientX, e.clientY);
+    if (e.pointerType === 'touch' || e.buttons || tween) return; hovered = intersects(e, visibleArt())?.object; renderer.domElement.style.cursor = hovered ? 'pointer' : 'grab'; onHover(hovered?.userData, e.clientX, e.clientY);
   });
   renderer.domElement.addEventListener('pointerleave', () => { hovered = null; onHover(null); });
   renderer.domElement.addEventListener('pointercancel', () => { down = null; });
@@ -199,25 +199,32 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       board.quaternion.copy(camera.quaternion);
       // Scale the whole ordered exhibition in camera space: spacing and image
       // proportions stay intact, even while orbiting. Leave room for work labels.
-      let desiredScale=1;
+      let desiredScale=1, availableHeight=layouts[ci].height;
       if(active === ci){
         const depth=board.position.clone().sub(camera.position).applyQuaternion(camera.quaternion.clone().invert());
         const visibleHeight=2*Math.max(.1,-depth.z)*Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
         const layout=layouts[ci];
+        availableHeight=visibleHeight*.90;
         desiredScale=Math.min(visibleHeight*camera.aspect*.94/layout.width,visibleHeight*.90/(layout.height+.24));
       }
       const blend=reducedMotion?1:1-Math.exp(-elapsed*18);
       board.scale.lerp(new THREE.Vector3().setScalar(desiredScale),blend);
+      const focused = !tween && !down && hovered?.parent === board ? hovered.userData.item : null;
+      const slots = active === ci ? focusLayout(layouts[ci], focused, availableHeight / board.scale.x - .24) : layouts[ci].slots;
+      const focusBlend = reducedMotion ? 1 : 1 - Math.exp(-elapsed * 11);
       board.children.forEach(mesh => {
         if (!mesh.visible) return; const data = mesh.userData;
         const reveal=tween?THREE.MathUtils.smoothstep(progress,.65+data.order*.012,.85+data.order*.012):1;
-        mesh.scale.copy(data.baseScale);mesh.scale.x*=.82+.18*reveal;mesh.scale.y*=.025+.975*reveal;
+        const slot = slots.find(slot => slot.index === data.item);
+        const overviewScale = active < 0 && hovered && !tween && !down ? (mesh === hovered ? 1.12 : .90) : 1;
+        data.displayScale ??= data.baseScale.clone();
+        data.displayScale.lerp(new THREE.Vector3(slot.width * overviewScale, slot.height * overviewScale, 1), focusBlend);
+        mesh.scale.copy(data.displayScale);mesh.scale.x*=.82+.18*reveal;mesh.scale.y*=.025+.975*reveal;
         mesh.material.opacity=reveal;
         mesh.rotation.y=(1-reveal)*.7;
-        if (motionEnabled && mesh !== hovered && !down) {
-          data.phase += delta; const amplitude = active < 0 ? .045 : .018;
-          mesh.position.set(data.origin.x + noise.noise(data.seed, data.phase * .12, 3.7) * amplitude, data.origin.y + noise.noise(data.seed, 2.3, data.phase * .12) * amplitude, 0);
-        }
+        if (motionEnabled) data.phase += delta;
+        const amplitude = motionEnabled && focused == null ? (active < 0 ? .045 : .018) : 0;
+        mesh.position.lerp(new THREE.Vector3(slot.x + noise.noise(data.seed, data.phase * .12, 3.7) * amplitude, slot.y + noise.noise(data.seed, 2.3, data.phase * .12) * amplitude, 0), focusBlend);
       });
     });
   }
@@ -266,7 +273,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   return {
     select, turnExhibition,
     zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
-    setPaused(value) { paused = value; controls.enabled = !value && !tween; }, setMotion(value) { motionEnabled = value && !reducedMotion; },
+    setPaused(value) { paused = value; if(value){hovered=null;onHover(null);} controls.enabled = !value && !tween; }, setMotion(value) { motionEnabled = value && !reducedMotion; },
     stats() { const rect = layoutFrame.getBoundingClientRect(); return { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
     dispose() { cancelAnimationFrame(frame); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
