@@ -110,3 +110,22 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
 .index-item span{line-height:1.5}
 
 .site-logo{display:block;width:32px;height:32px}.site-logo img{display:block;width:100%;height:100%}
+
+/* Side controls share the exhibition frame, with a clear gutter around the art. */
+#exhibition-frame{z-index:2}
+.focused #exhibition-frame:has(.collection-sides:not([hidden])){margin-inline:56px}
+.collection-sides{position:absolute;inset:0;visibility:visible;pointer-events:none}
+.collection-sides[hidden]{display:none}
+.collection-sides button{position:absolute;top:50%;transform:translateY(-50%);width:48px;min-height:80px;padding:12px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;color:var(--muted);background:#11120fc9;border:1px solid var(--line);transition:color .2s,border-color .2s,background .2s}
+#collection-side-previous{left:-56px}#collection-side-next{right:-56px}
+.collection-sides svg{width:36px;height:24px;fill:none;stroke:currentColor;stroke-width:1.25}
+.collection-sides span{font-size:8px;letter-spacing:.1em}
+.collection-sides button:hover:not(:disabled),.collection-sides button:focus-visible{color:var(--ink);border-color:var(--muted);background:#11120f}
+.collection-sides button:disabled{opacity:.22}
+@media(max-width:800px){
+ .focused #exhibition-frame:has(.collection-sides:not([hidden])){margin-inline:44px}
+ .collection-sides button{width:44px;min-height:72px}
+ #collection-side-previous{left:-50px}#collection-side-next{right:-50px}
+ .collection-sides svg{width:32px}
+}
+@media(prefers-reduced-motion:reduce){.collection-sides button{transition:none}}

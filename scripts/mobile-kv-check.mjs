@@ -1,0 +1,33 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+try{
+ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(process.env.REVIEW_URL||'http://localhost:3012');
+ await page.waitForFunction(()=>document.querySelector('.mobile-kv-space')?.kvStats?.().loaded===6);
+ const stats=()=>page.locator('.mobile-kv-space').evaluate(e=>e.kvStats());
+ await page.waitForTimeout(800);const first=await stats();assert.equal(first.artworks,6);assert(first.instances<6000);
+ await page.screenshot({path:'/tmp/cole-mobile-before/kv-mobile.png'});
+ await page.locator('.mobile-kv-pause').click();await page.waitForTimeout(200);const paused=await stats();await page.waitForTimeout(500);assert.equal((await stats()).draws,paused.draws,'Pause must stop drawing');
+ await page.locator('.mobile-kv-pause').click();await page.waitForTimeout(500);assert((await stats()).draws>paused.draws,'Resume must render');
+ await page.locator('.mobile-kv-browse').click();await page.waitForFunction(()=>scrollY>300);await page.waitForTimeout(800);assert.equal((await stats()).visible,false);
+ const offscreen=await stats();await page.waitForTimeout(500);assert.equal((await stats()).draws,offscreen.draws,'Offscreen rendering must stop');
+ assert(await page.locator('#mobile-collections').evaluate(e=>document.activeElement===e));
+ await page.locator('[data-enter="0"]').click();assert.equal(await page.locator('.mobile-kv-space').count(),0);
+ await page.locator('.mobile-art').first().click();assert(await page.locator('#original svg').count());await page.locator('[data-close="viewer"]').click();
+ await page.locator('.mobile-back').click();await page.waitForFunction(()=>document.querySelector('.mobile-kv-space')?.kvStats?.().loaded===6);assert.equal(await page.locator('.mobile-kv-space canvas').count(),1);
+ assert(!await page.evaluate(()=>/[←↑→↓↖↗↘↙]/.test(document.body.textContent)),'Text arrow remains');
+ await page.setViewportSize({width:320,height:568});await page.waitForTimeout(500);assert(await page.evaluate(()=>document.documentElement.scrollWidth===innerWidth));
+ await page.screenshot({path:'/tmp/cole-mobile-before/kv-small.png'});
+ await page.setViewportSize({width:1440,height:1000});await page.waitForFunction(()=>window.portfolio.stats()?.artworks>0);
+ assert.equal(await page.locator('.mobile-kv-space canvas').count(),0);assert.equal(await page.locator('#home svg').count(),1);
+ await page.locator('[data-category="0"]').click();assert(await page.locator('#view-collection svg').count());
+ await page.locator('#view-collection').click();assert(await page.locator('#original svg').count());
+ assert(!await page.evaluate(()=>/[←↑→↓↖↗↘↙]/.test(document.body.textContent)));
+ const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});await reduced.goto(process.env.REVIEW_URL||'http://localhost:3012');await reduced.waitForFunction(()=>document.querySelector('.mobile-kv-space')?.kvStats?.().loaded===6);
+ assert(await reduced.locator('.mobile-kv-pause').isDisabled());const r=await reduced.locator('.mobile-kv-space').evaluate(e=>e.kvStats());await reduced.waitForTimeout(600);assert.equal((await reduced.locator('.mobile-kv-space').evaluate(e=>e.kvStats())).draws,r.draws);
+ const fallback=await browser.newPage({viewport:{width:390,height:844}});await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.includes('webgl')?null:original.call(this,type,...args);};});await fallback.goto(process.env.REVIEW_URL||'http://localhost:3012');await fallback.waitForSelector('.mobile-kv-space[data-failed=true]');assert(await fallback.locator('.mobile-kv-fallback').isVisible());await fallback.locator('[data-enter="0"]').click();assert(await fallback.locator('.mobile-art').count()>0);
+ assert.equal(errors.length,0,errors.join('\n'));
+ console.log('PASS: layered artwork journey, pause/resume, offscreen suspension, scroll cue, disposal/reentry, reduced motion, WebGL fallback, narrow layout, and SVG arrows on mobile/desktop.');
+}finally{await browser.close();}

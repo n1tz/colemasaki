@@ -1,6 +1,6 @@
 # Cole Masaki — Portfolio
 
-A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Seven collections occupy distinct recursive sculptures. The overview shows representative work from Professional Work, Websites, and Personal Work; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. There is no scrolling page behind the scene.
+A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Seven collections occupy distinct recursive sculptures. The overview shows representative work from Professional Work, Websites, and Personal Work; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. Desktop remains a full-screen spatial gallery. Mobile uses a native scrolling artwork grid with a compact 3D journey above the homepage collections.
 
 ## Run
 
@@ -19,7 +19,7 @@ Edit `src/content.json`. Each collection has a stable `id`, a `label`, and an or
 
 To add work, put its full-size WebP and small thumbnail in `public/art/`, then add an item to the desired collection. The scene and index read the same manifest; counts update automatically. The empty game and drawings collections accept the same image schema. Video playback and game embeds are not implemented in this version.
 
-The zine array is its reading order: cover, sequential interior pages, back cover. On desktop the reader shows cover alone, then facing pages, then back cover alone. Mobile shows one page at a time. Black pages 02 and 19 are present in the original files and intentionally retained. Images preserve source proportions and colors.
+The zine array is its reading order: cover, sequential interior pages, back cover. On desktop the reader shows cover alone, then facing pages, then back cover alone. Mobile shows one page at a time. Black underside-cover pages 02 and 19 are omitted from the published 18-page sequence. Images preserve source proportions and colors.
 
 To regenerate all optimized assets from the original folder structure (`2DPersonal`, `Logo`, `Zine/PRINT`):
 
@@ -37,16 +37,16 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 - Work index provides keyboard access to every item and remains available if WebGL fails.
 - Cubes expand in coherent noise-driven waves; wireframe opacity follows a separate scrolling noise field. These run on the GPU through `src/motion.js`.
 - Artwork occupies ordered, camera-facing slots with restrained noise motion inside fixed gutters. The entire collection stays centered as you rotate its sculpture. A separate final render pass guarantees that neither solid geometry nor transparent wireframes can draw over images. The camera stays still until you navigate.
-- Desktop personal and professional work show up to eight images per page; logos have a two-by-two arrangement. The zine shows six sequential pages at a time. Mobile shows four artworks or two zine pages at a time with previous/next controls; no work is omitted. `src/layout.js` owns these arrangements and page sizes.
+- Desktop personal and professional work show up to eight images per page; logos have a two-by-two arrangement. The zine shows six sequential pages at a time. Mobile shows every artwork in a scrollable grid, with a Large layout option and a full-screen swipeable viewer; no work is omitted. `src/layout.js` owns these arrangements and page sizes.
 - Numbered labels establish work/page order. Opening an artwork still uses the full-resolution viewer, and the zine reader retains its facing-page sequence.
 - The pause button freezes the noise and bounded artwork motion. Reduced-motion preference disables both and makes camera travel immediate.
-- Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load only in the viewer.
+- Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load for selected desktop exhibitions and the viewer.
 
 ## Full-screen world and transitions
 
 The WebGL canvas fills the viewport. An invisible `#exhibition-frame` defines the artwork area; the camera uses an offset frustum to preserve that composition while rendering the world behind the interface. Header text uses CSS difference blending.
 
-`src/depth-field.js` builds a central library and seven separated chambers from 9,984 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. Its blocks and outlines share a GPU wave deformation, producing slow changes in depth and width without per-frame instance uploads. `roomLocations` defines the collection destinations. Section changes follow broad cubic Bézier dolly paths, lasting roughly 3–4.6 seconds depending on distance. Quintic easing gives zero endpoint velocity and acceleration; quaternion interpolation keeps the horizon stable and the lens stays at 43°. Pagination uses a short reveal without an unnecessary room excursion. Reduced motion moves directly to the destination and disables ambient deformation and ASCII conversion. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
+`src/depth-field.js` builds a central library and seven separated chambers from 9,984 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. Its blocks and outlines share a GPU wave deformation, producing slow changes in depth and width without per-frame instance uploads. `roomLocations` defines the collection destinations. Section changes follow broad cubic Bézier dolly paths, lasting roughly 1.55–2.3 seconds depending on distance. Quintic easing gives zero endpoint velocity and acceleration; quaternion interpolation keeps the horizon stable and the lens stays at 43°. Pagination uses a short reveal without an unnecessary room excursion. Reduced motion moves directly to the destination and disables ambient deformation and ASCII conversion. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
 
 `src/ascii-pass.js` samples the live world into a monospace glyph atlas in one fullscreen GPU pass. Conversion peaks during room travel and covers roughly half the screen at rest, with a slowly drifting curved boundary. Artwork is rendered afterwards and remains unprocessed. The animation pause control freezes the shared environment/effect clock.
 
@@ -84,4 +84,14 @@ Artwork: the supplied AIFOOD folder. Public Instagram posts from @colemasaki, me
 
 Collections are ordered for hiring: Professional Work, Websites, Personal Work, Logo Design, Zine, Video Game, Drawings & Paintings. `shortLabel` supplies compact mobile navigation. Optional item `title` is shown in the viewer and index; `url` opens the original project, website, or Instagram post. `origin` marks imported items so local imports preserve them.
 
-The current import includes 15 T-shirt and hoodie images across ten merchandise collections, four website previews, and seven additional public Instagram photos (the visible video post was excluded). Existing local artwork is retained; four duplicate Instagram posts link from their higher-resolution local versions. `src/imported-work.json` records the imported selection. To refresh source captures, run `node scripts/inspect-sources.mjs`, then `node scripts/fetch-merch.mjs`, then `node scripts/import-web-work.mjs` with network access and Chromium available. Intermediate captures live in `/tmp/cole-sources`. Review the curated merchandise group selection and Instagram post/image pairing before refreshing; public feeds can change.
+The curated portfolio includes 17 professional images (15 merchandise mockups, one shirt back, and one poster), four website previews, 17 personal works, nine logo images, and 18 zine pages. Three unique Instagram-only personal images remain. Source links from removed Instagram copies are preserved on their higher-resolution replacements.
+
+Run `node scripts/curate-portfolio.mjs` after refreshing either artwork import to restore the reviewed additions, duplicate decisions, and ordering. It reads the 13 supplied originals from `/home/n1tz/Downloads` (or a directory passed as its first argument). It preserves the six requested opening personal pieces in order, then sorts remaining personal work by shortest source dimension, descending. Optimized images are capped at 2000px without enlargement; thumbnails are capped at 640px. See [the artwork audit](docs/artwork-audit.md) for duplicate decisions.
+
+## Mobile journey and performance
+
+The mobile homepage visual travels between staggered chambers, with a 1.25-second hold on each artwork pair followed by a 3.55-second curved flight. Artwork stays upright; ASCII peaks in transit. All 65 works cycle through a collection-interleaved sequence without repeats within a cycle.
+
+Three reused chambers and six artwork planes keep GPU residency bounded. A chamber is recycled only at zero visibility; its replacement is prefetched two stops ahead and fades in before arrival. Late textures have a separate half-second reveal. Room fades use a shared shader program and one uniform per chamber; geometry stays shared and instanced. The preview suspends offscreen, in hidden tabs, and when paused. Reduced motion provides a static preview, and WebGL failure retains the image fallback and complete gallery.
+
+The page shell, desktop scene, and mobile KV load separately. The desktop scene shares artwork geometry and reuses per-frame vectors; paused/hidden scene loops do not schedule frames. Fingerprinted build assets use immutable caching. See [the performance audit](docs/performance-audit.md) for validation and measurement limits.

@@ -4,7 +4,7 @@ export const roomLocations = [[-82, 16, -110], [90, -20, -190], [0, 65, -290], [
 
 // A continuous architecture: six chambers, open ribs, recursively split masonry.
 // All masonry is instanced; all outlines are merged into one draw call.
-export function createDepthField(time) {
+export function createDepthField(time, origins = [[0,0,0], ...roomLocations]) {
   const group = new THREE.Group(), cells = [], lines = [], centers = [];
   const cube = new THREE.BoxGeometry(1, 1, 1), edge = new THREE.EdgesGeometry(cube);
   const source = edge.attributes.position.array;
@@ -14,7 +14,7 @@ export function createDepthField(time) {
     const s=size/3;
     for(const [a,b,c] of [[0,0,0],[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]])branch(x+a*s,y+b*s,z+c*s,s,depth-1);
   }
-  [[0,0,0],...roomLocations].forEach(([cx,cy,cz],room)=>{
+  origins.forEach(([cx,cy,cz],room)=>{
     // Rotating rectangular colonnades surround an empty gallery aperture.
     for(let ring=0;ring<15;ring++){
       const z=cz+36-ring*9, radius=22+Math.sin(ring*.55+room)*3;

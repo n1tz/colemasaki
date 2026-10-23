@@ -5,6 +5,17 @@
     "shortLabel": "Client",
     "items": [
       {
+        "id": "professional-shirt-back",
+        "source": "ShirtBackFinal_0_fe7fa756-cc9f-4942-9046-7822d3523161_1800x.webp",
+        "title": "Shirt back design",
+        "alt": "Shirt back design",
+        "origin": "local-curated",
+        "src": "/art/professional-shirt-back.webp",
+        "thumb": "/art/professional-shirt-back-thumb.webp",
+        "width": 1800,
+        "height": 1800
+      },
+      {
         "id": "professional-14",
         "title": "物語シリーズグッズくじ / SSR賞 Tシャツ A",
         "alt": "物語シリーズグッズくじ / SSR賞 Tシャツ A",
@@ -29,6 +40,17 @@
         "thumb": "/art/professional-04-thumb.webp",
         "width": 2048,
         "height": 2048
+      },
+      {
+        "id": "professional-poster01",
+        "source": "POSTER01s.png",
+        "title": "Poster design",
+        "alt": "Poster design",
+        "origin": "local-curated",
+        "src": "/art/professional-poster01.webp",
+        "thumb": "/art/professional-poster01-thumb.webp",
+        "width": 3042,
+        "height": 4299
       },
       {
         "id": "professional-13",
@@ -261,6 +283,151 @@
     "label": "Personal Work",
     "items": [
       {
+        "id": "personal-ds3",
+        "source": "ds3.jpg",
+        "title": "Dark Souls III",
+        "alt": "Dark Souls III",
+        "origin": "local-curated",
+        "src": "/art/personal-ds3.webp",
+        "thumb": "/art/personal-ds3-thumb.webp",
+        "width": 3506,
+        "height": 2160
+      },
+      {
+        "id": "personal-fun1",
+        "source": "Fun1.jpg",
+        "title": "Fun1",
+        "alt": "Fun1",
+        "origin": "local-curated",
+        "src": "/art/personal-fun1.webp",
+        "thumb": "/art/personal-fun1-thumb.webp",
+        "width": 4320,
+        "height": 6113
+      },
+      {
+        "id": "personal-jiraiya-print",
+        "source": "JiraiyaPrintform.jpg",
+        "title": "Jiraiya",
+        "alt": "Jiraiya",
+        "origin": "local-curated",
+        "src": "/art/personal-jiraiya-print.webp",
+        "thumb": "/art/personal-jiraiya-print-thumb.webp",
+        "width": 3022,
+        "height": 3778,
+        "url": "https://www.instagram.com/colemasaki/p/CVK9Tkors54/"
+      },
+      {
+        "id": "personal-kuniyoshi",
+        "source": "kuniyoshi1.jpg",
+        "title": "Kuniyoshi",
+        "alt": "Kuniyoshi",
+        "origin": "local-curated",
+        "src": "/art/personal-kuniyoshi.webp",
+        "thumb": "/art/personal-kuniyoshi-thumb.webp",
+        "width": 2300,
+        "height": 2700,
+        "url": "https://www.instagram.com/colemasaki/p/CVdT2YgJrTW/"
+      },
+      {
+        "id": "personal-otani",
+        "source": "Otani_Furuinosuke.jpg",
+        "title": "Otani Furuinosuke",
+        "alt": "Otani Furuinosuke",
+        "origin": "local-curated",
+        "src": "/art/personal-otani.webp",
+        "thumb": "/art/personal-otani-thumb.webp",
+        "width": 2500,
+        "height": 3500,
+        "url": "https://www.instagram.com/colemasaki/p/CXlr3jtuo6q/"
+      },
+      {
+        "id": "personal-comp",
+        "source": "comp.jpg",
+        "title": "Comp",
+        "alt": "Comp",
+        "origin": "local-curated",
+        "src": "/art/personal-comp.webp",
+        "thumb": "/art/personal-comp-thumb.webp",
+        "width": 1966,
+        "height": 2942,
+        "url": "https://www.instagram.com/colemasaki/p/CXKZlkSJ7uH/"
+      },
+      {
+        "id": "personal-09",
+        "source": "temp.jpg",
+        "src": "/art/personal-09.webp",
+        "thumb": "/art/personal-09-thumb.webp",
+        "width": 4800,
+        "height": 4800,
+        "alt": "2D Personal Work, work 9"
+      },
+      {
+        "id": "personal-06",
+        "source": "kaz6crop1s.jpg",
+        "src": "/art/personal-06.webp",
+        "thumb": "/art/personal-06-thumb.webp",
+        "width": 4133,
+        "height": 4133,
+        "alt": "2D Personal Work, work 6",
+        "url": "https://www.instagram.com/colemasaki/p/CSUJQJGJabS/"
+      },
+      {
+        "id": "personal-02",
+        "source": "disgust.jpg",
+        "src": "/art/personal-02.webp",
+        "thumb": "/art/personal-02-thumb.webp",
+        "width": 2796,
+        "height": 2796,
+        "alt": "2D Personal Work, work 2",
+        "url": "https://www.instagram.com/colemasaki/p/CWIBbUirEe_/"
+      },
+      {
+        "id": "personal-08",
+        "source": "recessionchan_1.jpg",
+        "src": "/art/personal-08.webp",
+        "thumb": "/art/personal-08-thumb.webp",
+        "width": 2161,
+        "height": 2161,
+        "alt": "2D Personal Work, work 8",
+        "url": "https://www.instagram.com/colemasaki/p/Cn021DCJkx4/"
+      },
+      {
+        "id": "personal-07",
+        "source": "kitsunetest.png",
+        "src": "/art/personal-07.webp",
+        "thumb": "/art/personal-07-thumb.webp",
+        "width": 2000,
+        "height": 2000,
+        "alt": "2D Personal Work, work 7"
+      },
+      {
+        "id": "personal-01",
+        "source": "aifood7.jpg",
+        "src": "/art/personal-01.webp",
+        "thumb": "/art/personal-01-thumb.webp",
+        "width": 1800,
+        "height": 1800,
+        "alt": "2D Personal Work, work 1"
+      },
+      {
+        "id": "personal-03",
+        "source": "fractalpass2.png",
+        "src": "/art/personal-03.webp",
+        "thumb": "/art/personal-03-thumb.webp",
+        "width": 1080,
+        "height": 1080,
+        "alt": "2D Personal Work, work 3"
+      },
+      {
+        "id": "personal-04",
+        "source": "Horse.png",
+        "src": "/art/personal-04.webp",
+        "thumb": "/art/personal-04-thumb.webp",
+        "width": 753,
+        "height": 818,
+        "alt": "2D Personal Work, work 4"
+      },
+      {
         "id": "instagram-C4hnuuIJCo0",
         "title": "March 14, 2024",
         "alt": "Photo by Cole Masaki on March 14, 2024.",
@@ -295,148 +462,6 @@
         "thumb": "/art/instagram-Co4h2dfp3Mz-thumb.webp",
         "width": 640,
         "height": 640
-      },
-      {
-        "id": "instagram-CXlr3jtuo6q",
-        "title": "December 17, 2021",
-        "alt": "Photo by Cole Masaki on December 17, 2021.",
-        "origin": "instagram",
-        "source": "https://www.instagram.com/colemasaki/p/CXlr3jtuo6q/",
-        "url": "https://www.instagram.com/colemasaki/p/CXlr3jtuo6q/",
-        "src": "/art/instagram-CXlr3jtuo6q.webp",
-        "thumb": "/art/instagram-CXlr3jtuo6q-thumb.webp",
-        "width": 512,
-        "height": 640
-      },
-      {
-        "id": "instagram-CXKZlkSJ7uH",
-        "title": "December 06, 2021",
-        "alt": "Photo by Cole Masaki on December 06, 2021.",
-        "origin": "instagram",
-        "source": "https://www.instagram.com/colemasaki/p/CXKZlkSJ7uH/",
-        "url": "https://www.instagram.com/colemasaki/p/CXKZlkSJ7uH/",
-        "src": "/art/instagram-CXKZlkSJ7uH.webp",
-        "thumb": "/art/instagram-CXKZlkSJ7uH-thumb.webp",
-        "width": 512,
-        "height": 640
-      },
-      {
-        "id": "instagram-CWoHLlLJ5Lr",
-        "title": "November 23, 2021",
-        "alt": "Photo by Cole Masaki on November 23, 2021.",
-        "origin": "instagram",
-        "source": "https://www.instagram.com/colemasaki/p/CWoHLlLJ5Lr/",
-        "url": "https://www.instagram.com/colemasaki/p/CWoHLlLJ5Lr/",
-        "src": "/art/instagram-CWoHLlLJ5Lr.webp",
-        "thumb": "/art/instagram-CWoHLlLJ5Lr-thumb.webp",
-        "width": 640,
-        "height": 640
-      },
-      {
-        "id": "instagram-CVdT2YgJrTW",
-        "title": "October 25, 2021",
-        "alt": "Photo by Cole Masaki on October 25, 2021.",
-        "origin": "instagram",
-        "source": "https://www.instagram.com/colemasaki/p/CVdT2YgJrTW/",
-        "url": "https://www.instagram.com/colemasaki/p/CVdT2YgJrTW/",
-        "src": "/art/instagram-CVdT2YgJrTW.webp",
-        "thumb": "/art/instagram-CVdT2YgJrTW-thumb.webp",
-        "width": 547,
-        "height": 640
-      },
-      {
-        "id": "personal-01",
-        "source": "aifood7.jpg",
-        "src": "/art/personal-01.webp",
-        "thumb": "/art/personal-01-thumb.webp",
-        "width": 1800,
-        "height": 1800,
-        "alt": "2D Personal Work, work 1"
-      },
-      {
-        "id": "personal-02",
-        "source": "disgust.jpg",
-        "src": "/art/personal-02.webp",
-        "thumb": "/art/personal-02-thumb.webp",
-        "width": 2796,
-        "height": 2796,
-        "alt": "2D Personal Work, work 2",
-        "url": "https://www.instagram.com/colemasaki/p/CWIBbUirEe_/"
-      },
-      {
-        "id": "personal-03",
-        "source": "fractalpass2.png",
-        "src": "/art/personal-03.webp",
-        "thumb": "/art/personal-03-thumb.webp",
-        "width": 1080,
-        "height": 1080,
-        "alt": "2D Personal Work, work 3"
-      },
-      {
-        "id": "personal-04",
-        "source": "Horse.png",
-        "src": "/art/personal-04.webp",
-        "thumb": "/art/personal-04-thumb.webp",
-        "width": 753,
-        "height": 818,
-        "alt": "2D Personal Work, work 4"
-      },
-      {
-        "id": "personal-05",
-        "source": "Jiraiya.jpg",
-        "src": "/art/personal-05.webp",
-        "thumb": "/art/personal-05-thumb.webp",
-        "width": 1024,
-        "height": 1280,
-        "alt": "2D Personal Work, work 5",
-        "url": "https://www.instagram.com/colemasaki/p/CVK9Tkors54/"
-      },
-      {
-        "id": "personal-06",
-        "source": "kaz6crop1s.jpg",
-        "src": "/art/personal-06.webp",
-        "thumb": "/art/personal-06-thumb.webp",
-        "width": 4133,
-        "height": 4133,
-        "alt": "2D Personal Work, work 6",
-        "url": "https://www.instagram.com/colemasaki/p/CSUJQJGJabS/"
-      },
-      {
-        "id": "personal-07",
-        "source": "kitsunetest.png",
-        "src": "/art/personal-07.webp",
-        "thumb": "/art/personal-07-thumb.webp",
-        "width": 2000,
-        "height": 2000,
-        "alt": "2D Personal Work, work 7"
-      },
-      {
-        "id": "personal-08",
-        "source": "recessionchan_1.jpg",
-        "src": "/art/personal-08.webp",
-        "thumb": "/art/personal-08-thumb.webp",
-        "width": 2161,
-        "height": 2161,
-        "alt": "2D Personal Work, work 8",
-        "url": "https://www.instagram.com/colemasaki/p/Cn021DCJkx4/"
-      },
-      {
-        "id": "personal-09",
-        "source": "temp.jpg",
-        "src": "/art/personal-09.webp",
-        "thumb": "/art/personal-09-thumb.webp",
-        "width": 4800,
-        "height": 4800,
-        "alt": "2D Personal Work, work 9"
-      },
-      {
-        "id": "personal-10",
-        "source": "UMesh_FemaleHead1.png",
-        "src": "/art/personal-10.webp",
-        "thumb": "/art/personal-10-thumb.webp",
-        "width": 1800,
-        "height": 1800,
-        "alt": "2D Personal Work, work 10"
       }
     ],
     "shortLabel": "Personal"
@@ -445,6 +470,61 @@
     "id": "logos",
     "label": "Logo Design",
     "items": [
+      {
+        "id": "logos-akiba-wow",
+        "source": "DAYMU3.png",
+        "title": "AKIBA WOW",
+        "alt": "AKIBA WOW",
+        "origin": "local-curated",
+        "src": "/art/logos-akiba-wow.webp",
+        "thumb": "/art/logos-akiba-wow-thumb.webp",
+        "width": 1000,
+        "height": 1000
+      },
+      {
+        "id": "logos-cellar-mockup",
+        "source": "cellarlogomockup.png",
+        "title": "CELLAR — logo mockup",
+        "alt": "CELLAR — logo mockup",
+        "origin": "local-curated",
+        "src": "/art/logos-cellar-mockup.webp",
+        "thumb": "/art/logos-cellar-mockup-thumb.webp",
+        "width": 2654,
+        "height": 1841
+      },
+      {
+        "id": "logos-cellar",
+        "source": "cellarlogo.png",
+        "title": "CELLAR — logo studies",
+        "alt": "CELLAR — logo studies",
+        "origin": "local-curated",
+        "src": "/art/logos-cellar.webp",
+        "thumb": "/art/logos-cellar-thumb.webp",
+        "width": 2500,
+        "height": 1500
+      },
+      {
+        "id": "logos-akiba-verse",
+        "source": "Asset_12x.png",
+        "title": "AKIBA-VERSE",
+        "alt": "AKIBA-VERSE",
+        "origin": "local-curated",
+        "src": "/art/logos-akiba-verse.webp",
+        "thumb": "/art/logos-akiba-verse-thumb.webp",
+        "width": 873,
+        "height": 916
+      },
+      {
+        "id": "logos-akiba-day-night",
+        "source": "SPLITMU4.png",
+        "title": "AKIBA WOW — day and night",
+        "alt": "AKIBA WOW — day and night",
+        "origin": "local-curated",
+        "src": "/art/logos-akiba-day-night.webp",
+        "thumb": "/art/logos-akiba-day-night-thumb.webp",
+        "width": 3840,
+        "height": 2160
+      },
       {
         "id": "logos-01",
         "source": "blocklogosample.jpg",
