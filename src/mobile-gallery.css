@@ -26,7 +26,7 @@
   .mobile-room{padding:0;text-align:left;display:block;width:100%;text-transform:none}
   .mobile-room-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:center;min-width:0}
   .mobile-room-preview img{display:block;width:100%;height:auto;max-height:260px;object-fit:contain}
-  .mobile-room-label{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;border-top:1px solid #55584d;padding:14px 0;margin-top:12px;min-height:52px}
+  .mobile-room-label{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;border-top:1px solid #55584d;padding:14px 0;margin:0 0 12px;min-height:52px}
   .mobile-room-label>span{font-size:11px;color:#c1c2b9}
   .mobile-room-label strong{font:700 22px/1.15 var(--display)}
   .mobile-room.is-empty .mobile-room-label{margin:0}.mobile-room.is-empty strong{font-size:19px}

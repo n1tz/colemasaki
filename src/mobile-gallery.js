@@ -52,8 +52,8 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
         </figure>
         <div class="mobile-meta" id="mobile-collections" tabindex="-1">${pad(collections.length)} COLLECTIONS <span>${collections.reduce((n,c)=>n+c.items.length,0)} WORKS</span></div></div>
         <div class="mobile-rooms">${collections.map((c,ci)=>`<button class="mobile-room ${!c.items.length?'is-empty':''}" data-enter="${ci}" aria-label="${escape(c.label)}, ${c.items.length} ${c.id==='zine'?'pages':'works'}">
-          ${c.items.length?`<div class="mobile-room-preview">${c.items.slice(0,2).map((item,i)=>image(item,ci===0)).join('')}</div>`:''}
           <span class="mobile-room-label"><span>${pad(ci+1)}</span><strong>${escape(c.label)}</strong><span>${c.items.length?pad(c.items.length):'SOON'} ↗</span></span>
+          ${c.items.length?`<div class="mobile-room-preview">${c.items.slice(0,2).map((item,i)=>image(item,ci===0)).join('')}</div>`:''}
         </button>`).join('')}</div>`;
     }else{
       const c=collections[active];
