@@ -192,6 +192,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       group.scale.setScalar(base*(1+pulse*.08));
       group.rotation.set(0,pulse*.12,0);
     });
+    const overviewView = active < 0 ? destination() : null;
+    const overviewZoom = overviewView ? camera.position.distanceTo(controls.target) / overviewView.position.distanceTo(overviewView.target) : 1;
     boards.forEach((board, ci) => {
       if (!board.visible) return;
       direction.copy(camera.position).sub(groups[ci].position).normalize(); board.position.copy(groups[ci].position).addScaledVector(direction, 2.3);
@@ -200,6 +202,15 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       // Scale the whole ordered exhibition in camera space: spacing and image
       // proportions stay intact, even while orbiting. Leave room for work labels.
       let desiredScale=1, availableHeight=layouts[ci].height;
+      if (overviewView) {
+        // Keep the overview's ordered composition readable as the world zooms.
+        // Scale spacing with the artwork so previews never converge or overlap.
+        const restDirection = overviewView.position.clone().sub(groups[ci].position).normalize();
+        board.position.copy(groups[ci].position).addScaledVector(restDirection, 2.3)
+          .sub(overviewView.position).multiplyScalar(overviewZoom)
+          .applyQuaternion(camera.quaternion).add(camera.position);
+        desiredScale = overviewZoom;
+      }
       if(active === ci){
         const depth=board.position.clone().sub(camera.position).applyQuaternion(camera.quaternion.clone().invert());
         const visibleHeight=2*Math.max(.1,-depth.z)*Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
@@ -238,7 +249,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     });
     groups.forEach((g, i) => {
       const el = labelElements[i]; if (tween || !g.visible || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
-      projected.set(0, -layouts[i].height / 2 - .65, 0).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
+      projected.set(0, -layouts[i].height / 2 - .65, 0).multiply(boards[i].scale).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
       const x = (projected.x * .5 + .5) * rect.width, y = (-projected.y * .5 + .5) * rect.height;
       el.hidden = projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height;
       el.style.left = `${rect.left + x}px`; el.style.top = `${rect.top + y}px`;
