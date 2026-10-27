@@ -29,6 +29,17 @@
         "height": 1500
       },
       {
+        "id": "professional-komuro",
+        "source": "komuroproj3B3.png",
+        "title": "Japan Society of Aesthetic Plastic Surgery — 48th Annual Meeting",
+        "alt": "Conference poster combining a portrait, anatomical drawings, and the words Outer Beauty, Inner Confidence",
+        "origin": "local-curated",
+        "src": "/art/professional-komuro.webp",
+        "thumb": "/art/professional-komuro-thumb.webp",
+        "width": 4169,
+        "height": 5906
+      },
+      {
         "id": "professional-04",
         "title": "New PANTY & STOCKING with GARTERBELT オンラインくじ / パーカーA",
         "alt": "New PANTY & STOCKING with GARTERBELT オンラインくじ / パーカーA",
@@ -329,6 +340,40 @@
         "url": "https://www.instagram.com/colemasaki/p/CVdT2YgJrTW/"
       },
       {
+        "id": "personal-rhinoplasty",
+        "source": "KomuroNose1Test.png",
+        "title": "Rhinoplasty",
+        "alt": "Black and white anatomical profile with measurement diagrams and Rhinoplasty typography",
+        "origin": "local-curated",
+        "src": "/art/personal-rhinoplasty.webp",
+        "thumb": "/art/personal-rhinoplasty-thumb.webp",
+        "width": 3072,
+        "height": 4096
+      },
+      {
+        "id": "personal-stein-inflated",
+        "source": "inflatedstein1CCB.png",
+        "title": "TAKARACUP STEIN",
+        "alt": "Metallic TAKARACUP lettering above inflated pink STEIN typography",
+        "origin": "local-curated",
+        "src": "/art/personal-stein-inflated.webp",
+        "thumb": "/art/personal-stein-inflated-thumb.webp",
+        "width": 3000,
+        "height": 2000
+      },
+      {
+        "id": "personal-stein-brain",
+        "source": "SteinBrain1.3.png",
+        "title": "STEIN — Brain",
+        "alt": "Inflated pink brain with a metallic Japanese character",
+        "origin": "local-curated",
+        "src": "/art/personal-stein-brain.webp",
+        "thumb": "/art/personal-stein-brain-thumb.webp",
+        "width": 3000,
+        "height": 3000,
+        "url": "https://www.instagram.com/colemasaki/p/C4hnuuIJCo0/"
+      },
+      {
         "id": "personal-otani",
         "source": "Otani_Furuinosuke.jpg",
         "title": "Otani Furuinosuke",
@@ -426,18 +471,6 @@
         "width": 753,
         "height": 818,
         "alt": "2D Personal Work, work 4"
-      },
-      {
-        "id": "instagram-C4hnuuIJCo0",
-        "title": "March 14, 2024",
-        "alt": "Photo by Cole Masaki on March 14, 2024.",
-        "origin": "instagram",
-        "source": "https://www.instagram.com/colemasaki/p/C4hnuuIJCo0/",
-        "url": "https://www.instagram.com/colemasaki/p/C4hnuuIJCo0/",
-        "src": "/art/instagram-C4hnuuIJCo0.webp",
-        "thumb": "/art/instagram-C4hnuuIJCo0-thumb.webp",
-        "width": 640,
-        "height": 640
       },
       {
         "id": "instagram-CsVs9fmpDPo",
@@ -563,6 +596,38 @@
       }
     ],
     "shortLabel": "Logos"
+  },
+  {
+    "id": "fonts",
+    "label": "Fonts",
+    "items": [
+      {
+        "id": "font-gutz",
+        "title": "GUTZ",
+        "alt": "GUTZ — custom typeface specimen",
+        "source": "Gutz.ttf",
+        "origin": "custom-typeface",
+        "fontFamily": "Gutz",
+        "download": "/fonts/Gutz.ttf",
+        "src": "/art/font-gutz.webp",
+        "thumb": "/art/font-gutz-thumb.webp",
+        "width": 1400,
+        "height": 1400
+      },
+      {
+        "id": "font-yomenee",
+        "title": "Yomenee",
+        "alt": "Yomenee — custom typeface specimen",
+        "source": "Yomenee.ttf",
+        "origin": "custom-typeface",
+        "fontFamily": "Yomenee",
+        "download": "/fonts/Yomenee.ttf",
+        "src": "/art/font-yomenee.webp",
+        "thumb": "/art/font-yomenee-thumb.webp",
+        "width": 1400,
+        "height": 1400
+      }
+    ]
   },
   {
     "id": "zine",

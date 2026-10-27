@@ -3,6 +3,7 @@ import { vectorizeArrows, motionIcon } from './icons.js';
 import collections from './content.json';
 import { createTitle } from './title.js';
 import { createMobileGallery } from './mobile-gallery.js';
+import { fontSpecimen } from './font-specimen.js';
 
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
@@ -50,9 +51,9 @@ function select(index,updateHash=true){
   document.querySelectorAll('.category').forEach((b,i)=>{b.classList.toggle('active',i===index);b.setAttribute('aria-pressed',String(i===index));});
   $('#location').textContent=index<0?'00 / OVERVIEW':`${pad(index+1)} / ROOM`;
   $('#section-name').textContent=index<0?'Portfolio library.':collections[index].label;
-  $('#section-info').innerHTML=index<0?'Select a room to enter.':collections[index].items.length?`${pad(collections[index].items.length)} ${isZine(index)?'pages':'works'} / Click an image to open.`:'No work added yet.';
+  $('#section-info').innerHTML=index<0?'Select a room to enter.':collections[index].id==='fonts'?'02 custom typefaces / Try the fonts and download.':collections[index].items.length?`${pad(collections[index].items.length)} ${isZine(index)?'pages':'works'} / Click an image to open.`:'No work added yet.';
   $('#view-collection').hidden=index<0||!collections[index].items.length;
-  $('#view-collection').innerHTML=isZine(index)?'READ ZINE <span>↗</span>':'VIEW WORKS <span>↗</span>';
+  $('#view-collection').innerHTML=collections[index]?.id==='fonts'?'TRY FONTS <span>↗</span>':isZine(index)?'READ ZINE <span>↗</span>':'VIEW WORKS <span>↗</span>';
   vectorizeArrows($('#view-collection'));
   $('#click-action').textContent=index<0?'ENTER COLLECTION':'OPEN WORK';
   if(!mobileViewport.matches)space?.select(index);
@@ -68,15 +69,19 @@ function closeDialog(dialog){dialog.close();pauseForDialog();returnFocus?.focus(
 function spreadMode(){return isZine(viewing?.category)&&innerWidth>800;}
 function renderWork(){
   const {category,index}=viewing;const collection=collections[category];const item=collection.items[index];
+  const isFont=collection.id==='fonts';
+  $('.viewer').classList.toggle('font-viewer',isFont);
   const spread=spreadMode()&&index>0&&index<collection.items.length-1;
   const items=spread?[item,collection.items[index+1]].filter(Boolean):[item];
   $('#viewer-title').textContent=`${pad(category+1)} / ${collection.label}${isZine(category)?' / John Voynich’s Guide to the Basics':item.title?' / '+item.title:''}`;
   $('.view-body').className=`view-body${spread?' spread':''}`;
-  $('.view-body').replaceChildren(...items.map(item=>{const image=new Image();image.src=item.src;image.alt=item.alt;image.addEventListener('click',toggleZoom);image.addEventListener('error',()=>{const p=document.createElement('p');p.className='image-error';p.textContent='Image could not load. Close and try again.';image.replaceWith(p);});return image;}));
+  $('.view-body').replaceChildren(...items.map(item=>{if(isFont)return fontSpecimen(item);const image=new Image();image.src=item.src;image.alt=item.alt;image.addEventListener('click',toggleZoom);image.addEventListener('error',()=>{const p=document.createElement('p');p.className='image-error';p.textContent='Image could not load. Close and try again.';image.replaceWith(p);});return image;}));
+  $('.view-body').scrollTop=0;
   $('.page-label').textContent=`${pad(index+1)}${spread?'–'+pad(index+2):''} / ${pad(collection.items.length)}`;
   $('#previous').disabled=index===0;$('#next').disabled=index+items.length>=collection.items.length;
-  $('#original').href=item.url||item.src;
-  $('#original').textContent=item.url?(collection.id==='websites'?'VISIT WEBSITE ↗':item.url?.includes('instagram.com/')?'VIEW POST ↗':'VIEW PROJECT ↗'):'OPEN IMAGE ↗';
+  $('#original').href=isFont?item.download:item.url||item.src;
+  if(isFont){$('#original').setAttribute('download',`${item.fontFamily}.ttf`);$('#original').removeAttribute('target');}else{$('#original').removeAttribute('download');$('#original').target='_blank';}
+  $('#original').textContent=isFont?'DOWNLOAD TTF ↓':item.url?(collection.id==='websites'?'VISIT WEBSITE ↗':item.url?.includes('instagram.com/')?'VIEW POST ↗':'VIEW PROJECT ↗'):'OPEN IMAGE ↗';
   vectorizeArrows($('#original'));
   $('#image-zoom').textContent='ZOOM +';$('#image-zoom').setAttribute('aria-pressed','false');
   $('#page-range').hidden=!isZine(category);$('#page-range').max=collection.items.length;$('#page-range').value=index+1;
@@ -110,6 +115,7 @@ $('#open-index').onclick=()=>showDialog('.index-dialog');$('#help').onclick=$('#
 $('#view-collection').onclick=()=>openWork(active,0);$('#previous').onclick=()=>turnPage(-1);$('#next').onclick=()=>turnPage(1);$('#image-zoom').onclick=toggleZoom;
 $('#page-range').oninput=e=>{let index=Number(e.target.value)-1;if(spreadMode()&&index>0&&index%2===0&&index<collections[viewing.category].items.length-1)index--;viewing.index=index;renderWork();};
 addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
   if(document.querySelector('dialog[open]')){if($('.viewer').open&&e.target.tagName!=='INPUT'){if(e.key==='ArrowLeft'){e.preventDefault();turnPage(-1);}if(e.key==='ArrowRight'){e.preventDefault();turnPage(1);}}return;}
   if(/^[0-9]$/.test(e.key)&&Number(e.key)<=collections.length)select(Number(e.key)-1);
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
@@ -149,7 +155,7 @@ mobileViewport.addEventListener('change',()=>{
 let viewerTouch=null;
 $('.view-body').addEventListener('touchstart',e=>{viewerTouch=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null;},{passive:true});
 $('.view-body').addEventListener('touchend',e=>{
-  if(!mobileViewport.matches||!viewerTouch||$('.view-body').classList.contains('zoomed'))return;
+  if(!mobileViewport.matches||!viewerTouch||$('.view-body').classList.contains('zoomed')||$('.viewer').classList.contains('font-viewer'))return;
   const touch=e.changedTouches[0],dx=touch.clientX-viewerTouch.x,dy=touch.clientY-viewerTouch.y;viewerTouch=null;
   if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5)turnPage(dx<0?1:-1);
 },{passive:true});

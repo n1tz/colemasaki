@@ -35,6 +35,7 @@ const replacements = {
   'instagram-CVdT2YgJrTW': 'personal-kuniyoshi',
   'instagram-CXlr3jtuo6q': 'personal-otani',
   'instagram-CXKZlkSJ7uH': 'personal-comp',
+  'instagram-C4hnuuIJCo0': 'personal-stein-brain',
 };
 for (const collection of collections) {
   const featured = [];
@@ -64,6 +65,10 @@ for (const collection of collections) {
     const poster = collection.items.splice(collection.items.findIndex(item => item.id === 'professional-poster01'), 1)[0];
     collection.items.splice(3, 0, poster);
   }
+  // Preserve the later Komuro/STEIN insertions when refreshing older imports.
+  const pinnedIds=collection.id==='personal'?['personal-rhinoplasty','personal-stein-inflated','personal-stein-brain']:collection.id==='professional'?['professional-komuro']:[];
+  const pinned=pinnedIds.map(id=>collection.items.find(item=>item.id===id)).filter(Boolean);
+  if(pinned.length){collection.items=collection.items.filter(item=>!pinnedIds.includes(item.id));collection.items.splice(collection.id==='personal'?4:2,0,...pinned);}
 }
 await writeFile(join(root, 'src/content.json'), JSON.stringify(collections, null, 2) + '\n');
 const importedPath = join(root, 'src/imported-work.json');

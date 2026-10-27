@@ -1,5 +1,6 @@
 import './mobile-gallery.css';
 import { vectorizeArrows, motionIcon } from './icons.js';
+import { fontSpecimen } from './font-specimen.js';
 
 // A touch-first presentation of the same manifest. Desktop stays in the 3D scene.
 export function createMobileGallery(collections, { onSelect, onOpen }) {
@@ -57,9 +58,14 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
         </button>`).join('')}</div>`;
     }else{
       const c=collections[active];
+      if(c.id==='fonts'){
+        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">Fonts</h1></div><div class="mobile-browse"><p>02 CUSTOM TYPEFACES <span>Type to try · Download TTF</span></p></div><div class="mobile-fonts"></div>`;
+        content.querySelector('.mobile-fonts').replaceChildren(...c.items.map(item=>fontSpecimen(item,{compact:true})));
+      }else{
       content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1></div>
         <div class="mobile-browse"><p>${pad(c.items.length)} ${c.id==='zine'?'PAGES':'WORKS'}${c.items.length?' <span>· Tap to enlarge</span>':''}</p>${c.items.length?`<div class="mobile-density" role="group" aria-label="Artwork layout"><button data-density="grid" aria-pressed="${!large}">Grid</button><button data-density="large" aria-pressed="${large}">Large</button></div>`:''}</div>
         ${c.items.length?`<div class="mobile-art-grid ${large?'is-large':''}" aria-label="${escape(c.label)} artwork">${c.items.map((item,i)=>`<button class="mobile-art" data-mobile-work="${i}" aria-label="Open ${escape(item.alt)}"><span class="mobile-art-image">${image(item,i<4)}</span><span class="mobile-art-caption"><span>${c.id==='zine'?'PAGE ':''}${pad(i+1)}</span><span aria-hidden="true">↗</span></span></button>`).join('')}</div>`:'<p class="mobile-empty">No work added yet.</p>'}`;
+      }
     }
     vectorizeArrows(root);
     if(active<0)mountKV();

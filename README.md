@@ -1,6 +1,6 @@
 # Cole Masaki — Portfolio
 
-A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Seven collections occupy distinct recursive sculptures. The overview shows representative work from Professional Work, Websites, and Personal Work; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. Desktop remains a full-screen spatial gallery. Mobile uses a native scrolling artwork grid with a compact 3D journey above the homepage collections.
+A full-viewport 3D archive built with Three.js, Vite, and plain JavaScript. Eight collections occupy distinct recursive sculptures. The overview shows representative work from Professional Work, Websites, and Personal Work; selecting one centers its ordered exhibition in a dedicated viewing area. Orbit, zoom, or use the collection navigation to travel directly. Desktop remains a full-screen spatial gallery. Mobile uses a native scrolling artwork grid with a compact 3D journey above the homepage collections.
 
 ## Run
 
@@ -32,7 +32,7 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 ## Controls and accessibility
 
 - Drag to orbit; wheel or pinch to zoom. Overview rotation is bounded to preserve collection separation; the selected sculpture can be explored around the centered artwork.
-- Click artwork to open the full image. Keys 1–7 select collections; 0 returns to overview.
+- Click artwork to open the full image. Keys 1–8 select collections; 0 returns to overview.
 - Arrow keys navigate the viewer; Escape closes dialogs. Images can be enlarged and opened separately.
 - Work index provides keyboard access to every item and remains available if WebGL fails.
 - Cubes expand in coherent noise-driven waves; wireframe opacity follows a separate scrolling noise field. These run on the GPU through `src/motion.js`.
@@ -46,7 +46,7 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 
 The WebGL canvas fills the viewport. An invisible `#exhibition-frame` defines the artwork area; the camera uses an offset frustum to preserve that composition while rendering the world behind the interface. Header text uses CSS difference blending.
 
-`src/depth-field.js` builds a central library and seven separated chambers from 9,984 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. Its blocks and outlines share a GPU wave deformation, producing slow changes in depth and width without per-frame instance uploads. `roomLocations` defines the collection destinations. Section changes follow broad cubic Bézier dolly paths, lasting roughly 1.55–2.3 seconds depending on distance. Quintic easing gives zero endpoint velocity and acceleration; quaternion interpolation keeps the horizon stable and the lens stays at 43°. Pagination uses a short reveal without an unnecessary room excursion. Reduced motion moves directly to the destination and disables ambient deformation and ASCII conversion. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
+`src/depth-field.js` builds a central library and eight separated chambers from 9,984 instanced blocks, recursive clusters, and open architectural ribs. The environment takes two draw calls. Its blocks and outlines share a GPU wave deformation, producing slow changes in depth and width without per-frame instance uploads. `roomLocations` defines the collection destinations. Section changes follow broad cubic Bézier dolly paths, lasting roughly 1.55–2.3 seconds depending on distance. Quintic easing gives zero endpoint velocity and acceleration; quaternion interpolation keeps the horizon stable and the lens stays at 43°. Pagination uses a short reveal without an unnecessary room excursion. Reduced motion moves directly to the destination and disables ambient deformation and ASCII conversion. The artwork frame is symmetric around the screen center, with boxed collection and room-information windows outside it.
 
 `src/ascii-pass.js` samples the live world into a monospace glyph atlas in one fullscreen GPU pass. Conversion peaks during room travel and covers roughly half the screen at rest, with a slowly drifting curved boundary. Artwork is rendered afterwards and remains unprocessed. The animation pause control freezes the shared environment/effect clock.
 
@@ -82,7 +82,7 @@ Artwork: the supplied AIFOOD folder. Public Instagram posts from @colemasaki, me
 
 ## Imported work
 
-Collections are ordered for hiring: Professional Work, Websites, Personal Work, Logo Design, Zine, Video Game, Drawings & Paintings. `shortLabel` supplies compact mobile navigation. Optional item `title` is shown in the viewer and index; `url` opens the original project, website, or Instagram post. `origin` marks imported items so local imports preserve them.
+Collections are ordered for hiring: Professional Work, Websites, Personal Work, Logo Design, Fonts, Zine, Video Game, Drawings & Paintings. `shortLabel` supplies compact mobile navigation. Optional item `title` is shown in the viewer and index; `url` opens the original project, website, or Instagram post. `origin` marks imported items so local imports preserve them.
 
 The curated portfolio includes 17 professional images (15 merchandise mockups, one shirt back, and one poster), four website previews, 17 personal works, nine logo images, and 18 zine pages. Three unique Instagram-only personal images remain. Source links from removed Instagram copies are preserved on their higher-resolution replacements.
 
@@ -90,8 +90,18 @@ Run `node scripts/curate-portfolio.mjs` after refreshing either artwork import t
 
 ## Mobile journey and performance
 
-The mobile homepage visual travels between staggered chambers, with a 1.25-second hold on each artwork pair followed by a 3.55-second curved flight. Artwork stays upright; ASCII peaks in transit. All 65 works cycle through a collection-interleaved sequence without repeats within a cycle.
+The mobile homepage visual travels between staggered chambers, with a 1.25-second hold on each artwork pair followed by a 3.55-second curved flight. Artwork stays upright; ASCII peaks in transit. All 70 works cycle through a collection-interleaved sequence without repeats within a cycle.
 
 Three reused chambers and six artwork planes keep GPU residency bounded. A chamber is recycled only at zero visibility; its replacement is prefetched two stops ahead and fades in before arrival. Late textures have a separate half-second reveal. Room fades use a shared shader program and one uniform per chamber; geometry stays shared and instanced. The preview suspends offscreen, in hidden tabs, and when paused. Reduced motion provides a static preview, and WebGL failure retains the image fallback and complete gallery.
 
 The page shell, desktop scene, and mobile KV load separately. The desktop scene shares artwork geometry and reuses per-frame vectors; paused/hidden scene loops do not schedule frames. Fingerprinted build assets use immutable caching. See [the performance audit](docs/performance-audit.md) for validation and measurement limits.
+
+## October 27 artwork and fonts update
+
+Professional Work now has 18 images, with the Komuro conference poster third. Personal Work has 19 images: Rhinoplasty, TAKARACUP STEIN, and STEIN — Brain follow the existing fourth image, in that order. The 3000×3000 brain original replaces the 640×640 Instagram copy; its original post link is retained. New image assets use 2400px delivery images and 640px thumbnails without enlargement. Original files remain untouched.
+
+Fonts sits after Logo Design and presents GUTZ and Yomenee. The desktop room and work index use specimen textures rendered from the supplied TTFs; opening either font provides live text, size controls, a character grid, and a direct download. Mobile presents both live specimens directly. The original TTF files are served from `public/fonts/` without modification. Keyboard shortcuts do not intercept typing in the font testers.
+
+To regenerate these additions from the supplied Work directory, run `node scripts/add-komuro-fonts.mjs /path/to/Work`, then `node scripts/font-previews.mjs`. The second script uses Playwright Chromium (`CHROME_PATH` can override the executable). Run these after refreshing older imports. The existing curation script also preserves the new pinned artwork positions.
+
+Validate the updated experience with `npm run check`, `npm run build`, and `node scripts/portfolio-update-check.mjs` against the local server at port 3010 (or set `REVIEW_URL`). The browser check covers all eight desktop collections, image order, duplicate removal, both exact font downloads, live editing controls, and mobile layouts at 320, 390, and 800px.
