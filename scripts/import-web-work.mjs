@@ -33,7 +33,7 @@ const featuredRank=item=>{
 };
 professional.sort((a,b)=>featuredRank(a)-featuredRank(b));
 const websites=[];
-for(const [slug,title,url] of [['mirailoom','Mirai Loom','https://mirailoom.com/'],['akihabara-global','AKIBA Tourism & Promotion','https://akihabara.global/'],['akihabara-premium','Akihabara Premium Collection','https://www.akihabara-premium.com/'],['dub-agent','Tokyo Dub Agent','https://dub-agent.com/']]){
+for(const [slug,title,url] of [['mirailoom','Mirai Loom','https://mirailoom.com/en'],['akihabara-global','AKIBA Tourism & Promotion','https://akihabara.global/'],['akihabara-premium','Akihabara Premium Collection','https://www.akihabara-premium.com/'],['dub-agent','Tokyo Dub Agent','https://dub-agent.com/']]){
  websites.push(await image('website-'+slug,'/tmp/cole-sources/'+slug+'.png',{title,alt:title+' — website homepage',source:url,url,origin:'website-screenshot'}));
 }
 const ig=JSON.parse(await readFile('/tmp/cole-sources/instagram.json','utf8'));

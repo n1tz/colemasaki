@@ -19,7 +19,7 @@ Edit `src/content.json`. Each collection has a stable `id`, a `label`, and an or
 
 To add work, put its full-size WebP and small thumbnail in `public/art/`, then add an item to the desired collection. The scene and index read the same manifest; counts update automatically. The empty game and drawings collections accept the same image schema. Video playback and game embeds are not implemented in this version.
 
-The zine array is its reading order: cover, sequential interior pages, back cover. On desktop the reader shows cover alone, then facing pages, then back cover alone. Mobile shows one page at a time. Black underside-cover pages 02 and 19 are omitted from the published 18-page sequence. Images preserve source proportions and colors.
+The zine array is its reading order: cover, sequential interior pages, back cover. The reader shows one page at a time on desktop and mobile. Click the page or use Zoom to inspect its details; arrows and the desktop page slider move to individual pages. Black underside-cover pages 02 and 19 are omitted from the published 18-page sequence. Images preserve source proportions and colors.
 
 To regenerate all optimized assets from the original folder structure (`2DPersonal`, `Logo`, `Zine/PRINT`):
 
@@ -38,7 +38,7 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 - Cubes expand in coherent noise-driven waves; wireframe opacity follows a separate scrolling noise field. These run on the GPU through `src/motion.js`.
 - Artwork occupies ordered, camera-facing slots with restrained noise motion inside fixed gutters. The entire collection stays centered as you rotate its sculpture. A separate final render pass guarantees that neither solid geometry nor transparent wireframes can draw over images. The camera stays still until you navigate.
 - Desktop personal and professional work show up to eight images per page; logos have a two-by-two arrangement. The zine shows six sequential pages at a time. Mobile shows every artwork in a scrollable grid, with a Large layout option and a full-screen swipeable viewer; no work is omitted. `src/layout.js` owns these arrangements and page sizes.
-- Numbered labels establish work/page order. Opening an artwork still uses the full-resolution viewer, and the zine reader retains its facing-page sequence.
+- Numbered labels establish work/page order. Opening an artwork still uses the full-resolution viewer, and the zine reader opens each selected page individually.
 - The pause button freezes the noise and bounded artwork motion. Reduced-motion preference disables both and makes camera travel immediate.
 - Rendering pauses while dialogs are open or the tab is hidden. Geometry is instanced, pixel ratio capped, and 3D textures use 640px thumbnails. Full-resolution images load for selected desktop exhibitions and the viewer.
 
@@ -90,7 +90,7 @@ Run `node scripts/curate-portfolio.mjs` after refreshing either artwork import t
 
 ## Mobile journey and performance
 
-The mobile homepage visual travels between staggered chambers, with a 1.25-second hold on each artwork pair followed by a 3.55-second curved flight. Artwork stays upright; ASCII peaks in transit. All 70 works cycle through a collection-interleaved sequence without repeats within a cycle.
+The mobile homepage visual travels between staggered chambers, with a 1.25-second hold on each artwork pair followed by a 3.55-second curved flight. Artwork stays upright; ASCII peaks in transit. All 64 works cycle through a collection-interleaved sequence without repeats within a cycle.
 
 Three reused chambers and six artwork planes keep GPU residency bounded. A chamber is recycled only at zero visibility; its replacement is prefetched two stops ahead and fades in before arrival. Late textures have a separate half-second reveal. Room fades use a shared shader program and one uniform per chamber; geometry stays shared and instanced. The preview suspends offscreen, in hidden tabs, and when paused. Reduced motion provides a static preview, and WebGL failure retains the image fallback and complete gallery.
 
@@ -98,10 +98,19 @@ The page shell, desktop scene, and mobile KV load separately. The desktop scene 
 
 ## October 27 artwork and fonts update
 
-Professional Work now has 18 images, with the Komuro conference poster third. Personal Work has 19 images: Rhinoplasty, TAKARACUP STEIN, and STEIN — Brain follow the existing fourth image, in that order. The 3000×3000 brain original replaces the 640×640 Instagram copy; its original post link is retained. New image assets use 2400px delivery images and 640px thumbnails without enlargement. Original files remain untouched.
+At this update, Professional Work had 18 images, with the Komuro conference poster third. Personal Work has 19 images: Rhinoplasty, TAKARACUP STEIN, and STEIN — Brain follow the existing fourth image, in that order. The 3000×3000 brain original replaces the 640×640 Instagram copy; its original post link is retained. New image assets use 2400px delivery images and 640px thumbnails without enlargement. Original files remain untouched.
 
 Fonts sits after Logo Design and presents GUTZ and Yomenee. The desktop room and work index use specimen textures rendered from the supplied TTFs; opening either font provides live text, size controls, a character grid, and a direct download. Mobile presents both live specimens directly. The original TTF files are served from `public/fonts/` without modification. Keyboard shortcuts do not intercept typing in the font testers.
 
 To regenerate these additions from the supplied Work directory, run `node scripts/add-komuro-fonts.mjs /path/to/Work`, then `node scripts/font-previews.mjs`. The second script uses Playwright Chromium (`CHROME_PATH` can override the executable). Run these after refreshing older imports. The existing curation script also preserves the new pinned artwork positions.
 
 Validate the updated experience with `npm run check`, `npm run build`, and `node scripts/portfolio-update-check.mjs` against the local server at port 3010 (or set `REVIEW_URL`). The browser check covers all eight desktop collections, image order, duplicate removal, both exact font downloads, live editing controls, and mobile layouts at 320, 390, and 800px.
+
+
+## October 28 viewing and curation update
+
+The zine inspector shows one selected page at a time on every screen size. Click the page or Zoom to enlarge it, scroll to inspect details, and use arrows or the page slider to advance one page at a time.
+
+The Mirai Loom preview and project link now use `https://mirailoom.com/en`. The ATO preview was captured after its clover model and background texture loaded, its canvas became visible, and its glass transition completed. Both screenshots retain the 1440×1000 viewport and use new asset filenames to avoid stale cached previews.
+
+Professional Work now contains 12 images. Removed positions 01.07, 01.09, and 01.15–01.18 refer to the October 27 published ordering; all other images retain their relative order. The content manifest, imported manifest, and curation exclusions agree on these six removals. The portfolio now contains 64 works across eight collections.

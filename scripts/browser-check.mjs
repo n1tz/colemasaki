@@ -62,12 +62,12 @@ for(const id of ['websites','personal']){
  if(await page.locator('#original').getAttribute('href')!==(collections[index].items[0].url||collections[index].items[0].src))throw Error('Missing project source link');
  await page.keyboard.press('Escape');
 }
-await page.locator('[data-category="4"]').click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/zine-collection.png'});await page.locator('#view-collection').click();await page.locator('#next').click();
-if(await page.locator('.view-body img').count()!==2)throw new Error('Desktop zine spread missing');
+await page.locator(`[data-category="${collections.findIndex(c=>c.id==='zine')}"]`).click();await page.waitForFunction(()=>!window.portfolio.stats().transitioning);checkLayout(await page.evaluate(()=>window.portfolio.stats()),true);await page.screenshot({path:'/tmp/cole-check/zine-collection.png'});await page.locator('#view-collection').click();await page.locator('#next').click();
+if(await page.locator('.view-body img').count()!==1)throw new Error('Zine viewer must show one page');
 await page.locator('.view-body img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
 await page.screenshot({path:'/tmp/cole-check/zine.png'});
 const zineCount=collections.find(c=>c.id==='zine').items.length;await page.locator('#page-range').fill(String(zineCount));if(await page.locator('.page-label').textContent()!==`${zineCount} / ${zineCount}`)throw new Error('Zine last page missing');
-await page.keyboard.press('Escape');await page.locator('[data-category="5"]').click();
+await page.keyboard.press('Escape');await page.locator(`[data-category="${collections.findIndex(c=>c.id==='game')}"]`).click();
 if(!await page.locator('#view-collection').isHidden())throw new Error('Empty collection opens nonexistent art');
 await page.locator('#open-index').click();if(await page.locator('.index-item').count()!==total)throw new Error('Incomplete index');await page.keyboard.press('Escape');
 await page.locator('#home').click();await page.waitForTimeout(100);await page.waitForFunction(()=>!window.portfolio.stats().transitioning);

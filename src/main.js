@@ -66,18 +66,17 @@ function select(index,updateHash=true){
 function pauseForDialog(){space?.setPaused(mobileViewport.matches||Boolean(document.querySelector('dialog[open]')));}
 function showDialog(selector){returnFocus=document.activeElement;$(selector).showModal();pauseForDialog();}
 function closeDialog(dialog){dialog.close();pauseForDialog();returnFocus?.focus();}
-function spreadMode(){return isZine(viewing?.category)&&innerWidth>800;}
 function renderWork(){
   const {category,index}=viewing;const collection=collections[category];const item=collection.items[index];
   const isFont=collection.id==='fonts';
   $('.viewer').classList.toggle('font-viewer',isFont);
-  const spread=spreadMode()&&index>0&&index<collection.items.length-1;
-  const items=spread?[item,collection.items[index+1]].filter(Boolean):[item];
+  const items=[item];
   $('#viewer-title').textContent=`${pad(category+1)} / ${collection.label}${isZine(category)?' / John Voynich’s Guide to the Basics':item.title?' / '+item.title:''}`;
-  $('.view-body').className=`view-body${spread?' spread':''}`;
+  $('.view-body').className='view-body';
   $('.view-body').replaceChildren(...items.map(item=>{if(isFont)return fontSpecimen(item);const image=new Image();image.src=item.src;image.alt=item.alt;image.addEventListener('click',toggleZoom);image.addEventListener('error',()=>{const p=document.createElement('p');p.className='image-error';p.textContent='Image could not load. Close and try again.';image.replaceWith(p);});return image;}));
   $('.view-body').scrollTop=0;
-  $('.page-label').textContent=`${pad(index+1)}${spread?'–'+pad(index+2):''} / ${pad(collection.items.length)}`;
+  $('.view-body').scrollLeft=0;
+  $('.page-label').textContent=`${pad(index+1)} / ${pad(collection.items.length)}`;
   $('#previous').disabled=index===0;$('#next').disabled=index+items.length>=collection.items.length;
   $('#original').href=isFont?item.download:item.url||item.src;
   if(isFont){$('#original').setAttribute('download',`${item.fontFamily}.ttf`);$('#original').removeAttribute('target');}else{$('#original').removeAttribute('download');$('#original').target='_blank';}
@@ -92,14 +91,12 @@ function openWork(category,index){
   onHover(null);
   if($('.index-dialog').open)closeDialog($('.index-dialog'));
   viewing={category,index};
-  if(spreadMode()&&index>0&&index<collections[category].items.length-1&&index%2===0)viewing.index--;
   renderWork();showDialog('.viewer');
 }
 function turnPage(direction){
   if(!viewing)return;
   const count=collections[viewing.category].items.length;
-  let next=viewing.index+direction;
-  if(spreadMode())next=direction>0?(viewing.index===0?1:viewing.index+2):(viewing.index<=1?0:viewing.index-2);
+  const next=viewing.index+direction;
   viewing.index=Math.max(0,Math.min(count-1,next));renderWork();
 }
 function toggleZoom(){const zoomed=$('.view-body').classList.toggle('zoomed');$('#image-zoom').textContent=zoomed?'FIT −':'ZOOM +';$('#image-zoom').setAttribute('aria-pressed',String(zoomed));}
@@ -113,14 +110,13 @@ function updateMotionButton(){const label=motionEnabled?'Pause animation':'Resum
 $('#motion').disabled=reducedMotion;updateMotionButton();$('#motion').onclick=()=>{motionEnabled=!motionEnabled;space?.setMotion(motionEnabled);updateMotionButton();};
 $('#open-index').onclick=()=>showDialog('.index-dialog');$('#help').onclick=$('#help-bottom').onclick=()=>showDialog('.help-dialog');
 $('#view-collection').onclick=()=>openWork(active,0);$('#previous').onclick=()=>turnPage(-1);$('#next').onclick=()=>turnPage(1);$('#image-zoom').onclick=toggleZoom;
-$('#page-range').oninput=e=>{let index=Number(e.target.value)-1;if(spreadMode()&&index>0&&index%2===0&&index<collections[viewing.category].items.length-1)index--;viewing.index=index;renderWork();};
+$('#page-range').oninput=e=>{viewing.index=Number(e.target.value)-1;renderWork();};
 addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
   if(document.querySelector('dialog[open]')){if($('.viewer').open&&e.target.tagName!=='INPUT'){if(e.key==='ArrowLeft'){e.preventDefault();turnPage(-1);}if(e.key==='ArrowRight'){e.preventDefault();turnPage(1);}}return;}
   if(/^[0-9]$/.test(e.key)&&Number(e.key)<=collections.length)select(Number(e.key)-1);
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
 });
-let wasWide=innerWidth>800;addEventListener('resize',()=>{const changed=wasWide!==(innerWidth>800);wasWide=innerWidth>800;if(viewing&&changed){if(spreadMode()&&viewing.index>0&&viewing.index%2===0&&viewing.index<collections[viewing.category].items.length-1)viewing.index--;renderWork();}});
 function finishLoading(){ if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
 function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';vectorizeArrows(button);button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
 function onPage(layout){

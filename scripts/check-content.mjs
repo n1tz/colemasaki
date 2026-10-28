@@ -10,6 +10,8 @@ const personal=collections.find(c=>c.id==='personal');
 assert.deepEqual(personal.items.slice(0,9).map(i=>i.source),['ds3.jpg','Fun1.jpg','JiraiyaPrintform.jpg','kuniyoshi1.jpg','KomuroNose1Test.png','inflatedstein1CCB.png','SteinBrain1.3.png','Otani_Furuinosuke.jpg','comp.jpg']);
 assert.equal(collections[0].items[0].id,'professional-shirt-back');
 assert.equal(collections[0].items[2].source,'komuroproj3B3.png');
+assert.equal(collections[0].items.length,12);
+assert(!collections[0].items.some(i=>['professional-01','professional-03','professional-10','professional-11','professional-12','professional-15'].includes(i.id)),'Removed professional work reintroduced');
 for(let i=10;i<personal.items.length;i++)assert(Math.min(personal.items[i-1].width,personal.items[i-1].height)>=Math.min(personal.items[i].width,personal.items[i].height),'Personal resolution order');
 const removed=new Set(['personal-10','personal-05','instagram-CWoHLlLJ5Lr','instagram-CVdT2YgJrTW','instagram-CXlr3jtuo6q','instagram-CXKZlkSJ7uH','instagram-C4hnuuIJCo0']);
 assert(!collections.some(c=>c.items.some(i=>removed.has(i.id))),'Reviewed duplicate reintroduced');

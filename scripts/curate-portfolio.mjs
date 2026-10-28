@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import sharp from 'sharp';
 const root = new URL('../', import.meta.url).pathname;
 const downloads = process.argv[2] || '/home/n1tz/Downloads';
+// Removed October 28 using the published positions 01.07, 01.09, 01.15–01.18.
+const excludedProfessional = new Set(['professional-01','professional-03','professional-10','professional-11','professional-12','professional-15']);
 const collections = JSON.parse(await readFile(join(root, 'src/content.json'), 'utf8'));
 const additions = {
   personal: [
@@ -69,10 +71,11 @@ for (const collection of collections) {
   const pinnedIds=collection.id==='personal'?['personal-rhinoplasty','personal-stein-inflated','personal-stein-brain']:collection.id==='professional'?['professional-komuro']:[];
   const pinned=pinnedIds.map(id=>collection.items.find(item=>item.id===id)).filter(Boolean);
   if(pinned.length){collection.items=collection.items.filter(item=>!pinnedIds.includes(item.id));collection.items.splice(collection.id==='personal'?4:2,0,...pinned);}
+  if(collection.id==='professional')collection.items=collection.items.filter(item=>!excludedProfessional.has(item.id));
 }
 await writeFile(join(root, 'src/content.json'), JSON.stringify(collections, null, 2) + '\n');
 const importedPath = join(root, 'src/imported-work.json');
 const imported = JSON.parse(await readFile(importedPath, 'utf8'));
-for (const key of Object.keys(imported)) imported[key] = imported[key].filter(item => !replacements[item.id]);
+for (const key of Object.keys(imported)) imported[key] = imported[key].filter(item => !replacements[item.id] && !excludedProfessional.has(item.id));
 await writeFile(importedPath, JSON.stringify(imported, null, 2) + '\n');
 console.log('Curated', collections.map(c => `${c.id}: ${c.items.length}`).join(', '));
