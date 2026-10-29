@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const exchange = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: process.env.GITHUB_CLIENT_ID, client_secret: process.env.GITHUB_CLIENT_SECRET, code, redirect_uri: `${origin(req)}/api/auth/callback` }),
+      body: JSON.stringify({ client_id: process.env.GITHUB_CLIENT_ID, client_secret: process.env.GITHUB_CLIENT_SECRET, code }),
     }).then(r => r.json());
     if (!exchange.access_token) return redirect(res, '/admin/?error=exchange', [clear]);
     const user = await fetch('https://api.github.com/user', { headers: { Authorization: `Bearer ${exchange.access_token}`, 'User-Agent': 'colemasaki-editor' } }).then(r => r.json());
