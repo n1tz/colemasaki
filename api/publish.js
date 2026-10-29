@@ -79,7 +79,10 @@ export default async function handler(req, res) {
     const newTree = await github(`${repo}/git/trees`, { method: 'POST', body: { base_tree: head.tree.sha, tree } });
     const commit = await github(`${repo}/git/commits`, { method: 'POST', body: { message: 'Update portfolio content from the editor', tree: newTree.sha, parents: [head.sha] } });
     await github(`${repo}/git/refs/heads/${config.branch}`, { method: 'PATCH', body: { sha: commit.sha } });
-    send(res, 200, { commit: commit.sha, url: `https://github.com/${config.repo}/commit/${commit.sha}` });
+    // Vercel's Git integration does not deploy commits created through the API, so ask it directly.
+    const hook = process.env.DEPLOY_HOOK_URL;
+    const deploying = hook ? (await fetch(hook, { method: 'POST' }).catch(() => null))?.ok ?? false : false;
+    send(res, 200, { commit: commit.sha, url: `https://github.com/${config.repo}/commit/${commit.sha}`, deploying });
   } catch (error) {
     if (error instanceof Invalid || error instanceof SyntaxError) return send(res, 400, { error: error.message });
     fail(res, error);

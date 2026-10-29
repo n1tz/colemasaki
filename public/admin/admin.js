@@ -325,7 +325,7 @@ $('#publish').onclick = async () => {
     const result = await api('/api/publish', { body: { baseSha: state.sha, content: state.content, files } });
     rememberOpen();
     await load();
-    toast(`Published. The live site updates in about a minute. <a href="${escape(result.url)}" target="_blank" rel="noopener">View commit ↗</a>`, { sticky: false });
+    toast(`${result.deploying ? 'Published. The live site updates in about a minute.' : 'Saved to GitHub, but the site did not start rebuilding. Check DEPLOY_HOOK_URL in Vercel.'} <a href="${escape(result.url)}" target="_blank" rel="noopener">View commit ↗</a>`, { sticky: false });
   } catch (error) {
     toast(escape(error.message), { error: true, sticky: error.status === 409 });
     updateStatus();
