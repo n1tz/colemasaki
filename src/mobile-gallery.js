@@ -1,6 +1,7 @@
 import './mobile-gallery.css';
 import { vectorizeArrows, motionIcon } from './icons.js';
 import { fontSpecimen } from './font-specimen.js';
+import { isVideo, videoFrame, storeLink } from './game.js';
 
 // A touch-first presentation of the same manifest. Desktop stays in the 3D scene.
 export function createMobileGallery(collections, { onSelect, onOpen }) {
@@ -9,7 +10,7 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
   root.className = 'mobile-gallery';
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const pad = n => String(n).padStart(2,'0');
-  let active = -1, large = false, kv=null, kvPaused=false;
+  let active = -1, large = false, kv=null, kvPaused=false, slide=0, slideTouch=null;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Pick across collections once per visit; keep the composition stable on return.
   const featured=collections.filter(c=>['professional','personal','logos'].includes(c.id)&&c.items.length).map(c=>c.items[Math.floor(Math.random()*c.items.length)]).slice(0,3);
@@ -58,7 +59,16 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
         </button>`).join('')}</div>`;
     }else{
       const c=collections[active];
-      if(c.id==='fonts'){
+      if(c.id==='game'){
+        // One slide at a time: the trailer first, then screenshots, with the store button always below.
+        slide=Math.min(slide,Math.max(0,c.items.length-1));
+        const item=c.items[slide];
+        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1></div>
+          <div class="mobile-game">${item?`<div class="mobile-game-slide">${isVideo(item)?'':`<button class="mobile-art" data-mobile-work="${slide}" aria-label="Open ${escape(item.alt)}">${image(item,true)}</button>`}</div>
+          <div class="mobile-game-pager"><button data-game-step="-1" aria-label="Previous slide" ${slide===0?'disabled':''}>←</button><span aria-live="polite">${pad(slide+1)} / ${pad(c.items.length)}</span><button data-game-step="1" aria-label="Next slide" ${slide>=c.items.length-1?'disabled':''}>→</button></div>`:'<p class="mobile-empty">No work added yet.</p>'}
+          ${storeLink(c,'store-link mobile-store')}</div>`;
+        if(isVideo(item))content.querySelector('.mobile-game-slide').append(videoFrame(item,'mobile-game-video'));
+      }else if(c.id==='fonts'){
         content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">Fonts</h1></div><div class="mobile-browse"><p>02 CUSTOM TYPEFACES <span>Type to try · Download TTF</span></p></div><div class="mobile-fonts"></div>`;
         content.querySelector('.mobile-fonts').replaceChildren(...c.items.map(item=>fontSpecimen(item,{compact:true})));
       }else{
@@ -86,11 +96,18 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
     const room=e.target.closest('[data-room],[data-enter],.mobile-home,.mobile-back');
     if(room){if(menu.open)menu.close();onSelect(Number(room.dataset.room??room.dataset.enter??-1));return;}
     const work=e.target.closest('[data-mobile-work]');if(work){onOpen(active,Number(work.dataset.mobileWork));return;}
+    const step=e.target.closest('[data-game-step]');if(step){slide+=Number(step.dataset.gameStep);render();root.querySelector(`[data-game-step="${step.dataset.gameStep}"]`)?.focus({preventScroll:true});return;}
     const density=e.target.closest('[data-density]');if(density){large=density.dataset.density==='large';render();root.querySelector(`[data-density="${large?'large':'grid'}"]`).focus({preventScroll:true});return;}
     if(e.target.closest('.mobile-top')){scrollTo({top:0,behavior:'instant'});content.querySelector('h1').focus({preventScroll:true});}
   });
+  root.addEventListener('touchstart',e=>{slideTouch=e.target.closest('.mobile-game-slide')&&e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null;},{passive:true});
+  root.addEventListener('touchend',e=>{
+    if(!slideTouch)return;const t=e.changedTouches[0],dx=t.clientX-slideTouch.x,dy=t.clientY-slideTouch.y;slideTouch=null;
+    const count=collections[active]?.items.length??0,next=slide+(dx<0?1:-1);
+    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5&&next>=0&&next<count){slide=next;render();}
+  },{passive:true});
   media.addEventListener('change',()=>{if(!media.matches&&menu.open)menu.close();render();});
   vectorizeArrows(root);
   render();
-  return {select(index){const changed=active!==index;active=index;render();if(media.matches&&changed){scrollTo({top:0,behavior:'instant'});content.querySelector('h1').focus({preventScroll:true});}}};
+  return {select(index){const changed=active!==index;active=index;if(changed)slide=0;render();if(media.matches&&changed){scrollTo({top:0,behavior:'instant'});content.querySelector('h1').focus({preventScroll:true});}}};
 }

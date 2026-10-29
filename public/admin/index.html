@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#11120f">
+  <title>Editor — Cole Masaki</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="/" target="_blank" rel="noopener"><img src="/favicon.svg" width="24" height="24" alt=""> COLE MASAKI / EDITOR</a>
+    <nav class="account" hidden><span id="who"></span><a href="/" target="_blank" rel="noopener">View site ↗</a><a href="/api/auth/logout">Sign out</a></nav>
+  </header>
+  <main id="main">
+    <section class="signin" hidden>
+      <h1>Site editor</h1>
+      <p>Reorder, add, and remove work on colemasaki.com. Changes go live about a minute after you publish.</p>
+      <a class="button primary" href="/api/auth/login">Sign in with GitHub</a>
+      <p class="error" id="signin-error" hidden></p>
+    </section>
+    <p class="loading" id="loading">Loading…</p>
+    <div id="collections"></div>
+  </main>
+  <footer class="publish" hidden>
+    <span id="status" aria-live="polite">No changes</span>
+    <div class="publish-actions"><button class="button" id="discard" disabled>Discard</button><button class="button primary" id="publish" disabled>Publish</button></div>
+  </footer>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="/admin/admin.js"></script>
+</body>
+</html>

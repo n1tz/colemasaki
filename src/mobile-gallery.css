@@ -94,3 +94,13 @@
   .mobile-room-label>span:last-child{white-space:nowrap}
   .mobile-footer .ui-arrow,.mobile-back .ui-arrow{margin-inline:3px}
 }
+/* Video Game: one slide at a time with the store button below. */
+.mobile-game{display:grid;gap:12px;padding:0 16px 24px}
+.mobile-game-slide{display:grid;place-items:center;min-height:200px;background:#0b0c09;border:1px solid var(--line)}
+.mobile-game-slide .mobile-art{display:block;width:100%;padding:0}
+.mobile-game-slide img{display:block;width:100%;height:auto;max-height:70svh;object-fit:contain}
+.mobile-game-video{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
+.mobile-game-pager{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.mobile-game-pager button{min-width:64px;min-height:48px;font-size:20px}
+.mobile-store{min-height:56px;font-size:13px}
+@media(max-width:800px){.game-viewer .view-body{bottom:calc(116px + 72px + env(safe-area-inset-bottom))}.viewer-store{bottom:calc(116px + env(safe-area-inset-bottom));height:72px;padding:12px 16px}.viewer-store .store-link{width:100%}}

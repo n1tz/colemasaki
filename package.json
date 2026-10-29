@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "import:art": "node scripts/import-art.mjs",
-    "check": "node scripts/check-content.mjs"
+    "check": "node scripts/check-content.mjs",
+    "admin": "node scripts/admin-dev.mjs"
   },
   "dependencies": { "three": "^0.185.0" },
   "devDependencies": { "vite": "^7.3.1", "sharp": "^0.34.5", "@playwright/test": "^1.58.2" }

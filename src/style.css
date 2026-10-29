@@ -129,3 +129,18 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
  .collection-sides svg{width:32px}
 }
 @media(prefers-reduced-motion:reduce){.collection-sides button{transition:none}}
+/* Video Game: trailer slide and the persistent store-page button. */
+.view-body:has(.view-video){container-type:size}
+.view-body .view-video{display:block;width:min(100cqw,100cqh*16/9);aspect-ratio:16/9;height:auto;border:0;background:#000}
+.game-viewer .view-body{bottom:142px}
+.viewer-store{position:absolute;left:0;right:0;bottom:76px;height:66px;display:flex;align-items:center;justify-content:center;padding:10px 24px;border-top:1px solid var(--line)}
+.viewer-store[hidden]{display:none}
+.store-link{display:flex;align-items:center;justify-content:center;gap:24px;min-height:46px;padding:0 28px;background:var(--ink);color:#11120f;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:0}
+a.store-link:hover{background:#fff;color:#11120f}
+.store-link.is-pending{background:transparent;color:var(--muted);border:1px solid var(--line);cursor:default}
+.viewer-store .store-link{width:min(520px,100%)}
+.viewer-footer a.store-link{border-bottom:0}
+.pager-store{margin-left:12px}.pager-store[hidden]{display:none}
+.pager-store .store-link{min-height:38px;font-size:10px;padding:0 20px}
+.collection-pager.single-page>button,.collection-pager.single-page>#collection-range{display:none}
+.collection-pager.single-page .pager-store{margin-left:0}

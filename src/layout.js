@@ -14,7 +14,7 @@ export function exhibitionLayout(collection, { overview, mobile, aspect, page = 
     return bounds(slots, { pages: 1, page: 0, start: 0, end: count });
   }
   // Small, generous groups prioritize reading the work over thumbnail density.
-  const capacity = mobile ? 1 : collection.id === 'zine' ? 2 : 3;
+  const capacity = mobile || collection.id === 'game' ? 1 : collection.id === 'zine' ? 2 : 3;
   const pages = Math.ceil(count / capacity);
   page = Math.min(Math.max(0, page), pages - 1);
   const start = page * capacity, end = Math.min(start + capacity, count);

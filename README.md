@@ -17,7 +17,7 @@ npm run dev
 
 Edit `src/content.json`. Each collection has a stable `id`, a `label`, and an ordered `items` array. Each item needs a unique `id`, `src`, `thumb`, original `width` and `height`, and useful `alt` text. `source` records the original filename. Paths point into `public/art/`.
 
-To add work, put its full-size WebP and small thumbnail in `public/art/`, then add an item to the desired collection. The scene and index read the same manifest; counts update automatically. The empty game and drawings collections accept the same image schema. Video playback and game embeds are not implemented in this version.
+To add work, put its full-size WebP and small thumbnail in `public/art/`, then add an item to the desired collection. The scene and index read the same manifest; counts update automatically. Usually it is easier to use the site editor below.
 
 The zine array is its reading order: cover, sequential interior pages, back cover. The reader shows one page at a time on desktop and mobile. Click the page or use Zoom to inspect its details; arrows and the desktop page slider move to individual pages. Black underside-cover pages 02 and 19 are omitted from the published 18-page sequence. Images preserve source proportions and colors.
 
@@ -28,6 +28,21 @@ npm run import:art -- /absolute/path/to/AIFOOD
 ```
 
 This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It refreshes local personal, logo, and zine items while preserving imported work and the other collections. Commit manual edits to local items first. Originals are never modified. If a system-wide libvips causes Sharp installation to attempt a source build, install with `SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm ci`.
+
+## Site editor (/admin)
+
+`https://colemasaki.com/admin/` lets you reorder, add, move, retitle, and remove work without touching code. Sign in with GitHub (only the account in `ADMIN_GITHUB_LOGIN`, default `n1tz`, is accepted). Images are resized in the browser to 2000px plus a 640px thumbnail (WebP, or JPEG on Safari), uploaded one at a time, and committed together when you press Publish; Vercel then redeploys. Images no longer referenced are deleted in the same commit. Publishing refuses if `content.json` changed since the editor loaded.
+
+The Video Game collection's first item may be a YouTube trailer (`"type": "video"`, `"youtube": "<id>"`, with its poster frame as `src`/`thumb`); `storeUrl` on the collection drives the store button, which reads "coming soon" while empty.
+
+Vercel environment variables (Production):
+
+- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`: a GitHub OAuth app with callback `https://colemasaki.com/api/auth/callback`.
+- `GITHUB_TOKEN`: a fine-grained token for `n1tz/colemasaki` only, with Contents read and write. Commits use this token, never the signed-in user's.
+- `SESSION_SECRET`: 32+ random characters (`openssl rand -hex 32`).
+- Optional: `ADMIN_GITHUB_LOGIN`, `GITHUB_REPO`, `GITHUB_BRANCH`.
+
+Locally, `GITHUB_TOKEN=$(gh auth token) npm run admin` runs the same editor at `http://localhost:4321/admin/` without sign-in; add `GITHUB_BRANCH=<branch>` to publish somewhere other than `main`.
 
 ## Controls and accessibility
 
