@@ -100,7 +100,8 @@
         "src": "/art/professional-02.webp",
         "thumb": "/art/professional-02-thumb.webp",
         "width": 1080,
-        "height": 1080
+        "height": 1080,
+        "showcase": false
       },
       {
         "id": "professional-06",
@@ -113,7 +114,8 @@
         "src": "/art/professional-06.webp",
         "thumb": "/art/professional-06-thumb.webp",
         "width": 1080,
-        "height": 1080
+        "height": 1080,
+        "showcase": false
       },
       {
         "id": "professional-07",
@@ -126,7 +128,8 @@
         "src": "/art/professional-07.webp",
         "thumb": "/art/professional-07-thumb.webp",
         "width": 1080,
-        "height": 1080
+        "height": 1080,
+        "showcase": false
       },
       {
         "id": "professional-08",
@@ -139,7 +142,8 @@
         "src": "/art/professional-08.webp",
         "thumb": "/art/professional-08-thumb.webp",
         "width": 1080,
-        "height": 1080
+        "height": 1080,
+        "showcase": false
       },
       {
         "id": "professional-09",
@@ -152,7 +156,8 @@
         "src": "/art/professional-09.webp",
         "thumb": "/art/professional-09-thumb.webp",
         "width": 1080,
-        "height": 1080
+        "height": 1080,
+        "showcase": false
       }
     ]
   },
@@ -281,7 +286,8 @@
         "src": "/art/personal-stein-inflated.webp",
         "thumb": "/art/personal-stein-inflated-thumb.webp",
         "width": 3000,
-        "height": 2000
+        "height": 2000,
+        "showcase": false
       },
       {
         "id": "personal-kuniyoshi",
@@ -433,7 +439,8 @@
         "src": "/art/logos-akiba-day-night.webp",
         "thumb": "/art/logos-akiba-day-night-thumb.webp",
         "width": 3840,
-        "height": 2160
+        "height": 2160,
+        "showcase": false
       },
       {
         "id": "logos-01",
@@ -453,7 +460,8 @@
         "src": "/art/logos-akiba-verse.webp",
         "thumb": "/art/logos-akiba-verse-thumb.webp",
         "width": 873,
-        "height": 916
+        "height": 916,
+        "showcase": false
       },
       {
         "id": "logos-cellar",
@@ -464,7 +472,8 @@
         "src": "/art/logos-cellar.webp",
         "thumb": "/art/logos-cellar-thumb.webp",
         "width": 2500,
-        "height": 1500
+        "height": 1500,
+        "showcase": false
       },
       {
         "id": "logos-cellar-mockup",
@@ -475,7 +484,8 @@
         "src": "/art/logos-cellar-mockup.webp",
         "thumb": "/art/logos-cellar-mockup-thumb.webp",
         "width": 2654,
-        "height": 1841
+        "height": 1841,
+        "showcase": false
       },
       {
         "id": "logos-02",
@@ -577,7 +587,8 @@
         "thumb": "/art/zine-05-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 4"
+        "alt": "Zine, page 4",
+        "showcase": false
       },
       {
         "id": "zine-06",
@@ -595,7 +606,8 @@
         "thumb": "/art/zine-07-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 6"
+        "alt": "Zine, page 6",
+        "showcase": false
       },
       {
         "id": "zine-08",
@@ -613,7 +625,8 @@
         "thumb": "/art/zine-09-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 8"
+        "alt": "Zine, page 8",
+        "showcase": false
       },
       {
         "id": "zine-10",
@@ -631,7 +644,8 @@
         "thumb": "/art/zine-11-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 10"
+        "alt": "Zine, page 10",
+        "showcase": false
       },
       {
         "id": "zine-12",
@@ -649,7 +663,8 @@
         "thumb": "/art/zine-13-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 12"
+        "alt": "Zine, page 12",
+        "showcase": false
       },
       {
         "id": "zine-14",
@@ -667,7 +682,8 @@
         "thumb": "/art/zine-15-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 14"
+        "alt": "Zine, page 14",
+        "showcase": false
       },
       {
         "id": "zine-16",
@@ -694,7 +710,8 @@
         "thumb": "/art/zine-18-thumb.webp",
         "width": 1426,
         "height": 2000,
-        "alt": "Zine, page 17"
+        "alt": "Zine, page 17",
+        "showcase": false
       },
       {
         "id": "zine-20",
@@ -804,7 +821,8 @@
         "src": "/art/drawings-08.webp",
         "thumb": "/art/drawings-08-thumb.webp",
         "width": 2000,
-        "height": 2000
+        "height": 2000,
+        "showcase": false
       },
       {
         "id": "drawings-09",
@@ -815,7 +833,8 @@
         "src": "/art/drawings-09.webp",
         "thumb": "/art/drawings-09-thumb.webp",
         "width": 1335,
-        "height": 1699
+        "height": 1699,
+        "showcase": false
       },
       {
         "id": "drawings-10",
@@ -837,7 +856,8 @@
         "src": "/art/drawings-11.webp",
         "thumb": "/art/drawings-11-thumb.webp",
         "width": 1500,
-        "height": 2000
+        "height": 2000,
+        "showcase": false
       }
     ],
     "shortLabel": "Drawing"
