@@ -5,18 +5,6 @@
     "shortLabel": "Client",
     "items": [
       {
-        "id": "professional-shirt-back",
-        "source": "ShirtBackFinal_0_fe7fa756-cc9f-4942-9046-7822d3523161_1800x.webp",
-        "title": "Shirt back design",
-        "alt": "Shirt back design",
-        "origin": "local-curated",
-        "src": "/art/professional-shirt-back.webp",
-        "thumb": "/art/professional-shirt-back-thumb.webp",
-        "width": 1800,
-        "height": 1800,
-        "url": "https://www.akihabara-premium.com/en/blogs/archives/theatrical-version-chainsaw-man-reze-ukiyo-e-woodblock-print-typhoons-demon-corridor-breaker"
-      },
-      {
         "id": "professional-14",
         "title": "物語シリーズグッズくじ / SSR賞 Tシャツ A",
         "alt": "物語シリーズグッズくじ / SSR賞 Tシャツ A",
@@ -28,6 +16,18 @@
         "thumb": "/art/professional-14-thumb.webp",
         "width": 1500,
         "height": 1500
+      },
+      {
+        "id": "professional-shirt-back",
+        "source": "ShirtBackFinal_0_fe7fa756-cc9f-4942-9046-7822d3523161_1800x.webp",
+        "title": "Shirt back design",
+        "alt": "Shirt back design",
+        "origin": "local-curated",
+        "src": "/art/professional-shirt-back.webp",
+        "thumb": "/art/professional-shirt-back-thumb.webp",
+        "width": 1800,
+        "height": 1800,
+        "url": "https://www.akihabara-premium.com/en/blogs/archives/theatrical-version-chainsaw-man-reze-ukiyo-e-woodblock-print-typhoons-demon-corridor-breaker"
       },
       {
         "id": "professional-komuro",
