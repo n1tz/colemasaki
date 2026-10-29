@@ -222,6 +222,18 @@
     "label": "Personal Work",
     "items": [
       {
+        "id": "personal-jiraiya-print",
+        "source": "JiraiyaPrintform.jpg",
+        "title": "Kuniyoshi Study 01",
+        "alt": "Jiraiya",
+        "origin": "local-curated",
+        "src": "/art/personal-jiraiya-print.webp",
+        "thumb": "/art/personal-jiraiya-print-thumb.webp",
+        "width": 3022,
+        "height": 3778,
+        "url": "https://www.instagram.com/colemasaki/p/CVK9Tkors54/"
+      },
+      {
         "id": "personal-ds3",
         "source": "ds3.jpg",
         "title": "Dark Souls III Artwork",
@@ -242,18 +254,6 @@
         "thumb": "/art/personal-fun1-thumb.webp",
         "width": 4320,
         "height": 6113
-      },
-      {
-        "id": "personal-jiraiya-print",
-        "source": "JiraiyaPrintform.jpg",
-        "title": "Kuniyoshi Study 01",
-        "alt": "Jiraiya",
-        "origin": "local-curated",
-        "src": "/art/personal-jiraiya-print.webp",
-        "thumb": "/art/personal-jiraiya-print-thumb.webp",
-        "width": 3022,
-        "height": 3778,
-        "url": "https://www.instagram.com/colemasaki/p/CVK9Tkors54/"
       },
       {
         "id": "personal-rhinoplasty",
