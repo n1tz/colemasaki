@@ -250,18 +250,6 @@
         "url": "https://www.instagram.com/colemasaki/p/CVK9Tkors54/"
       },
       {
-        "id": "personal-kuniyoshi",
-        "source": "kuniyoshi1.jpg",
-        "title": "Kuniyoshi",
-        "alt": "Kuniyoshi",
-        "origin": "local-curated",
-        "src": "/art/personal-kuniyoshi.webp",
-        "thumb": "/art/personal-kuniyoshi-thumb.webp",
-        "width": 2300,
-        "height": 2700,
-        "url": "https://www.instagram.com/colemasaki/p/CVdT2YgJrTW/"
-      },
-      {
         "id": "personal-rhinoplasty",
         "source": "KomuroNose1Test.png",
         "title": "Rhinoplasty",
@@ -271,6 +259,18 @@
         "thumb": "/art/personal-rhinoplasty-thumb.webp",
         "width": 3072,
         "height": 4096
+      },
+      {
+        "id": "personal-stein-brain",
+        "source": "SteinBrain1.3.png",
+        "title": "STEIN — Brain",
+        "alt": "Inflated pink brain with a metallic Japanese character",
+        "origin": "local-curated",
+        "src": "/art/personal-stein-brain.webp",
+        "thumb": "/art/personal-stein-brain-thumb.webp",
+        "width": 3000,
+        "height": 3000,
+        "url": "https://www.instagram.com/colemasaki/p/C4hnuuIJCo0/"
       },
       {
         "id": "personal-stein-inflated",
@@ -284,16 +284,16 @@
         "height": 2000
       },
       {
-        "id": "personal-stein-brain",
-        "source": "SteinBrain1.3.png",
-        "title": "STEIN — Brain",
-        "alt": "Inflated pink brain with a metallic Japanese character",
+        "id": "personal-kuniyoshi",
+        "source": "kuniyoshi1.jpg",
+        "title": "Kuniyoshi",
+        "alt": "Kuniyoshi",
         "origin": "local-curated",
-        "src": "/art/personal-stein-brain.webp",
-        "thumb": "/art/personal-stein-brain-thumb.webp",
-        "width": 3000,
-        "height": 3000,
-        "url": "https://www.instagram.com/colemasaki/p/C4hnuuIJCo0/"
+        "src": "/art/personal-kuniyoshi.webp",
+        "thumb": "/art/personal-kuniyoshi-thumb.webp",
+        "width": 2300,
+        "height": 2700,
+        "url": "https://www.instagram.com/colemasaki/p/CVdT2YgJrTW/"
       },
       {
         "id": "personal-otani",
@@ -320,13 +320,14 @@
         "url": "https://www.instagram.com/colemasaki/p/CXKZlkSJ7uH/"
       },
       {
-        "id": "personal-09",
-        "source": "temp.jpg",
-        "src": "/art/personal-09.webp",
-        "thumb": "/art/personal-09-thumb.webp",
-        "width": 4800,
-        "height": 4800,
-        "alt": "2D Personal Work, work 9"
+        "id": "personal-08",
+        "source": "recessionchan_1.jpg",
+        "src": "/art/personal-08.webp",
+        "thumb": "/art/personal-08-thumb.webp",
+        "width": 2161,
+        "height": 2161,
+        "alt": "2D Personal Work, work 8",
+        "url": "https://www.instagram.com/colemasaki/p/Cn021DCJkx4/"
       },
       {
         "id": "personal-06",
@@ -349,23 +350,13 @@
         "url": "https://www.instagram.com/colemasaki/p/CWIBbUirEe_/"
       },
       {
-        "id": "personal-08",
-        "source": "recessionchan_1.jpg",
-        "src": "/art/personal-08.webp",
-        "thumb": "/art/personal-08-thumb.webp",
-        "width": 2161,
-        "height": 2161,
-        "alt": "2D Personal Work, work 8",
-        "url": "https://www.instagram.com/colemasaki/p/Cn021DCJkx4/"
-      },
-      {
-        "id": "personal-07",
-        "source": "kitsunetest.png",
-        "src": "/art/personal-07.webp",
-        "thumb": "/art/personal-07-thumb.webp",
-        "width": 2000,
-        "height": 2000,
-        "alt": "2D Personal Work, work 7"
+        "id": "personal-09",
+        "source": "temp.jpg",
+        "src": "/art/personal-09.webp",
+        "thumb": "/art/personal-09-thumb.webp",
+        "width": 4800,
+        "height": 4800,
+        "alt": "2D Personal Work, work 9"
       },
       {
         "id": "personal-01",
@@ -377,6 +368,15 @@
         "alt": "2D Personal Work, work 1"
       },
       {
+        "id": "personal-07",
+        "source": "kitsunetest.png",
+        "src": "/art/personal-07.webp",
+        "thumb": "/art/personal-07-thumb.webp",
+        "width": 2000,
+        "height": 2000,
+        "alt": "2D Personal Work, work 7"
+      },
+      {
         "id": "personal-03",
         "source": "fractalpass2.png",
         "src": "/art/personal-03.webp",
@@ -384,15 +384,6 @@
         "width": 1080,
         "height": 1080,
         "alt": "2D Personal Work, work 3"
-      },
-      {
-        "id": "personal-04",
-        "source": "Horse.png",
-        "src": "/art/personal-04.webp",
-        "thumb": "/art/personal-04-thumb.webp",
-        "width": 753,
-        "height": 818,
-        "alt": "2D Personal Work, work 4"
       },
       {
         "id": "instagram-CsVs9fmpDPo",
@@ -405,6 +396,15 @@
         "thumb": "/art/instagram-CsVs9fmpDPo-thumb.webp",
         "width": 640,
         "height": 640
+      },
+      {
+        "id": "personal-04",
+        "source": "Horse.png",
+        "src": "/art/personal-04.webp",
+        "thumb": "/art/personal-04-thumb.webp",
+        "width": 753,
+        "height": 818,
+        "alt": "2D Personal Work, work 4"
       }
     ],
     "shortLabel": "Personal"
