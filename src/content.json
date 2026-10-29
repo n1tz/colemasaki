@@ -437,39 +437,6 @@
         "height": 1000
       },
       {
-        "id": "logos-cellar-mockup",
-        "source": "cellarlogomockup.png",
-        "title": "CELLAR — logo mockup",
-        "alt": "CELLAR — logo mockup",
-        "origin": "local-curated",
-        "src": "/art/logos-cellar-mockup.webp",
-        "thumb": "/art/logos-cellar-mockup-thumb.webp",
-        "width": 2654,
-        "height": 1841
-      },
-      {
-        "id": "logos-cellar",
-        "source": "cellarlogo.png",
-        "title": "CELLAR — logo studies",
-        "alt": "CELLAR — logo studies",
-        "origin": "local-curated",
-        "src": "/art/logos-cellar.webp",
-        "thumb": "/art/logos-cellar-thumb.webp",
-        "width": 2500,
-        "height": 1500
-      },
-      {
-        "id": "logos-akiba-verse",
-        "source": "Asset_12x.png",
-        "title": "AKIBA-VERSE",
-        "alt": "AKIBA-VERSE",
-        "origin": "local-curated",
-        "src": "/art/logos-akiba-verse.webp",
-        "thumb": "/art/logos-akiba-verse-thumb.webp",
-        "width": 873,
-        "height": 916
-      },
-      {
         "id": "logos-akiba-day-night",
         "source": "SPLITMU4.png",
         "title": "AKIBA WOW — day and night",
@@ -488,6 +455,39 @@
         "width": 1783,
         "height": 1500,
         "alt": "Logo Design, work 1"
+      },
+      {
+        "id": "logos-akiba-verse",
+        "source": "Asset_12x.png",
+        "title": "AKIBA-VERSE",
+        "alt": "AKIBA-VERSE",
+        "origin": "local-curated",
+        "src": "/art/logos-akiba-verse.webp",
+        "thumb": "/art/logos-akiba-verse-thumb.webp",
+        "width": 873,
+        "height": 916
+      },
+      {
+        "id": "logos-cellar",
+        "source": "cellarlogo.png",
+        "title": "CELLAR — logo studies",
+        "alt": "CELLAR — logo studies",
+        "origin": "local-curated",
+        "src": "/art/logos-cellar.webp",
+        "thumb": "/art/logos-cellar-thumb.webp",
+        "width": 2500,
+        "height": 1500
+      },
+      {
+        "id": "logos-cellar-mockup",
+        "source": "cellarlogomockup.png",
+        "title": "CELLAR — logo mockup",
+        "alt": "CELLAR — logo mockup",
+        "origin": "local-curated",
+        "src": "/art/logos-cellar-mockup.webp",
+        "thumb": "/art/logos-cellar-mockup-thumb.webp",
+        "width": 2654,
+        "height": 1841
       },
       {
         "id": "logos-02",
