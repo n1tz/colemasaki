@@ -77,19 +77,6 @@
         "height": 1500
       },
       {
-        "id": "professional-02",
-        "title": "SHUFFLE！くじ / TシャツB",
-        "alt": "SHUFFLE！くじ / TシャツB",
-        "origin": "akiba-eden-lot",
-        "source": "https://firebasestorage.googleapis.com/v0/b/akibaedenlot.appspot.com/o/userImages%2FdDNwenUrOcagdtUHHpFDVZ4qa8X2%2Fboothes%2Fda7d0S78809CGo4LAMKF%2Fgachas%2Ff9n6Vqe64dlyhBzbYfVL%2Fawards%2F7phvN3WL3Ke6bLQky2z6%2Fimages%2F1750155881752?alt=media",
-        "url": "https://lot.akiba-eden.com/gacha/?booth=da7d0S78809CGo4LAMKF&gacha=f9n6Vqe64dlyhBzbYfVL",
-        "project": "SHUFFLE！くじ",
-        "src": "/art/professional-02.webp",
-        "thumb": "/art/professional-02-thumb.webp",
-        "width": 1080,
-        "height": 1080
-      },
-      {
         "id": "professional-05",
         "title": "New PANTY & STOCKING with GARTERBELT オンラインくじ / TシャツC",
         "alt": "New PANTY & STOCKING with GARTERBELT オンラインくじ / TシャツC",
@@ -101,6 +88,19 @@
         "thumb": "/art/professional-05-thumb.webp",
         "width": 2048,
         "height": 2048
+      },
+      {
+        "id": "professional-02",
+        "title": "SHUFFLE！くじ / TシャツB",
+        "alt": "SHUFFLE！くじ / TシャツB",
+        "origin": "akiba-eden-lot",
+        "source": "https://firebasestorage.googleapis.com/v0/b/akibaedenlot.appspot.com/o/userImages%2FdDNwenUrOcagdtUHHpFDVZ4qa8X2%2Fboothes%2Fda7d0S78809CGo4LAMKF%2Fgachas%2Ff9n6Vqe64dlyhBzbYfVL%2Fawards%2F7phvN3WL3Ke6bLQky2z6%2Fimages%2F1750155881752?alt=media",
+        "url": "https://lot.akiba-eden.com/gacha/?booth=da7d0S78809CGo4LAMKF&gacha=f9n6Vqe64dlyhBzbYfVL",
+        "project": "SHUFFLE！くじ",
+        "src": "/art/professional-02.webp",
+        "thumb": "/art/professional-02-thumb.webp",
+        "width": 1080,
+        "height": 1080
       },
       {
         "id": "professional-06",
