@@ -66,3 +66,6 @@ input[type=text],input[type=url],select{width:100%;min-height:36px;padding:6px 8
 #toast.error{background:var(--danger)}
 #toast a{color:inherit}
 @media (max-width:520px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card{padding:6px}.collection-body{padding:0 10px 12px}.account{gap:12px}}
+.card .showcase-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer}
+.card .showcase-toggle input{min-height:0;width:14px;height:14px;margin:0}
+.card.off-showcase .thumb img{opacity:.45}

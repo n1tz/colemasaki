@@ -9,7 +9,7 @@ class Invalid extends Error {}
 const check = (ok, message) => { if (!ok) throw new Invalid(message); };
 
 // Collections, labels and file paths come from the repository. The editor can only
-// order items, move them, edit their title/alt/link, remove them, and add uploaded images.
+// order items, move them, edit their title/alt/link/showcase flag, remove them, and add uploaded images.
 function merge(current, incoming, uploads) {
   check(Array.isArray(incoming) && incoming.length === current.length, 'Collections cannot be added or removed.');
   const known = new Map(current.flatMap(c => c.items.map(item => [item.id, { item, collection: c.id }])));
@@ -43,6 +43,7 @@ function merge(current, incoming, uploads) {
       for (const key of ['title', 'alt', 'url']) {
         if (item[key]) result[key] = item[key].trim(); else if (key !== 'alt') delete result[key];
       }
+      if (item.showcase === false) result.showcase = false; else delete result.showcase;
       if (!result.alt) result.alt = result.title || `${collection.label}, work ${index + 1}`;
       return result;
     });

@@ -12,9 +12,11 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
   const pad = n => String(n).padStart(2,'0');
   let active = -1, large = false, kv=null, kvPaused=false, slide=0, slideTouch=null;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Items flagged showcase:false in the editor never appear in the animated preview.
+  const inShowcase=item=>item.showcase!==false;
   // Pick across collections once per visit; keep the composition stable on return.
-  const featured=collections.filter(c=>['professional','personal','logos'].includes(c.id)&&c.items.length).map(c=>c.items[Math.floor(Math.random()*c.items.length)]).slice(0,3);
-  const journeyWorks=collections.flatMap(c=>c.items.map(item=>({...item,collectionId:c.id})));
+  const featured=collections.filter(c=>['professional','personal','logos'].includes(c.id)&&c.items.length).map(c=>c.items.filter(inShowcase)).filter(list=>list.length).map(list=>list[Math.floor(Math.random()*list.length)]).slice(0,3);
+  const journeyWorks=collections.flatMap(c=>c.items.filter(inShowcase).map(item=>({...item,collectionId:c.id})));
   async function mountKV(){
     const host=root.querySelector('.mobile-kv-space');if(!host)return;
     try{
