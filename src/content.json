@@ -729,7 +729,129 @@
   {
     "id": "drawings",
     "label": "Drawings & Paintings",
-    "items": [],
+    "items": [
+      {
+        "id": "drawings-01",
+        "source": "IMG_1.jpeg",
+        "title": "Drawing 1",
+        "alt": "Drawings & Paintings, work 1",
+        "origin": "local-curated",
+        "src": "/art/drawings-01.webp",
+        "thumb": "/art/drawings-01-thumb.webp",
+        "width": 1390,
+        "height": 2000
+      },
+      {
+        "id": "drawings-02",
+        "source": "IMG_2.jpeg",
+        "title": "Drawing 2",
+        "alt": "Drawings & Paintings, work 2",
+        "origin": "local-curated",
+        "src": "/art/drawings-02.webp",
+        "thumb": "/art/drawings-02-thumb.webp",
+        "width": 1440,
+        "height": 2000
+      },
+      {
+        "id": "drawings-03",
+        "source": "IMG_3.jpg",
+        "title": "Drawing 3",
+        "alt": "Drawings & Paintings, work 3",
+        "origin": "local-curated",
+        "src": "/art/drawings-03.webp",
+        "thumb": "/art/drawings-03-thumb.webp",
+        "width": 1500,
+        "height": 2000
+      },
+      {
+        "id": "drawings-04",
+        "source": "IMG_4.jpeg",
+        "title": "Drawing 4",
+        "alt": "Drawings & Paintings, work 4",
+        "origin": "local-curated",
+        "src": "/art/drawings-04.webp",
+        "thumb": "/art/drawings-04-thumb.webp",
+        "width": 1429,
+        "height": 1719
+      },
+      {
+        "id": "drawings-05",
+        "source": "IMG_5.jpeg",
+        "title": "Drawing 5",
+        "alt": "Drawings & Paintings, work 5",
+        "origin": "local-curated",
+        "src": "/art/drawings-05.webp",
+        "thumb": "/art/drawings-05-thumb.webp",
+        "width": 1230,
+        "height": 1970
+      },
+      {
+        "id": "drawings-06",
+        "source": "IMG_6.jpg",
+        "title": "Drawing 6",
+        "alt": "Drawings & Paintings, work 6",
+        "origin": "local-curated",
+        "src": "/art/drawings-06.webp",
+        "thumb": "/art/drawings-06-thumb.webp",
+        "width": 1500,
+        "height": 2000
+      },
+      {
+        "id": "drawings-07",
+        "source": "IMG_7.jpg",
+        "title": "Drawing 7",
+        "alt": "Drawings & Paintings, work 7",
+        "origin": "local-curated",
+        "src": "/art/drawings-07.webp",
+        "thumb": "/art/drawings-07-thumb.webp",
+        "width": 1810,
+        "height": 2000
+      },
+      {
+        "id": "drawings-08",
+        "source": "IMG_8.jpeg",
+        "title": "Drawing 8",
+        "alt": "Drawings & Paintings, work 8",
+        "origin": "local-curated",
+        "src": "/art/drawings-08.webp",
+        "thumb": "/art/drawings-08-thumb.webp",
+        "width": 2000,
+        "height": 2000
+      },
+      {
+        "id": "drawings-09",
+        "source": "IMG_9.jpeg",
+        "title": "Drawing 9",
+        "alt": "Drawings & Paintings, work 9",
+        "origin": "local-curated",
+        "src": "/art/drawings-09.webp",
+        "thumb": "/art/drawings-09-thumb.webp",
+        "width": 1335,
+        "height": 1699
+      },
+      {
+        "id": "drawings-10",
+        "source": "IMG_10.jpg",
+        "title": "Drawing 10",
+        "alt": "Drawings & Paintings, work 10",
+        "origin": "local-curated",
+        "src": "/art/drawings-10.webp",
+        "thumb": "/art/drawings-10-thumb.webp",
+        "width": 2000,
+        "height": 1790
+      },
+      {
+        "id": "drawings-11",
+        "source": "IMG_11.jpg",
+        "title": "Drawing 11",
+        "alt": "Drawings & Paintings, work 11",
+        "origin": "local-curated",
+        "src": "/art/drawings-11.webp",
+        "thumb": "/art/drawings-11-thumb.webp",
+        "width": 1500,
+        "height": 2000
+      }
+    ],
     "shortLabel": "Drawing"
   }
 ]
