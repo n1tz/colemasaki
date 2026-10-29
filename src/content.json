@@ -327,6 +327,33 @@
         "url": "https://www.instagram.com/colemasaki/p/CXKZlkSJ7uH/"
       },
       {
+        "id": "personal-boartest2-8xvs",
+        "source": "boartest2.jpg",
+        "src": "/art/personal-boartest2-8xvs.webp",
+        "thumb": "/art/personal-boartest2-8xvs-thumb.webp",
+        "width": 1488,
+        "height": 2000,
+        "alt": "Personal Work, work 10"
+      },
+      {
+        "id": "personal-capture3-p59g",
+        "source": "Capture3.PNG",
+        "src": "/art/personal-capture3-p59g.webp",
+        "thumb": "/art/personal-capture3-p59g-thumb.webp",
+        "width": 899,
+        "height": 846,
+        "alt": "Personal Work, work 11"
+      },
+      {
+        "id": "personal-07",
+        "source": "kitsunetest.png",
+        "src": "/art/personal-07.webp",
+        "thumb": "/art/personal-07-thumb.webp",
+        "width": 2000,
+        "height": 2000,
+        "alt": "2D Personal Work, work 7"
+      },
+      {
         "id": "personal-08",
         "source": "recessionchan_1.jpg",
         "src": "/art/personal-08.webp",
@@ -358,13 +385,13 @@
         "url": "https://www.instagram.com/colemasaki/p/CWIBbUirEe_/"
       },
       {
-        "id": "personal-09",
-        "source": "temp.jpg",
-        "src": "/art/personal-09.webp",
-        "thumb": "/art/personal-09-thumb.webp",
-        "width": 4800,
-        "height": 4800,
-        "alt": "2D Personal Work, work 9"
+        "id": "personal-temp2-5jri",
+        "source": "temp2.jpg",
+        "src": "/art/personal-temp2-5jri.webp",
+        "thumb": "/art/personal-temp2-5jri-thumb.webp",
+        "width": 2000,
+        "height": 2000,
+        "alt": "Personal Work, work 16"
       },
       {
         "id": "personal-01",
@@ -374,15 +401,6 @@
         "width": 1800,
         "height": 1800,
         "alt": "2D Personal Work, work 1"
-      },
-      {
-        "id": "personal-07",
-        "source": "kitsunetest.png",
-        "src": "/art/personal-07.webp",
-        "thumb": "/art/personal-07-thumb.webp",
-        "width": 2000,
-        "height": 2000,
-        "alt": "2D Personal Work, work 7"
       },
       {
         "id": "personal-03",
@@ -760,9 +778,19 @@
         "height": 2000
       },
       {
+        "id": "drawings-fullsizerender-vm8q",
+        "source": "FullSizeRender.jpg",
+        "src": "/art/drawings-fullsizerender-vm8q.webp",
+        "thumb": "/art/drawings-fullsizerender-vm8q-thumb.webp",
+        "width": 2000,
+        "height": 1560,
+        "title": "Pen Drawing 01",
+        "alt": "Pen Drawing 01"
+      },
+      {
         "id": "drawings-03",
         "source": "IMG_3.jpg",
-        "title": "Pen Drawing 01",
+        "title": "Pen Drawing 02",
         "alt": "Drawings & Paintings, work 3",
         "origin": "local-curated",
         "src": "/art/drawings-03.webp",
@@ -771,9 +799,19 @@
         "height": 2000
       },
       {
+        "id": "drawings-img-0098-zaot",
+        "source": "IMG_0098.png",
+        "src": "/art/drawings-img-0098-zaot.webp",
+        "thumb": "/art/drawings-img-0098-zaot-thumb.webp",
+        "width": 1390,
+        "height": 2000,
+        "title": "Digital Painting 03",
+        "alt": "Digital Painting 03"
+      },
+      {
         "id": "drawings-04",
         "source": "IMG_4.jpeg",
-        "title": "Digital Painting 03",
+        "title": "Digital Painting 04",
         "alt": "Drawings & Paintings, work 4",
         "origin": "local-curated",
         "src": "/art/drawings-04.webp",
@@ -795,7 +833,7 @@
       {
         "id": "drawings-06",
         "source": "IMG_6.jpg",
-        "title": "Pen Drawing 02",
+        "title": "Pen Drawing 03",
         "alt": "Drawings & Paintings, work 6",
         "origin": "local-curated",
         "src": "/art/drawings-06.webp",
@@ -806,7 +844,7 @@
       {
         "id": "drawings-07",
         "source": "IMG_7.jpg",
-        "title": "Pen Drawing 03",
+        "title": "Pen Drawing 04",
         "alt": "Drawings & Paintings, work 7",
         "origin": "local-curated",
         "src": "/art/drawings-07.webp",
@@ -841,7 +879,7 @@
       {
         "id": "drawings-10",
         "source": "IMG_10.jpg",
-        "title": "Pen Drawing 04",
+        "title": "Pen Drawing 05",
         "alt": "Drawings & Paintings, work 10",
         "origin": "local-curated",
         "src": "/art/drawings-10.webp",
@@ -852,7 +890,7 @@
       {
         "id": "drawings-11",
         "source": "IMG_11.jpg",
-        "title": "Pen Drawing 05",
+        "title": "Pen Drawing 06",
         "alt": "Drawings & Paintings, work 11",
         "origin": "local-curated",
         "src": "/art/drawings-11.webp",
