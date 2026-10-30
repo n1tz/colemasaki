@@ -6,11 +6,17 @@ import { createFieldMaterials } from './motion.js';
 import { createDepthField, roomLocations } from './depth-field.js';
 import { createAsciiPass } from './ascii-pass.js';
 import { exhibitionLayout, focusLayout } from './layout.js';
+import { createHero, HERO_ORIGIN } from './hero.js';
 
 const desktopLocations = [[-9, 0, 0], [0, 0, 0], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 
-export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, reducedMotion }) {
+// Weak GPUs get a lighter field and start at a lower resolution; the frame
+// timer below adapts further at runtime.
+const lowEnd = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+const maxPixelRatio = Math.min(devicePixelRatio, lowEnd ? 1 : 1.5);
+
+export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, onHero, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
   const architectureTime={value:0};
@@ -19,8 +25,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   // Artwork is rendered last with cleared depth. Neither opaque cubes nor
   // transparent wires can ever cross an image, including during camera travel.
   const artScene = new THREE.Scene();
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+  const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd, powerPreference: 'high-performance' });
+  let pixelRatio = maxPixelRatio; renderer.setPixelRatio(pixelRatio);
   renderer.setSize(host.clientWidth, host.clientHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -57,6 +63,11 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   document.fonts.ready.then(()=>{fontsReady=true;});
   const manager = new THREE.LoadingManager(()=>{assetsReady=true;}), loader = new THREE.TextureLoader(manager), dummy = new THREE.Object3D();
   manager.onProgress=(_url,loaded,total)=>onProgress?.(loaded/total*.9);
+  // The hero bust has its own scene so the background ASCII pass never touches it.
+  const heroScene = new THREE.Scene(), hero = createHero({ manager }); heroScene.add(hero.group);
+  // Overview scroll: 0 orbits the knight's head, 1 rests on the collections.
+  let heroProgress = 0, heroTarget = 0, heroShown = 1, heroAngle = .35, heroAnchor = null, heroPointer = 0, heroState = null;
+  const heroHead = HERO_ORIGIN.clone(), heroCamera = new THREE.PerspectiveCamera();
   let active = -1, page = 0, tween = null, paused = false, frame = 0, last = performance.now();
   let motionEnabled = !reducedMotion, down = null, hovered = null;
   const isMobile = () => innerWidth <= 800;
@@ -73,7 +84,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     const group = new THREE.Group(); scene.add(group); groups.push(group);
     const board = new THREE.Group(); artScene.add(board); boards.push(board);
     const populated = collection.items.length > 0, points = [];
-    fractal(0, 0, 0, populated ? 10 : 4, populated ? 3 : 2, points);
+    fractal(0, 0, 0, populated ? 10 : 4, populated && !lowEnd ? 3 : 2, points);
     if (populated) {
       const instanced = new THREE.InstancedMesh(boxes, field.metal, points.length);
       points.forEach(([x, y, z, s], i) => {
@@ -102,7 +113,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   function arrange() {
     groups.forEach((group, ci) => {
       group.position.fromArray(active < 0 ? (locations()[ci]||roomLocations[ci]) : roomLocations[ci]);
-      group.visible = active < 0 ? ci < 3 : ci === active;
+      group.visible = active < 0 ? ci < 3 && heroProgress > .3 : ci === active;
       group.scale.setScalar(active < 0 ? (isMobile() ? .65 : .86) : .85); boards[ci].visible = group.visible;
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
       boards[ci].children.forEach(mesh => {
@@ -123,6 +134,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     field.metal.color.set(active < 0 ? '#b2b5aa' : '#5d6358');
     field.wire.uniforms.uOpacity.value = active < 0 ? .5 : .1; key.intensity = active < 0 ? 3 : 1.6;
     field.strength.value = active < 0 ? 1 : .12;
+    // In the overview the wheel travels between the knight and the collections.
+    controls.enableZoom = active >= 0;
     if (active >= 0) { page = layouts[active].page; onPage?.(layouts[active]); } else onPage?.(null);
   }
   function destination() {
@@ -155,6 +168,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
 
   function select(index) {
+    if (index < 0) heroProgress = heroTarget = 1;
     active = index; page = 0; hovered = null; onHover(null);
     // Paging controls change the frame bounds. Settle them before the flight.
     arrange(); syncViewport(); arrange(); travel();
@@ -194,7 +208,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       group.rotation.set(0,pulse*.12,0);
     });
     inverseCamera.copy(camera.quaternion).invert();
-    const overviewView = active < 0 ? destination() : null;
+    const overviewView = active < 0 && heroProgress >= 1 ? destination() : null;
     const overviewZoom = overviewView ? camera.position.distanceTo(controls.target) / overviewView.position.distanceTo(overviewView.target) : 1;
     boards.forEach((board, ci) => {
       if (!board.visible) return;
@@ -250,16 +264,78 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       el.style.left=`${(projected.x*.5+.5)*rect.width}px`;el.style.top=`${(-projected.y*.5+.5)*rect.height+7}px`;
     });
     groups.forEach((g, i) => {
-      const el = labelElements[i]; if (tween || !g.visible || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
+      const el = labelElements[i]; if (tween || heroProgress < 1 || !g.visible || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
       projected.set(0, -layouts[i].height / 2 - .65, 0).multiply(boards[i].scale).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
       const x = (projected.x * .5 + .5) * rect.width, y = (-projected.y * .5 + .5) * rect.height;
       el.hidden = projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height;
       el.style.left = `${rect.left + x}px`; el.style.top = `${rect.top + y}px`;
     });
   }
+  function setPixelRatio(value) { pixelRatio = value; renderer.setPixelRatio(value); viewportSignature = ''; syncViewport(); }
+  // Frame-time governor: drop resolution on slow GPUs instead of stuttering.
+  let frameSamples = 0, frameTotal = 0, governorStart = performance.now() + 2500;
+  function governor(now, elapsed) {
+    if (now < governorStart || elapsed > .25) return;
+    frameTotal += elapsed; if (++frameSamples < 45) return;
+    const average = frameTotal / frameSamples; frameSamples = 0; frameTotal = 0;
+    if (average > .026 && pixelRatio > .6) setPixelRatio(Math.max(.6, pixelRatio - .2));
+    else if (average < .0125 && pixelRatio < maxPixelRatio) setPixelRatio(Math.min(maxPixelRatio, pixelRatio + .1));
+  }
+  // Drives the overview camera between the orbiting head shot and the
+  // collections. Returns true while it owns the camera.
+  function heroUpdate(delta, elapsed) {
+    if (active < 0 && !tween) {
+      heroProgress += (heroTarget - heroProgress) * (reducedMotion ? 1 : 1 - Math.exp(-elapsed * 2.6));
+      if (Math.abs(heroTarget - heroProgress) < .002) heroProgress = heroTarget;
+      groups.forEach((g, ci) => { g.visible = boards[ci].visible = ci < 3 && heroProgress > .3; });
+    }
+    const shown = active < 0 ? 1 - THREE.MathUtils.smoothstep(heroProgress, .04, .55) : 0;
+    heroShown += (shown - heroShown) * (reducedMotion ? 1 : 1 - Math.exp(-elapsed * 3.5));
+    hero.uniforms.uDissolve.value = 1 - heroShown; hero.uniforms.uPixel.value = pixelRatio;
+    hero.group.visible = hero.ready && heroShown > .01;
+    if (motionEnabled) { heroAngle += delta * .13; hero.uniforms.uTime.value += delta; }
+    const state = active < 0 && heroProgress < .55;
+    if (state !== heroState) { heroState = state; onHero?.(state); }
+    if (active >= 0 || tween) { heroAnchor = null; return false; }
+    if (heroProgress >= 1) {
+      if (heroAnchor) {
+        camera.position.copy(heroAnchor.position); camera.quaternion.copy(heroAnchor.quaternion);
+        controls.target.copy(heroAnchor.target); heroAnchor = null; controls.enabled = !paused; controls.update();
+      }
+      return false;
+    }
+    if (!heroAnchor) heroAnchor = { position: camera.position.clone(), quaternion: camera.quaternion.clone(), target: controls.target.clone() };
+    controls.enabled = false;
+    const angle = heroAngle + heroPointer * .45, radius = 4.1;
+    heroCamera.position.set(heroHead.x + Math.sin(angle) * radius, heroHead.y + .45, heroHead.z + Math.cos(angle) * radius);
+    heroCamera.lookAt(heroHead.x, heroHead.y - .3, heroHead.z);
+    const t = heroProgress, ease = t * t * t * (10 + t * (-15 + 6 * t));
+    camera.position.lerpVectors(heroCamera.position, heroAnchor.position, ease); camera.position.y += Math.sin(Math.PI * ease) * 5;
+    camera.quaternion.slerpQuaternions(heroCamera.quaternion, heroAnchor.quaternion, ease);
+    if (camera.fov !== 43) { camera.fov = 43; camera.updateProjectionMatrix(); }
+    return true;
+  }
+  let wheelTimer = 0, wheelDirection = 0;
+  function scrollHero(amount) {
+    if (active >= 0 || tween || paused) return;
+    heroTarget = THREE.MathUtils.clamp(heroTarget + amount, 0, 1); wheelDirection = Math.sign(amount) || wheelDirection;
+    // Settle at either end once the wheel stops, like a snapped section.
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => { heroTarget = wheelDirection > 0 ? (heroTarget > .1 ? 1 : 0) : (heroTarget < .9 ? 0 : 1); }, 180);
+  }
+  function onWheel(e) {
+    if (active >= 0 || isMobile() || e.ctrlKey) return;
+    const step = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+    scrollHero(THREE.MathUtils.clamp(step, -120, 120) * .0012);
+  }
+  addEventListener('wheel', onWheel, { passive: true });
+  function onPointer(e) { heroPointer = THREE.MathUtils.clamp(e.clientX / innerWidth * 2 - 1, -1, 1); }
+  addEventListener('pointermove', onPointer, { passive: true });
   function tick(now) {
     frame=0;if(paused||document.hidden)return;
     frame = requestAnimationFrame(tick); const elapsed = Math.max(0,(now-last)/1000), delta = Math.min(elapsed,.05); last = now;
+    // Resizing clears the canvas, so quality changes happen before drawing.
+    governor(now, elapsed);
     if (tween) {
       tween.elapsed+=elapsed;
       const t=Math.min(tween.elapsed/tween.duration,1);
@@ -272,7 +348,12 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       camera.updateProjectionMatrix();
       if(t===1){tween=null;camera.up.set(0,1,0);controls.enabled=!paused;controls.update();}
     }
-    if(!tween)controls.update(delta); animateArt(delta, elapsed); renderer.info.reset(); ascii.render(scene,camera,architectureTime.value,tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,!reducedMotion); renderer.clearDepth(); renderer.render(artScene, camera); labels();
+    const heroDriving=heroUpdate(delta, elapsed);
+    if(!tween&&!heroDriving)controls.update(delta); animateArt(delta, elapsed); renderer.info.reset();
+    const surge=Math.max(tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,active<0?Math.pow(Math.sin(Math.PI*heroProgress),2)*.7:0);
+    ascii.render(scene,camera,architectureTime.value,surge,!reducedMotion);
+    if(hero.group.visible){renderer.clearDepth();renderer.render(heroScene,camera);}
+    renderer.clearDepth(); renderer.render(artScene, camera); labels();
     if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
   }
   function schedule(){cancelAnimationFrame(frame);frame=0;last=performance.now();if(!paused&&!document.hidden)frame=requestAnimationFrame(tick);}
@@ -287,11 +368,12 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       rect: { left: rect.left + (corners[0].x + 1) * rect.width / 2, right: rect.left + (corners[1].x + 1) * rect.width / 2, top: rect.top + (1 - corners[1].y) * rect.height / 2, bottom: rect.top + (1 - corners[0].y) * rect.height / 2 } };
   }
   return {
-    select, turnExhibition,
+    select, turnExhibition, scrollHero,
+    setHero(value) { if (active < 0 && !tween) { clearTimeout(wheelTimer); heroTarget = value; } },
     zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
     setPaused(value) { paused = value; if(value){hovered=null;onHover(null);} controls.enabled = !value && !tween; schedule(); }, setMotion(value) { motionEnabled = value && !reducedMotion; },
-    stats() { const rect = layoutFrame.getBoundingClientRect(); return { gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
+    stats() { const rect = layoutFrame.getBoundingClientRect(); return { gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
-    dispose() { cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',schedule); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
+    dispose() { cancelAnimationFrame(frame);removeEventListener('wheel',onWheel);removeEventListener('pointermove',onPointer);hero.dispose();document.removeEventListener('visibilitychange',schedule); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
   };
 }
