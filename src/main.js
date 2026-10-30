@@ -3,6 +3,7 @@ import { vectorizeArrows, motionIcon } from './icons.js';
 import collections from './content.json';
 import { createTitle } from './title.js';
 import { createMobileGallery } from './mobile-gallery.js';
+import { MOBILE_QUERY } from './viewport.js';
 import { fontSpecimen } from './font-specimen.js';
 import { isVideo, videoFrame, storeLink, youtubeWatchUrl } from './game.js';
 
@@ -14,7 +15,7 @@ const isGame=index=>collections[index]?.id==='game';
 const total=collections.reduce((n,c)=>n+c.items.length,0);
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let active=-1, space, viewing=null, returnFocus=null, motionEnabled=!reducedMotion, mobileGallery;
-const mobileViewport=matchMedia('(max-width:800px)');
+const mobileViewport=matchMedia(MOBILE_QUERY);
 $('#app').innerHTML=`
   <div id="exhibition-frame"><nav class="collection-sides" aria-label="Artwork pages" hidden>
     <button id="collection-side-previous" aria-label="Previous group of artworks" title="Previous artworks"><svg viewBox="0 0 40 24" aria-hidden="true"><path d="M36 12H4M14 2L4 12l10 10"/></svg><span>PREV</span></button>

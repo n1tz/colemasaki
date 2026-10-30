@@ -1,11 +1,12 @@
 import './mobile-gallery.css';
 import { vectorizeArrows, motionIcon } from './icons.js';
+import { MOBILE_QUERY } from './viewport.js';
 import { fontSpecimen } from './font-specimen.js';
 import { isVideo, videoFrame, storeLink } from './game.js';
 
 // A touch-first presentation of the same manifest. Desktop stays in the 3D scene.
 export function createMobileGallery(collections, { onSelect, onOpen }) {
-  const media = matchMedia('(max-width:800px)');
+  const media = matchMedia(MOBILE_QUERY);
   const root = document.createElement('div');
   root.className = 'mobile-gallery';
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -48,7 +49,7 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
     if (!media.matches) return;
     root.querySelectorAll('[data-room]').forEach(b => {if(Number(b.dataset.room)===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     if(active < 0){
-      content.innerHTML=`<div class="mobile-intro"><p>ART / DESIGN / INDEPENDENT WORK</p><h1 tabindex="-1">Selected work</h1>
+      content.innerHTML=`<div class="mobile-intro"><p>ART / DESIGN / INDEPENDENT WORK</p><h1 tabindex="-1">Portfolio Library</h1>
         <figure class="mobile-kv" aria-label="Animated artwork preview">
           <div class="mobile-kv-space" aria-hidden="true"><div class="mobile-kv-fallback">${featured.map(item=>image(item,true)).join('')}</div></div>
           <button class="mobile-kv-pause" aria-label="${kvPaused||reducedMotion?'Resume preview animation':'Pause preview animation'}" aria-pressed="${!(kvPaused||reducedMotion)}" ${reducedMotion?'disabled':''}>${motionIcon(kvPaused||reducedMotion)}</button>
