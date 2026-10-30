@@ -4,7 +4,8 @@ import * as THREE from 'three';
 // noise field splits the surface into wireframe, ASCII, heatmap and opaque
 // bands with a bright seam along each boundary. All modes live in a single
 // fragment shader, so the cost is one small mesh and no extra render passes.
-export const HERO_ORIGIN = new THREE.Vector3(0, 0, 72);
+// Sits inside its own colonnade chamber (see depth-field origins in scene.js).
+export const HERO_ORIGIN = new THREE.Vector3(0, 0, 120);
 // Head bone midpoint, in the baked model's own space (scripts/export-knight.py).
 const HEAD = new THREE.Vector3(-.18, 8.55, .8);
 
@@ -33,18 +34,16 @@ async function loadKnight(url) {
   const bounds = new Float32Array(buffer, 8, 6);
   const quantized = new Uint16Array(buffer, 32, vertexCount * 3);
   const indices = new Uint16Array(buffer, 32 + vertexCount * 6, triangleCount * 3);
-  const materials = new Uint8Array(buffer, 32 + vertexCount * 6 + triangleCount * 6, triangleCount);
   // De-indexed so every triangle carries its own barycentrics for the wireframe.
-  const position = new Float32Array(triangleCount * 9), bary = new Uint8Array(triangleCount * 9), material = new Float32Array(triangleCount * 3);
+  const position = new Float32Array(triangleCount * 9), bary = new Uint8Array(triangleCount * 9);
   for (let t = 0; t < triangleCount; t++) for (let k = 0; k < 3; k++) {
     const v = indices[t * 3 + k], o = (t * 3 + k) * 3;
     for (let a = 0; a < 3; a++) position[o + a] = bounds[a] + quantized[v * 3 + a] / 65535 * (bounds[a + 3] - bounds[a]) - HEAD.getComponent(a);
-    bary[o + k] = 1; material[t * 3 + k] = materials[t];
+    bary[o + k] = 1;
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
   geometry.setAttribute('aBary', new THREE.BufferAttribute(bary, 3, true));
-  geometry.setAttribute('aMaterial', new THREE.BufferAttribute(material, 1));
   geometry.computeBoundingSphere();
   return geometry;
 }
@@ -58,26 +57,17 @@ export function createHero({ manager, url = '/models/knight.bin' }) {
   const material = new THREE.ShaderMaterial({
     uniforms, side: THREE.DoubleSide, toneMapped: false,
     vertexShader: /* glsl */`
-      attribute vec3 aBary; attribute float aMaterial;
-      varying vec3 vBary, vLocal, vWorld; varying float vMaterial;
+      attribute vec3 aBary;
+      varying vec3 vBary, vLocal, vWorld;
       void main(){
-        vBary=aBary; vLocal=position; vMaterial=aMaterial;
+        vBary=aBary; vLocal=position;
         vec4 world=modelMatrix*vec4(position,1.); vWorld=world.xyz;
         gl_Position=projectionMatrix*viewMatrix*world;
       }`,
     fragmentShader: /* glsl */`
       uniform float uTime,uDissolve,uPixel; uniform sampler2D uGlyphs;
-      varying vec3 vBary,vLocal,vWorld; varying float vMaterial;
+      varying vec3 vBary,vLocal,vWorld;
       ${noiseGLSL}
-      vec3 albedo(float m){
-        // Material slots from the source model: crimson, near-blacks and steel greys.
-        if(m<.5)return vec3(.62,.05,.06);
-        if(m<1.5)return vec3(.07);
-        if(m<2.5)return vec3(.2);
-        if(m<3.5)return vec3(.12);
-        if(m<4.5)return vec3(.03);
-        return vec3(.3,.04,.03);
-      }
       vec3 thermal(float t){
         t=clamp(t,0.,1.);
         vec3 c=mix(vec3(.02,.01,.08),vec3(.18,.02,.42),smoothstep(0.,.22,t));
@@ -122,11 +112,19 @@ export function createHero({ manager, url = '/models/knight.bin' }) {
           color=thermal(light*.95+rim*.25+.08*sin(vLocal.y*9.-uTime*2.));
         }else{
           float spec=pow(max(dot(n,normalize(view+normalize(vec3(-.5,.8,.6)))),0.),24.);
-          color=albedo(vMaterial)*(.35+diffuse*1.6)+vec3(.9,.9,.85)*(rim*.35+spec*.5);
+          color=vec3(.5,.5,.48)*(.3+diffuse*1.1)+vec3(.9,.9,.85)*(rim*.35+spec*.45);
         }
         float seam=1.-smoothstep(0.,.07,edge);
         color=mix(color,vec3(1.,.97,.9),seam*.85);
         color=mix(color,vec3(1.,.5,.2),burn);
+        // Lightweight CRT: scanlines, RGB aperture mask, a rolling band and flicker,
+        // all from gl_FragCoord, so it costs no extra pass.
+        vec2 px=gl_FragCoord.xy/uPixel;
+        float scan=.72+.28*sin(px.y*2.094);
+        vec3 mask=vec3(.78);mask[int(mod(px.x,3.))]=1.18;
+        float roll=smoothstep(.0,.04,.04-abs(fract(px.y/900.-uTime*.09)-.5))*.25;
+        float grain=h31(vec3(px,floor(uTime*24.)))*.12;
+        color=color*scan*mask*(.94+.06*sin(uTime*53.))+roll+grain*(.4+dot(color,vec3(.33)));
         gl_FragColor=vec4(color,1.);
         #include <colorspace_fragment>
       }`,

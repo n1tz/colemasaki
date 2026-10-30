@@ -20,7 +20,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
   const architectureTime={value:0};
-  const depthField = createDepthField(architectureTime); scene.add(depthField);
+  const depthField = createDepthField(architectureTime, [[0,0,0], ...roomLocations, HERO_ORIGIN.toArray()]); scene.add(depthField);
   scene.fog = new THREE.FogExp2('#11120f', .0035);
   // Artwork is rendered last with cleared depth. Neither opaque cubes nor
   // transparent wires can ever cross an image, including during camera travel.
@@ -306,7 +306,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     }
     if (!heroAnchor) heroAnchor = { position: camera.position.clone(), quaternion: camera.quaternion.clone(), target: controls.target.clone() };
     controls.enabled = false;
-    const angle = heroAngle + heroPointer * .45, radius = 4.1;
+    const angle = heroAngle + heroPointer * .45, radius = 3.2;
     heroCamera.position.set(heroHead.x + Math.sin(angle) * radius, heroHead.y + .45, heroHead.z + Math.cos(angle) * radius);
     heroCamera.lookAt(heroHead.x, heroHead.y - .3, heroHead.z);
     const t = heroProgress, ease = t * t * t * (10 + t * (-15 + 6 * t));
