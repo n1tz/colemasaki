@@ -141,10 +141,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
         mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1); mesh.userData.baseScale=mesh.scale.clone(); mesh.userData.displayScale=mesh.scale.clone(); mesh.userData.order=layout.slots.indexOf(slot);
       });
     });
-    field.metal.envMapIntensity = active < 0 ? .55 : .22;
-    field.metal.color.set(active < 0 ? '#b2b5aa' : '#5d6358');
-    field.wire.uniforms.uOpacity.value = active < 0 ? .5 : .1; key.intensity = active < 0 ? 3 : 1.6;
-    field.strength.value = active < 0 ? 1 : .12;
+    // Sculptures stay the same dark grey on the overview as inside the rooms.
+    field.metal.envMapIntensity = .22; field.metal.color.set('#5d6358');
+    field.wire.uniforms.uOpacity.value = .1; key.intensity = 1.6; field.strength.value = .12;
     // In the overview the wheel travels between the knight and the collections.
     controls.enableZoom = active >= 0;
     if (active >= 0) { page = layouts[active].page; onPage?.(layouts[active]); } else onPage?.(null);
