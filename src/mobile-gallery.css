@@ -5,7 +5,7 @@
   body{overflow:auto}
   body:has(dialog[open]){overflow:hidden}
   #app{height:auto;min-height:100svh;overflow:visible}
-  #app>.topline,#app>.brand,#app>.collection-nav,#app>.stage-caption,#app>.bottom-bar,#app>.border,#app>#markers,#app>.collection-pager,#app>.axis,#app>.hover-label,#app>#exhibition-frame,#app>#space{display:none}
+  #app>.topline,#app>.brand,#app>.collection-nav,#app>.stage-caption,#app>.bottom-bar,#app>.border,#app>#markers,#app>.collection-pager,#app>.axis,#app>.hover-label,#app>#exhibition-frame,#app>#space,#app>.hero-tagline{display:none}
   .mobile-gallery{display:block;color:#f1efeb;padding-top:env(safe-area-inset-top);background:#11120f;min-height:100svh}
   .mobile-gallery button,.mobile-gallery a{min-height:48px;font-size:12px}
   .mobile-gallery button:focus-visible,.mobile-gallery a:focus-visible{outline:2px solid #fff;outline-offset:3px}

@@ -146,7 +146,7 @@ a.store-link:hover{background:#fff;color:#11120f}
 .collection-pager.single-page .pager-store{margin-left:0}
 
 /* Desktop hero: the knight owns the first screen; scrolling reveals the collections. */
-.scroll-cue{display:none}
+.scroll-cue,.hero-tagline{display:none}
 @media(min-width:801px){
  .collection-nav,.stage-caption,#markers,.instructions{transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
  .hero .collection-nav,.hero .stage-caption,.hero #markers,.hero .instructions{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .4s,transform .4s,visibility 0s .4s}
@@ -154,8 +154,11 @@ a.store-link:hover{background:#fff;color:#11120f}
  .scroll-cue{display:flex;position:absolute;left:50%;bottom:44px;transform:translateX(-50%);flex-direction:column;align-items:center;gap:8px;padding:10px 14px;border:1px solid #55584d;background:#11120fed;font-size:9px;letter-spacing:.12em;color:var(--ink);opacity:0;pointer-events:none;transition:opacity .4s;z-index:2}
  .scroll-cue i{display:block;width:1px;height:26px;background:linear-gradient(var(--ink) 50%,transparent 0) 0 0/1px 200% no-repeat;animation:cue 1.8s cubic-bezier(.65,0,.35,1) infinite}
  .hero .scroll-cue{opacity:1;pointer-events:auto}
+ .hero-tagline{display:block;position:absolute;left:50%;bottom:160px;transform:translateX(-50%);margin:0;white-space:nowrap;font:700 clamp(40px,5vw,76px)/1.12 var(--display);letter-spacing:.015em;color:#fff;mix-blend-mode:difference;pointer-events:none;z-index:3;opacity:0;transition:opacity .4s}
+ .hero .hero-tagline{opacity:1}
  @keyframes cue{from{background-position:0 100%}to{background-position:0 -100%}}
 }
+@media(max-height:700px) and (min-width:801px){.hero-tagline{font-size:44px;bottom:150px}}
 @media(prefers-reduced-motion:reduce){.scroll-cue i{animation:none;background:var(--ink)}}
 /* Overview labels wipe in, staggered across the grid, as soon as the flight lands. */
 @media(min-width:801px){
