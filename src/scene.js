@@ -8,7 +8,9 @@ import { createAsciiPass } from './ascii-pass.js';
 import { exhibitionLayout, focusLayout } from './layout.js';
 import { createHero, HERO_ORIGIN } from './hero.js';
 
-const desktopLocations = [[-9, 0, 0], [0, 0, 0], [9, 0, 0], [-5, -6.5, -4], [5, -6.5, -4]];
+// Overview grid: every collection, four across and two deep.
+const desktopLocations = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [(i % 4 - 1.5) * 8.6, i < 4 ? 4.3 : -4.6, 0]);
+const overviewScale = .6;
 const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 
 // Weak GPUs get a lighter field and start at a lower resolution; the frame
@@ -80,18 +82,16 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       fractal(x + a * s, y + b * s, z + c * s, s, depth - 1, points);
     }
   }
-  collections.forEach((collection, ci) => {
-    const group = new THREE.Group(); scene.add(group); groups.push(group);
-    const board = new THREE.Group(); artScene.add(board); boards.push(board);
-    const populated = collection.items.length > 0, points = [];
-    fractal(0, 0, 0, populated ? 10 : 4, populated && !lowEnd ? 3 : 2, points);
+  function sculpture(populated, depth) {
+    const result = new THREE.Group(), points = [];
+    fractal(0, 0, 0, populated ? 10 : 4, depth, points);
     if (populated) {
       const instanced = new THREE.InstancedMesh(boxes, field.metal, points.length);
       points.forEach(([x, y, z, s], i) => {
         dummy.position.set(x, y, z); dummy.scale.setScalar(s * .88); dummy.updateMatrix();
         instanced.setMatrixAt(i, dummy.matrix); instanced.setColorAt(i, new THREE.Color().setScalar(.38 + ((i * 17) % 29) / 50));
       });
-      instanced.instanceMatrix.needsUpdate = true; instanced.computeBoundingSphere(); instanced.boundingSphere.radius += .5; group.add(instanced);
+      instanced.instanceMatrix.needsUpdate = true; instanced.computeBoundingSphere(); instanced.boundingSphere.radius += .5; result.add(instanced);
     }
     const edge = new THREE.EdgesGeometry(boxes), vertices = [], edgeArray = edge.attributes.position.array;
     points.forEach(([x, y, z, s]) => {
@@ -99,7 +99,17 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       for (let j = 0; j < edgeArray.length; j += 3) vertices.push((edgeArray[j] * s + x) * spread, (edgeArray[j + 1] * s + y) * spread, (edgeArray[j + 2] * s + z) * spread);
     });
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    group.add(new THREE.LineSegments(geometry, populated ? field.wire : field.vacantWire)); edge.dispose();
+    result.add(new THREE.LineSegments(geometry, populated ? field.wire : field.vacantWire)); edge.dispose();
+    return result;
+  }
+  collections.forEach((collection, ci) => {
+    const group = new THREE.Group(); scene.add(group); groups.push(group);
+    const board = new THREE.Group(); artScene.add(board); boards.push(board);
+    const populated = collection.items.length > 0;
+    // A coarse sculpture stands in on the overview, where eight are on screen;
+    // the full-depth one is only shown inside its collection.
+    const detail = sculpture(populated, populated && !lowEnd ? 3 : 2), preview = populated && !lowEnd ? sculpture(populated, 2) : detail;
+    group.add(detail); if (preview !== detail) group.add(preview); group.userData.lod = { detail, preview };
     const zone = new THREE.Mesh(new THREE.BoxGeometry(7, 7, 7), new THREE.MeshBasicMaterial({ visible: false }));
     zone.userData = { category: ci }; group.add(zone); hitTargets.push(zone);
     collection.items.forEach((item, i) => {
@@ -113,8 +123,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   function arrange() {
     groups.forEach((group, ci) => {
       group.position.fromArray(active < 0 ? (locations()[ci]||roomLocations[ci]) : roomLocations[ci]);
-      group.visible = active < 0 ? ci < 3 && heroProgress > .3 : ci === active;
-      group.scale.setScalar(active < 0 ? (isMobile() ? .65 : .86) : .85); boards[ci].visible = group.visible;
+      group.visible = active < 0 ? heroProgress > .3 : ci === active;
+      group.userData.lod.preview.visible = active < 0; group.userData.lod.detail.visible = active >= 0 || group.userData.lod.detail === group.userData.lod.preview;
+      group.scale.setScalar(active < 0 ? (isMobile() ? .65 : overviewScale) : .85); boards[ci].visible = group.visible;
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
       boards[ci].children.forEach(mesh => {
         const slot = layout.slots.find(s => s.index === mesh.userData.item); mesh.visible = Boolean(slot); if (!slot) return;
@@ -140,7 +151,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   function destination() {
     const target = active < 0 ? new THREE.Vector3(0, isMobile() ? -1.3 : 0, 0) : groups[active].position.clone();
-    const layout = active < 0 ? { width: isMobile() ? 15.6 : 28, height: isMobile() ? 15.5 : 12.5 } : layouts[active];
+    const layout = active < 0 ? { width: isMobile() ? 15.6 : 33, height: isMobile() ? 15.5 : 15.5 } : layouts[active];
     const tan = Math.tan(THREE.MathUtils.degToRad(43 / 2));
     const distance = 2.3 + Math.max(layout.width / (2 * tan * camera.aspect), (layout.height + (active < 0 ? 0 : .65)) / (2 * tan)) * (active < 0 ? 1 : 1.12);
     return { target, position: target.clone().add(new THREE.Vector3(0, 0, distance)) };
@@ -203,7 +214,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     const progress=tween?tween.progress:1;
     const pulse=Math.sin(progress*Math.PI);
     groups.forEach(group=>{
-      const base=active<0?(isMobile()?.65:.86):.85;
+      const base=active<0?(isMobile()?.65:overviewScale):.85;
       group.scale.setScalar(base*(1+pulse*.08));
       group.rotation.set(0,pulse*.12,0);
     });
@@ -241,7 +252,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       const focusBlend = reducedMotion ? 1 : 1 - Math.exp(-elapsed * 11);
       board.children.forEach(mesh => {
         if (!mesh.visible) return; const data = mesh.userData;
-        const reveal=tween?THREE.MathUtils.smoothstep(progress,.65+data.order*.012,.85+data.order*.012):1;
+        const reveal=tween?THREE.MathUtils.smoothstep(progress,.65+data.order*.012,.85+data.order*.012):active<0&&heroProgress<1?THREE.MathUtils.smoothstep(heroProgress,.35+ci*.035,.62+ci*.035):1;
         const slot = slots.find(slot => slot.index === data.item);
         const overviewScale = active < 0 && hovered && !tween && !down ? (mesh === hovered ? 1.12 : .90) : 1;
         data.displayScale ??= data.baseScale.clone();
@@ -264,10 +275,10 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       el.style.left=`${(projected.x*.5+.5)*rect.width}px`;el.style.top=`${(-projected.y*.5+.5)*rect.height+7}px`;
     });
     groups.forEach((g, i) => {
-      const el = labelElements[i]; if (tween || heroProgress < 1 || !g.visible || active !== -1 || !collections[i].items.length) { el.hidden = true; return; }
+      const el = labelElements[i]; if (tween || heroProgress < .8 || !g.visible || active !== -1 || !collections[i].items.length) { el.classList.remove('in'); return; }
       projected.set(0, -layouts[i].height / 2 - .65, 0).multiply(boards[i].scale).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
       const x = (projected.x * .5 + .5) * rect.width, y = (-projected.y * .5 + .5) * rect.height;
-      el.hidden = projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height;
+      el.classList.toggle('in', !(projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height));
       el.style.left = `${rect.left + x}px`; el.style.top = `${rect.top + y}px`;
     });
   }
@@ -287,7 +298,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     if (active < 0 && !tween) {
       heroProgress += (heroTarget - heroProgress) * (reducedMotion ? 1 : 1 - Math.exp(-elapsed * 2.6));
       if (Math.abs(heroTarget - heroProgress) < .002) heroProgress = heroTarget;
-      groups.forEach((g, ci) => { g.visible = boards[ci].visible = ci < 3 && heroProgress > .3; });
+      groups.forEach((g, ci) => { g.visible = boards[ci].visible = heroProgress > .3; });
     }
     const shown = active < 0 ? 1 - THREE.MathUtils.smoothstep(heroProgress, .04, .55) : 0;
     heroShown += (shown - heroShown) * (reducedMotion ? 1 : 1 - Math.exp(-elapsed * 3.5));

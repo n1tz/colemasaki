@@ -8,7 +8,7 @@ export function exhibitionLayout(collection, { overview, mobile, aspect, page = 
     const indices = [0];
     const slots = indices.map(index => {
       const item = collection.items[index], ratio = item.width / item.height;
-      const size = mobile ? 6.3 : 7.2;
+      const size = mobile ? 6.3 : 5.4;
       return { index, x: 0, y: 0, width: Math.min(size, size * ratio), height: Math.min(size, size / ratio) };
     });
     return bounds(slots, { pages: 1, page: 0, start: 0, end: count });
