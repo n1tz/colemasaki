@@ -34,7 +34,7 @@ $('#app').innerHTML=`
   <footer class="bottom-bar"><div><div class="controls" aria-label="Camera controls"><button class="home" id="home" aria-label="Return to overview">↖ OVERVIEW</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="motion" aria-label="Pause animation" title="Pause animation" aria-pressed="true">Ⅱ</button></div><div class="instructions"><span>DRAG</span> ROTATE &nbsp; <span>SCROLL</span> <span id="scroll-action">MOVE</span><br><span>CLICK</span> <span id="click-action">ENTER COLLECTION</span> &nbsp; <button id="help-bottom">? CONTROLS</button></div></div><div class="bottom-right"><a href="https://www.instagram.com/colemasaki/" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><div class="copyright">© COLE MASAKI<br>${pad(total)} FILES / ${pad(collections.length)} COLLECTIONS</div></div></footer>
   <div class="axis" aria-hidden="true"><svg viewBox="0 0 84 58"><g stroke="#b5b7aa" stroke-width=".7"><path d="M42 36V7M42 36L15 49M42 36L69 49"/><circle cx="42" cy="36" r="3" fill="#11120f"/></g><text x="38" y="6">Y</text><text x="6" y="54">X</text><text x="74" y="54">Z</text></svg></div>
   <button class="scroll-cue" id="scroll-cue" aria-label="Show collections"><span>SCROLL</span><i aria-hidden="true"></i><span>COLLECTIONS ↓</span></button>
-  <p class="hero-tagline" aria-hidden="true">PORTFOLIO LIBRARY</p>
+  <p class="hero-tagline" aria-hidden="true"></p>
   <div class="loading" role="status">LOADING WORKS…</div><div class="hover-label" hidden></div>
   <dialog class="viewer" aria-label="Artwork viewer"><div class="dialog-head"><span class="title" id="viewer-title"></span><button class="close" data-close="viewer" aria-label="Close artwork">CLOSE ×</button></div><div class="view-body"></div><div class="viewer-store" hidden></div><div class="viewer-footer"><div class="pager"><button id="previous" aria-label="Previous work">←</button><span class="page-label" aria-live="polite" aria-atomic="true"></span><button id="next" aria-label="Next work">→</button></div><input id="page-range" type="range" min="1" aria-label="Go to zine page" hidden><div class="secondary"><button id="image-zoom" aria-pressed="false">ZOOM +</button><a id="original" target="_blank" rel="noopener">OPEN IMAGE ↗</a></div></div></dialog>
   <dialog class="index-dialog" aria-label="Work index"><div class="dialog-head"><span class="title">WORK INDEX / ${total} FILES</span><button class="close" data-close="index-dialog" aria-label="Close index">CLOSE ×</button></div><div class="index-content">${collections.map((c,ci)=>`<section class="index-section"><h3><span>${pad(ci+1)}</span>${c.label}</h3>${c.items.length?`<div class="index-grid">${c.items.map((item,i)=>`<button class="index-item" data-work="${ci},${i}"><img src="${item.thumb}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.title||(c.id==='zine'?'PAGE ':'WORK ')+pad(i+1))}</span></button>`).join('')}</div>`:'<p>No work added yet.</p>'}</section>`).join('')}</div></dialog>
@@ -44,9 +44,11 @@ $('#app').innerHTML=`
 vectorizeArrows($('#app'));
 
 const title=createTitle($('.brand h1'),reducedMotion);
+const tagline=createTitle($('.hero-tagline'),reducedMotion);
 let titleReady=false;
 const titleText=()=>active<0?'COLE MASAKI':collections[active].label.toUpperCase();
 title.set(titleText(),{animate:false});
+tagline.set('PORTFOLIO LIBRARY',{animate:false});
 
 function select(index,updateHash=true){
   const changed=index!==active;
@@ -129,7 +131,7 @@ addEventListener('keydown',e=>{
   if(/^[0-9]$/.test(e.key)&&Number(e.key)<=collections.length)select(Number(e.key)-1);
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
 });
-function finishLoading(){ if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
+function finishLoading(){ if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});tagline.set(tagline.target,{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
 function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';vectorizeArrows(button);button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
 function onPage(layout){
   const hidden=!layout||layout.pages<2;
@@ -147,7 +149,7 @@ let spaceLoading;
 function initializeSpace(){
   if(space||spaceLoading)return spaceLoading;
   spaceLoading=import('./scene.js').then(({createSpace})=>{
-    space=createSpace($('#space'),collections,{onOpen:openWork,onSelect:select,onHover,onPage,reducedMotion,onHero:value=>$('#app').classList.toggle('hero',value),onProgress:value=>{const boot=$('#boot');if(boot){boot.style.setProperty('--progress',value);$('#boot-percent').textContent=Math.round(value*100)+'%';}},onReady:message=>{if(message)fallback(message);else finishLoading();}});
+    space=createSpace($('#space'),collections,{onOpen:openWork,onSelect:select,onHover,onPage,reducedMotion,onHero:value=>$('#app').classList.toggle('hero',value),onHeroIntro:value=>{$('#app').classList.toggle('hero-intro',value);if(value&&titleReady)tagline.set(tagline.target);},onProgress:value=>{const boot=$('#boot');if(boot){boot.style.setProperty('--progress',value);$('#boot-percent').textContent=Math.round(value*100)+'%';}},onReady:message=>{if(message)fallback(message);else finishLoading();}});
     if(active>=0)space.select(active);
     space.setMotion(motionEnabled);pauseForDialog();
   }).catch(error=>{console.warn('3D unavailable:',error);fallback('The 3D view is unavailable on this device. All artwork is available in the work index.');});

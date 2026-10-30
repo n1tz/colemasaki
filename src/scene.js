@@ -18,7 +18,7 @@ const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], 
 const lowEnd = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
 const maxPixelRatio = Math.min(devicePixelRatio, lowEnd ? 1 : 1.5);
 
-export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, onHero, reducedMotion }) {
+export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, onHero, onHeroIntro, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
   const architectureTime={value:0};
@@ -68,7 +68,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   // The hero bust has its own scene so the background ASCII pass never touches it.
   const heroScene = new THREE.Scene(), hero = createHero({ manager }); heroScene.add(hero.group);
   // Overview scroll: 0 orbits the knight's head, 1 rests on the collections.
-  let heroProgress = 0, heroTarget = 0, heroShown = 1, heroAngle = .35, heroAnchor = null, heroPointer = 0, heroState = null;
+  let heroProgress = 0, heroTarget = 0, heroShown = 1, heroAngle = .35, heroAnchor = null, heroPointer = 0, heroState = null, heroIntro = null;
   const heroHead = HERO_ORIGIN.clone(), heroCamera = new THREE.PerspectiveCamera();
   let active = -1, page = 0, tween = null, paused = false, frame = 0, last = performance.now();
   let motionEnabled = !reducedMotion, down = null, hovered = null;
@@ -306,6 +306,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     if (motionEnabled) { heroAngle += delta * .13; hero.uniforms.uTime.value += delta; }
     const state = active < 0 && heroProgress < .55;
     if (state !== heroState) { heroState = state; onHero?.(state); }
+    const intro = active < 0 && heroProgress < .04;
+    if (intro !== heroIntro) { heroIntro = intro; onHeroIntro?.(intro); }
     if (active >= 0 || tween) { heroAnchor = null; return false; }
     if (heroProgress >= 1) {
       if (heroAnchor) {

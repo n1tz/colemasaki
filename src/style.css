@@ -96,10 +96,10 @@ dialog{color:var(--ink);background:#11120f;border:1px solid var(--line);padding:
  #exhibition-frame,.focused #exhibition-frame{inset:135px 250px 130px}.category{padding:10px 0}.collection-pager{bottom:100px}
 }
 
-.brand h1 span.title-run{display:inline-block;margin:0;white-space:nowrap}
-.brand h1 span.title-letter{display:inline-grid;position:relative;margin:0;white-space:pre;vertical-align:baseline}
-.brand h1 .title-letter b{font:inherit;visibility:hidden}
-.brand h1 .title-letter i{position:absolute;inset:0;font:inherit;text-align:center;overflow:visible}
+.brand h1 span.title-run,.hero-tagline span.title-run{display:inline-block;margin:0;white-space:nowrap}
+.brand h1 span.title-letter,.hero-tagline span.title-letter{display:inline-grid;position:relative;margin:0;white-space:pre;vertical-align:baseline}
+.brand h1 .title-letter b,.hero-tagline .title-letter b{font:inherit;visibility:hidden}
+.brand h1 .title-letter i,.hero-tagline .title-letter i{position:absolute;inset:0;font:inherit;text-align:center;overflow:visible}
 
 /* Full cap-height clearance and open tracking for the animated display titles. */
 .brand h1,.focused .brand h1{line-height:1.12;letter-spacing:.015em}
@@ -154,8 +154,8 @@ a.store-link:hover{background:#fff;color:#11120f}
  .scroll-cue{display:flex;position:absolute;left:50%;bottom:44px;transform:translateX(-50%);flex-direction:column;align-items:center;gap:8px;padding:10px 14px;border:1px solid #55584d;background:#11120fed;font-size:9px;letter-spacing:.12em;color:var(--ink);opacity:0;pointer-events:none;transition:opacity .4s;z-index:2}
  .scroll-cue i{display:block;width:1px;height:26px;background:linear-gradient(var(--ink) 50%,transparent 0) 0 0/1px 200% no-repeat;animation:cue 1.8s cubic-bezier(.65,0,.35,1) infinite}
  .hero .scroll-cue{opacity:1;pointer-events:auto}
- .hero-tagline{display:block;position:absolute;left:50%;bottom:160px;transform:translateX(-50%);margin:0;white-space:nowrap;font:700 clamp(40px,5vw,76px)/1.12 var(--display);letter-spacing:.015em;color:#fff;mix-blend-mode:difference;pointer-events:none;z-index:3;opacity:0;transition:opacity .4s}
- .hero .hero-tagline{opacity:1}
+ .hero-tagline{display:block;position:absolute;left:0;right:0;bottom:160px;margin:0;text-align:center;white-space:nowrap;font:700 clamp(40px,5vw,76px)/1.12 var(--display);letter-spacing:.015em;color:#fff;mix-blend-mode:difference;pointer-events:none;z-index:3;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s .12s}
+ .hero-intro .hero-tagline{opacity:1;visibility:visible;transition:opacity .4s}
  @keyframes cue{from{background-position:0 100%}to{background-position:0 -100%}}
 }
 @media(max-height:700px) and (min-width:801px){.hero-tagline{font-size:44px;bottom:150px}}
