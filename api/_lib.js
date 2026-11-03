@@ -100,6 +100,11 @@ export async function github(path, { method = 'GET', body } = {}) {
   }
   return data;
 }
+// src/site.json holds site-wide text; null when the file does not exist yet.
+export async function readSite(repo, ref) {
+  try { return await github(`${repo}/contents/src/site.json?ref=${ref}`); }
+  catch (error) { if (error.status === 404) return null; throw error; }
+}
 export function fail(res, error) {
   send(res, error instanceof GitHubError && error.status < 500 ? 502 : 500, { error: error.message });
 }

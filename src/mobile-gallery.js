@@ -5,12 +5,14 @@ import { fontSpecimen } from './font-specimen.js';
 import { isVideo, videoFrame, storeLink } from './game.js';
 
 // A touch-first presentation of the same manifest. Desktop stays in the 3D scene.
-export function createMobileGallery(collections, { onSelect, onOpen }) {
+export function createMobileGallery(collections, { onSelect, onOpen, site }) {
   const media = matchMedia(MOBILE_QUERY);
   const root = document.createElement('div');
   root.className = 'mobile-gallery';
   const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const pad = n => String(n).padStart(2,'0');
+  const titleCase = text => text.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+  const intro = c => c.intro ? `<p class="mobile-collection-intro">${escape(c.intro)}</p>` : '';
   let active = -1, large = false, kv=null, kvPaused=false, slide=0, slideTouch=null;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Items flagged showcase:false in the editor never appear in the animated preview.
@@ -33,7 +35,7 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
       <button class="mobile-menu-button" aria-haspopup="dialog" aria-controls="mobile-menu">Collections <span aria-hidden="true">＋</span></button>
     </header>
     <main id="mobile-content" tabindex="-1"></main>
-    <footer class="mobile-footer"><span>© COLE MASAKI</span><a href="https://www.instagram.com/colemasaki/" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
+    <footer class="mobile-footer"><span>© COLE MASAKI</span><a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
     <dialog id="mobile-menu" aria-labelledby="mobile-menu-title">
       <div class="mobile-menu-head"><h2 id="mobile-menu-title">Collections</h2><button class="mobile-menu-close" aria-label="Close collections">Close ×</button></div>
       <nav aria-label="Mobile collections"><button data-room="-1"><span>00</span><strong>All collections</strong><span>↗</span></button>
@@ -49,7 +51,7 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
     if (!media.matches) return;
     root.querySelectorAll('[data-room]').forEach(b => {if(Number(b.dataset.room)===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     if(active < 0){
-      content.innerHTML=`<div class="mobile-intro"><p>ART / DESIGN / INDEPENDENT WORK</p><h1 tabindex="-1">Portfolio Library</h1>
+      content.innerHTML=`<div class="mobile-intro"><p>${escape(site.headerLine)}</p><h1 tabindex="-1">${escape(titleCase(site.tagline))}</h1>
         <figure class="mobile-kv" aria-label="Animated artwork preview">
           <div class="mobile-kv-space" aria-hidden="true"><div class="mobile-kv-fallback">${featured.map(item=>image(item,true)).join('')}</div></div>
           <button class="mobile-kv-pause" aria-label="${kvPaused||reducedMotion?'Resume preview animation':'Pause preview animation'}" aria-pressed="${!(kvPaused||reducedMotion)}" ${reducedMotion?'disabled':''}>${motionIcon(kvPaused||reducedMotion)}</button>
@@ -66,16 +68,16 @@ export function createMobileGallery(collections, { onSelect, onOpen }) {
         // One slide at a time: the trailer first, then screenshots, with the store button always below.
         slide=Math.min(slide,Math.max(0,c.items.length-1));
         const item=c.items[slide];
-        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1></div>
+        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1>${intro(c)}</div>
           <div class="mobile-game">${item?`<div class="mobile-game-slide">${isVideo(item)?'':`<button class="mobile-art" data-mobile-work="${slide}" aria-label="Open ${escape(item.alt)}">${image(item,true)}</button>`}</div>
           <div class="mobile-game-pager"><button data-game-step="-1" aria-label="Previous slide" ${slide===0?'disabled':''}>←</button><span aria-live="polite">${pad(slide+1)} / ${pad(c.items.length)}</span><button data-game-step="1" aria-label="Next slide" ${slide>=c.items.length-1?'disabled':''}>→</button></div>`:'<p class="mobile-empty">No work added yet.</p>'}
           ${storeLink(c,'store-link mobile-store')}</div>`;
         if(isVideo(item))content.querySelector('.mobile-game-slide').append(videoFrame(item,'mobile-game-video'));
       }else if(c.id==='fonts'){
-        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">Fonts</h1></div><div class="mobile-browse"><p>02 CUSTOM TYPEFACES <span>Type to try · Download TTF</span></p></div><div class="mobile-fonts"></div>`;
+        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1>${intro(c)}</div><div class="mobile-browse"><p>02 CUSTOM TYPEFACES <span>Type to try · Download TTF</span></p></div><div class="mobile-fonts"></div>`;
         content.querySelector('.mobile-fonts').replaceChildren(...c.items.map(item=>fontSpecimen(item,{compact:true})));
       }else{
-      content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1></div>
+      content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1>${intro(c)}</div>
         <div class="mobile-browse"><p>${pad(c.items.length)} ${c.id==='zine'?'PAGES':'WORKS'}${c.items.length?' <span>· Tap to enlarge</span>':''}</p>${c.items.length?`<div class="mobile-density" role="group" aria-label="Artwork layout"><button data-density="grid" aria-pressed="${!large}">Grid</button><button data-density="large" aria-pressed="${large}">Large</button></div>`:''}</div>
         ${c.items.length?`<div class="mobile-art-grid ${large?'is-large':''}" aria-label="${escape(c.label)} artwork">${c.items.map((item,i)=>`<button class="mobile-art" data-mobile-work="${i}" aria-label="Open ${escape(item.alt)}"><span class="mobile-art-image">${image(item,i<4)}</span><span class="mobile-art-caption"><span>${c.id==='zine'?'PAGE ':''}${pad(i+1)}</span><span aria-hidden="true">↗</span></span></button>`).join('')}</div>`:'<p class="mobile-empty">No work added yet.</p>'}`;
       }

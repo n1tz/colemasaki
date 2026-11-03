@@ -125,3 +125,4 @@
   .viewer.game-viewer .view-body{bottom:calc(56px + 56px + env(safe-area-inset-bottom))}
   .viewer-store{bottom:calc(56px + env(safe-area-inset-bottom));height:56px;padding:4px 16px}
 }
+.mobile-collection-intro{margin:18px 0 0;font-size:13px;line-height:1.65;color:#c1c2b9;max-width:60ch;white-space:pre-line}

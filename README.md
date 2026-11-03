@@ -31,7 +31,9 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 
 ## Site editor (/admin)
 
-`https://colemasaki.com/admin/` lets you reorder, add, move, retitle, and remove work without touching code. Sign in with GitHub (only the account in `ADMIN_GITHUB_LOGIN`, default `n1tz`, is accepted). Images are resized in the browser to 2000px plus a 640px thumbnail (WebP, or JPEG on Safari), uploaded one at a time, and committed together when you press Publish; Vercel then redeploys. Images no longer referenced are deleted in the same commit. Publishing refuses if `content.json` changed since the editor loaded.
+`https://colemasaki.com/admin/` lets you reorder, add, move, retitle, describe, and remove work without touching code. Collections can be renamed (plus an optional short name for the compact menu and an intro line), dragged by ⠿ or moved with ↑ ↓ to change their order on the site, and hidden. The Site text panel edits the tagline, subtitle, header line and Instagram link, stored in `src/site.json`; empty fields fall back to the built-in text.
+
+An artwork's optional description appears in the viewer. On desktop it is a column beside the image that opens by itself only when it would not shrink the image (otherwise a dotted INFO button opens it; key I toggles, and the visitor's choice is remembered for the visit). On phones it is a sheet pulled up with INFO and dismissed with Hide or a downward swipe; on landscape phones it is a side panel. Sign in with GitHub (only the account in `ADMIN_GITHUB_LOGIN`, default `n1tz`, is accepted). Images are resized in the browser to 2000px plus a 640px thumbnail (WebP, or JPEG on Safari), uploaded one at a time, and committed together when you press Publish; Vercel then redeploys. Images no longer referenced are deleted in the same commit. Publishing refuses if `content.json` changed since the editor loaded.
 
 The Video Game collection's first item may be a YouTube trailer (`"type": "video"`, `"youtube": "<id>"`, with its poster frame as `src`/`thumb`); `storeUrl` on the collection drives the store button, which reads "coming soon" while empty.
 

@@ -1,4 +1,4 @@
-import { send, guard, github, fail, readJson, config } from './_lib.js';
+import { send, guard, github, fail, readJson, readSite, config } from './_lib.js';
 
 const ART = /^\/art\/[A-Za-z0-9_-]+\.(webp|jpe?g|png)$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$/;
@@ -8,20 +8,29 @@ const https = value => typeof value === 'string' && /^https:\/\/[^\s"'<>]+$/.tes
 class Invalid extends Error {}
 const check = (ok, message) => { if (!ok) throw new Invalid(message); };
 
-// Collections, labels and file paths come from the repository. The editor can only
-// order items, move them, edit their title/alt/link/showcase flag, remove them, and add uploaded images.
+// Collection ids and file paths come from the repository. The editor can reorder, rename, describe
+// and hide collections; order items, move them, edit their title/alt/description/link/showcase flag,
+// remove them, and add uploaded images.
 function merge(current, incoming, uploads) {
   check(Array.isArray(incoming) && incoming.length === current.length, 'Collections cannot be added or removed.');
+  const byId = new Map(current.map(c => [c.id, c]));
+  check(new Set(incoming.map(c => c?.id)).size === current.length && incoming.every(c => byId.has(c?.id)), 'Collections cannot be added, removed or renamed by id.');
+  check(incoming.some(c => !c.hidden), 'At least one collection must stay visible.');
   const known = new Map(current.flatMap(c => c.items.map(item => [item.id, { item, collection: c.id }])));
   const seen = new Set();
-  return current.map((collection, ci) => {
-    const next = incoming[ci];
-    check(next?.id === collection.id && Array.isArray(next.items), `Collection order changed: ${collection.id}.`);
+  return incoming.map(next => {
+    const collection = byId.get(next.id);
+    check(Array.isArray(next.items), `Invalid collection: ${collection.id}.`);
+    const label = typeof next.label === 'string' ? next.label.trim() : '';
+    check(label && label.length <= 60, `Collection names must be 1–60 characters (${collection.id}).`);
+    check(next.shortLabel === undefined || text(next.shortLabel, 24), `Short names must be at most 24 characters (${collection.id}).`);
+    check(next.intro === undefined || text(next.intro, 300), `Collection intro too long (${collection.id}).`);
     const items = next.items.map((item, index) => {
       check(item && ID.test(item.id) && !seen.has(item.id), `Invalid or duplicate item id: ${item?.id}.`);
       seen.add(item.id);
       check(item.alt === undefined || text(item.alt, 500), `Alt text too long: ${item.id}.`);
       check(item.title === undefined || item.title === '' || text(item.title, 200), `Title too long: ${item.id}.`);
+      check(item.description === undefined || text(item.description, 3000), `Description too long: ${item.id}.`);
       check(!item.url || https(item.url), `Links must start with https:// (${item.id}).`);
       const previous = known.get(item.id);
       let result;
@@ -40,14 +49,21 @@ function merge(current, incoming, uploads) {
         }
       }
       if (result.type === 'video') check(collection.id === 'game' && index === 0, 'The video must be the first item in Video Game.');
-      for (const key of ['title', 'alt', 'url']) {
-        if (item[key]) result[key] = item[key].trim(); else if (key !== 'alt') delete result[key];
+      for (const key of ['title', 'alt', 'url', 'description']) {
+        const value = typeof item[key] === 'string' ? item[key].trim() : '';
+        if (value) result[key] = key === 'description' ? value.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n') : value;
+        else if (key !== 'alt') delete result[key];
       }
       if (item.showcase === false) result.showcase = false; else delete result.showcase;
-      if (!result.alt) result.alt = result.title || `${collection.label}, work ${index + 1}`;
+      if (!result.alt) result.alt = result.title || `${label}, work ${index + 1}`;
       return result;
     });
-    const merged = { ...collection, items };
+    const merged = { ...collection, label, items };
+    for (const key of ['shortLabel', 'intro']) {
+      const value = next[key]?.trim();
+      if (value) merged[key] = value; else delete merged[key];
+    }
+    if (next.hidden === true) merged.hidden = true; else delete merged.hidden;
     if (collection.id === 'game') {
       check(!next.storeUrl || https(next.storeUrl), 'The store URL must start with https://.');
       if (next.storeUrl) merged.storeUrl = next.storeUrl.trim(); else delete merged.storeUrl;
@@ -55,24 +71,46 @@ function merge(current, incoming, uploads) {
     return merged;
   });
 }
+// Site-wide text lives in src/site.json so content.json stays a plain list of collections.
+const SITE_TEXT = { tagline: 40, subtitle: 80, headerLine: 80 };
+function mergeSite(current, incoming) {
+  if (incoming === undefined) return current;
+  check(incoming && typeof incoming === 'object' && !Array.isArray(incoming), 'Invalid site settings.');
+  const next = { ...current };
+  for (const [key, max] of Object.entries(SITE_TEXT)) {
+    if (incoming[key] === undefined) continue;
+    check(text(incoming[key], max), `Site setting “${key}” must be at most ${max} characters.`);
+    if (incoming[key].trim()) next[key] = incoming[key].trim(); else delete next[key];
+  }
+  if (incoming.instagram !== undefined) {
+    check(!incoming.instagram || https(incoming.instagram), 'The Instagram link must start with https://.');
+    if (incoming.instagram) next.instagram = incoming.instagram.trim(); else delete next.instagram;
+  }
+  return next;
+}
 const artPaths = content => new Set(content.flatMap(c => c.items.flatMap(i => [i.src, i.thumb])).filter(p => ART.test(p)));
 
 export default async function handler(req, res) {
   if (!guard(req, res, { write: true })) return;
   try {
-    const { baseSha, content, files = [] } = await readJson(req);
+    const { baseSha, siteSha = null, content, site, files = [] } = await readJson(req);
     check(Array.isArray(files) && files.every(f => ART.test('/' + String(f.path).replace(/^public\//, '')) && String(f.path).startsWith('public/art/') && /^[0-9a-f]{40}$/.test(f.sha)), 'Invalid upload list.');
     const repo = `/repos/${config.repo}`;
     const ref = await github(`${repo}/git/ref/heads/${config.branch}`);
     const head = await github(`${repo}/git/commits/${ref.object.sha}`);
     const file = await github(`${repo}/contents/src/content.json?ref=${ref.object.sha}`);
     if (file.sha !== baseSha) return send(res, 409, { error: 'The site changed since you opened the editor. Reload to get the latest version, then redo your changes.' });
+    const siteFile = await readSite(repo, ref.object.sha);
+    if ((siteFile?.sha ?? null) !== siteSha) return send(res, 409, { error: 'The site settings changed since you opened the editor. Reload to get the latest version, then redo your changes.' });
     const current = JSON.parse(Buffer.from(file.content, 'base64').toString('utf8'));
+    const currentSite = siteFile ? JSON.parse(Buffer.from(siteFile.content, 'base64').toString('utf8')) : {};
+    const nextSite = mergeSite(currentSite, site);
     const uploads = new Set(files.map(f => f.path.replace(/^public/, '')));
     const next = merge(current, content, uploads);
     const used = artPaths(next), before = artPaths(current);
     const tree = [
       { path: 'src/content.json', mode: '100644', type: 'blob', content: JSON.stringify(next, null, 2) + '\n' },
+      ...(siteFile || Object.keys(nextSite).length ? [{ path: 'src/site.json', mode: '100644', type: 'blob', content: JSON.stringify(nextSite, null, 2) + '\n' }] : []),
       ...files.filter(f => used.has(f.path.replace(/^public/, ''))).map(f => ({ path: f.path, mode: '100644', type: 'blob', sha: f.sha })),
       // Images no longer used anywhere are removed from the repository too.
       ...[...before].filter(p => !used.has(p)).map(p => ({ path: `public${p}`, mode: '100644', type: 'blob', sha: null })),

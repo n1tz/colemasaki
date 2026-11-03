@@ -5,7 +5,14 @@ const pad = n => String(n).padStart(2, '0');
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const FULL = 2000, THUMB = 640, MAX_UPLOAD = 3_000_000;
 
-const state = { content: null, sha: null, uploads: new Map(), previews: new Map(), changes: 0, busy: 0, open: new Set(), drag: null };
+const state = { content: null, sha: null, site: {}, siteSha: null, uploads: new Map(), previews: new Map(), changes: 0, busy: 0, open: new Set(), drag: null, dragCollection: null };
+// Placeholders show what the site uses when a setting is left empty.
+const SITE_FIELDS = [
+  { key: 'tagline', label: 'Tagline', hint: 'Large words under the knight and the overview heading', max: 40, fallback: 'PORTFOLIO LIBRARY' },
+  { key: 'subtitle', label: 'Subtitle', hint: 'Small line under COLE MASAKI', max: 80, fallback: 'PERSONAL WORK & SELECTED DESIGN' },
+  { key: 'headerLine', label: 'Header line', hint: 'Top bar on desktop, intro line on phones', max: 80, fallback: 'ART / DESIGN / INDEPENDENT WORK' },
+  { key: 'instagram', label: 'Instagram link', hint: 'Footer link', max: 600, fallback: 'https://www.instagram.com/colemasaki/', type: 'url' },
+];
 
 async function api(path, { body, raw } = {}) {
   const response = await fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Request': '1' }, body: JSON.stringify(body) } : {});
@@ -55,7 +62,7 @@ async function boot() {
 async function load() {
   $('#loading').hidden = false;
   const data = await api('/api/content');
-  state.content = data.content; state.sha = data.sha; state.uploads.clear(); state.changes = 0;
+  state.content = data.content; state.sha = data.sha; state.site = data.site || {}; state.siteSha = data.siteSha ?? null; state.uploads.clear(); state.changes = 0;
   $('#loading').hidden = true;
   $('.publish').hidden = false;
   render(); updateStatus();
@@ -67,16 +74,39 @@ const thumbOf = item => state.previews.get(item.thumb) || item.thumb;
 
 function render() {
   const root = $('#collections');
-  root.innerHTML = state.content.map((c, ci) => `
-    <details class="collection" data-ci="${ci}" ${state.open.has(c.id) ? 'open' : ''}>
-      <summary><span class="num">${pad(ci + 1)}</span><h2>${escape(c.label)}</h2><span class="num">${c.items.length} item${c.items.length === 1 ? '' : 's'}</span></summary>
+  let visible = 0;
+  root.innerHTML = siteSettings() + state.content.map((c, ci) => `
+    <details class="collection ${c.hidden ? 'is-hidden' : ''}" data-ci="${ci}" ${state.open.has(c.id) ? 'open' : ''}>
+      <summary>
+        <span class="handle" draggable="true" data-collection-handle title="Drag to change the order on the site" aria-hidden="true">⠿</span>
+        <span class="num">${c.hidden ? '—' : pad(++visible)}</span><h2>${escape(c.label)}</h2>${c.hidden ? '<span class="tag">Hidden</span>' : ''}
+        <span class="num">${c.items.length} item${c.items.length === 1 ? '' : 's'}</span>
+        <span class="order"><button type="button" data-collection-move="-1" aria-label="Move ${escape(c.label)} up" ${ci === 0 ? 'disabled' : ''}>↑</button><button type="button" data-collection-move="1" aria-label="Move ${escape(c.label)} down" ${ci === state.content.length - 1 ? 'disabled' : ''}>↓</button></span>
+      </summary>
       <div class="collection-body">
+        ${collectionFields(c)}
         ${c.id === 'game' ? gameFields(c) : ''}
         ${c.id === 'fonts' ? '<p class="note">Fonts can be reordered here. Adding a new font needs a code change.</p>' : ''}
         <div class="grid" data-grid="${ci}">${c.items.map((item, ii) => card(c, ci, item, ii)).join('')}</div>
         ${c.id === 'fonts' ? '' : `<div class="dropzone" data-drop="${ci}">Drag images here or <label>choose files<input type="file" accept="image/*" multiple data-files="${ci}"></label><span>Large photos are fine — they are resized before upload.</span></div>`}
       </div>
     </details>`).join('');
+}
+function siteSettings() {
+  return `<details class="panel site-settings" ${state.open.has('#site') ? 'open' : ''}>
+    <summary><h2>Site text</h2><span class="num">Tagline, subtitle, links</span></summary>
+    <div class="settings-grid">${SITE_FIELDS.map(f => `<label class="field">${f.label}<span class="hint">${f.hint}</span>
+      <input type="${f.type || 'text'}" data-site-field="${f.key}" maxlength="${f.max}" placeholder="${escape(f.fallback)}" value="${escape(state.site[f.key] || '')}"></label>`).join('')}</div>
+    <p class="note">Leave a field empty to use the text shown in grey. Drag collections by ⠿ (or use ↑ ↓) to change their order on the site.</p>
+  </details>`;
+}
+function collectionFields(c) {
+  return `<div class="collection-settings">
+    <label class="field">Name<input type="text" data-collection-field="label" maxlength="60" value="${escape(c.label)}" required></label>
+    <label class="field">Short name<span class="hint">Compact menu on small screens</span><input type="text" data-collection-field="shortLabel" maxlength="24" placeholder="${escape(c.label)}" value="${escape(c.shortLabel || '')}"></label>
+    <label class="field wide">Intro (optional)<span class="hint">A sentence or two shown with the collection title</span><textarea data-collection-field="intro" maxlength="300" rows="2">${escape(c.intro || '')}</textarea></label>
+    <label class="check"><input type="checkbox" data-collection-hidden ${c.hidden ? 'checked' : ''}> Hide this collection from the site</label>
+  </div>`;
 }
 function gameFields(c) {
   const video = c.items[0] && isVideo(c.items[0]) ? c.items[0] : null;
@@ -95,6 +125,7 @@ function card(c, ci, item, ii) {
   return `<article class="card ${item.uploading ? 'uploading' : ''} ${item.showcase === false ? 'off-showcase' : ''}" draggable="${!pinned}" data-ci="${ci}" data-ii="${ii}">
     <div class="thumb"><img src="${escape(thumbOf(item))}" alt="" loading="lazy"><span class="badge">${pad(ii + 1)}</span>${pinned ? '<span class="badge video">▶ VIDEO</span>' : ''}</div>
     <input type="text" data-field="title" placeholder="Title" value="${escape(item.title || '')}" aria-label="Title">
+    ${c.id === 'fonts' ? '' : `<textarea data-field="description" rows="2" maxlength="3000" placeholder="Description (optional)" aria-label="Description">${escape(item.description || '')}</textarea>`}
     <label class="showcase-toggle" title="Include in the animated artwork showcase on phones"><input type="checkbox" data-showcase ${item.showcase === false ? '' : 'checked'}> In mobile showcase</label>
     <details><summary>More</summary>
       <label>Alt text (describes the image)<input type="text" data-field="alt" value="${escape(item.alt || '')}"></label>
@@ -110,6 +141,7 @@ function card(c, ci, item, ii) {
 }
 function rememberOpen() {
   document.querySelectorAll('.collection').forEach(el => { const id = state.content[el.dataset.ci].id; if (el.open) state.open.add(id); else state.open.delete(id); });
+  const site = $('.site-settings'); if (site) { if (site.open) state.open.add('#site'); else state.open.delete('#site'); }
 }
 function rerender() { rememberOpen(); const y = scrollY; render(); scrollTo(0, y); }
 
@@ -123,6 +155,17 @@ function moveItem(fromC, fromI, toC, toI) {
   changed(); rerender();
 }
 
+function moveCollection(from, to) {
+  to = Math.max(0, Math.min(to, state.content.length));
+  if (to > from) to--;
+  if (to === from) return;
+  const [collection] = state.content.splice(from, 1);
+  state.content.splice(to, 0, collection);
+  changed(); rerender();
+  document.querySelector(`.collection[data-ci="${to}"] summary`)?.focus({ preventScroll: true });
+}
+const once = el => { if (!el.dataset.counted) { el.dataset.counted = '1'; changed(); } };
+
 $('#collections').addEventListener('input', e => {
   const el = e.target, cardEl = el.closest('.card');
   if (cardEl && el.dataset.field) {
@@ -131,7 +174,15 @@ $('#collections').addEventListener('input', e => {
     if (!el.dataset.counted) { el.dataset.counted = '1'; changed(); }
   } else if (el.matches('[data-store]')) {
     state.content.find(c => c.id === 'game').storeUrl = el.value.trim();
-    if (!el.dataset.counted) { el.dataset.counted = '1'; changed(); }
+    once(el);
+  } else if (el.dataset.collectionField) {
+    const block = el.closest('.collection'), collection = state.content[block.dataset.ci];
+    collection[el.dataset.collectionField] = el.value;
+    if (el.dataset.collectionField === 'label') block.querySelector('summary h2').textContent = el.value || 'Untitled';
+    once(el);
+  } else if (el.dataset.siteField) {
+    state.site[el.dataset.siteField] = el.value;
+    once(el);
   }
 });
 $('#collections').addEventListener('change', e => {
@@ -142,6 +193,11 @@ $('#collections').addEventListener('change', e => {
     cardEl.classList.toggle('off-showcase', !el.checked);
     changed();
   }
+  if (el.matches('[data-collection-hidden]')) {
+    const collection = state.content[el.closest('.collection').dataset.ci];
+    if (el.checked) collection.hidden = true; else delete collection.hidden;
+    changed(); rerender(); return;
+  }
   if (el.matches('[data-files]')) { addFiles(Number(el.dataset.files), [...el.files]); el.value = ''; }
   if (el.matches('[data-move-to]') && el.value !== '') {
     const cardEl = el.closest('.card');
@@ -151,6 +207,10 @@ $('#collections').addEventListener('change', e => {
   }
 });
 $('#collections').addEventListener('click', e => {
+  // Buttons and the handle sit inside <summary>; keep them from opening or closing the collection.
+  const collectionMove = e.target.closest('[data-collection-move]');
+  if (collectionMove) { e.preventDefault(); const ci = Number(collectionMove.closest('.collection').dataset.ci), step = Number(collectionMove.dataset.collectionMove); moveCollection(ci, ci + (step > 0 ? 2 : -1)); return; }
+  if (e.target.closest('[data-collection-handle]')) { e.preventDefault(); return; }
   const cardEl = e.target.closest('.card');
   const move = e.target.closest('[data-move]');
   if (move && cardEl) { const ci = Number(cardEl.dataset.ci), ii = Number(cardEl.dataset.ii), step = Number(move.dataset.move); moveItem(ci, ii, ci, ii + (step > 0 ? 2 : -1)); return; }
@@ -170,6 +230,16 @@ $('#collections').addEventListener('click', e => {
 
 // Drag to reorder (desktop). Arrow buttons cover touch screens.
 $('#collections').addEventListener('dragstart', e => {
+  const handle = e.target.closest?.('[data-collection-handle]');
+  if (handle) {
+    const block = handle.closest('.collection');
+    state.dragCollection = Number(block.dataset.ci);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', 'collection');
+    e.dataTransfer.setDragImage(block.querySelector('summary'), 24, 24);
+    requestAnimationFrame(() => block.classList.add('dragging'));
+    return;
+  }
   const cardEl = e.target.closest('.card[draggable=true]');
   if (!cardEl) return;
   state.drag = { ci: Number(cardEl.dataset.ci), ii: Number(cardEl.dataset.ii) };
@@ -177,8 +247,14 @@ $('#collections').addEventListener('dragstart', e => {
   e.dataTransfer.setData('text/plain', 'card');
   requestAnimationFrame(() => cardEl.classList.add('dragging'));
 });
-$('#collections').addEventListener('dragend', () => { state.drag = null; clearDropMarks(); document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging')); });
+$('#collections').addEventListener('dragend', () => { state.drag = null; state.dragCollection = null; clearDropMarks(); document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging')); });
 const clearDropMarks = () => document.querySelectorAll('.drop-before,.drop-after,.dropzone.over').forEach(el => el.classList.remove('drop-before', 'drop-after', 'over'));
+function collectionTarget(e) {
+  const block = e.target.closest('.collection');
+  if (!block) return null;
+  const r = block.querySelector('summary').getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
+  return { el: block, after, index: Number(block.dataset.ci) + (after ? 1 : 0) };
+}
 function dropTarget(e) {
   const cardEl = e.target.closest('.card');
   if (cardEl) { const r = cardEl.getBoundingClientRect(); const after = e.clientX > r.left + r.width / 2; return { el: cardEl, ci: Number(cardEl.dataset.ci), ii: Number(cardEl.dataset.ii) + (after ? 1 : 0), after }; }
@@ -187,6 +263,13 @@ function dropTarget(e) {
   return null;
 }
 $('#collections').addEventListener('dragover', e => {
+  if (state.dragCollection !== null) {
+    const target = collectionTarget(e);
+    if (!target) return;
+    e.preventDefault(); clearDropMarks();
+    target.el.classList.add(target.after ? 'drop-after' : 'drop-before');
+    return;
+  }
   const files = e.dataTransfer.types.includes('Files');
   const target = dropTarget(e);
   if (!target || (!files && !state.drag)) return;
@@ -198,6 +281,12 @@ $('#collections').addEventListener('dragover', e => {
 });
 $('#collections').addEventListener('dragleave', e => { if (e.target.matches?.('[data-drop]')) e.target.classList.remove('over'); });
 $('#collections').addEventListener('drop', e => {
+  if (state.dragCollection !== null) {
+    const target = collectionTarget(e), from = state.dragCollection;
+    state.dragCollection = null; clearDropMarks();
+    if (target) { e.preventDefault(); moveCollection(from, target.index); }
+    return;
+  }
   const target = dropTarget(e);
   clearDropMarks();
   if (!target) return;
@@ -211,6 +300,9 @@ $('#collections').addEventListener('drop', e => {
     moveItem(ci, ii, target.ci, target.ii);
   }
 });
+// Typing or selecting text inside a card should not start dragging the card.
+$('#collections').addEventListener('focusin', e => { const cardEl = e.target.closest('.card'); if (cardEl && e.target.matches('input,textarea,select')) cardEl.draggable = false; });
+$('#collections').addEventListener('focusout', e => { const cardEl = e.target.closest('.card'); if (cardEl && e.target.matches('input,textarea,select')) cardEl.draggable = !isVideo(state.content[cardEl.dataset.ci].items[cardEl.dataset.ii]); });
 // Stop the browser from opening files dropped outside a drop zone.
 addEventListener('dragover', e => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); });
 addEventListener('drop', e => { if (!e.target.closest?.('[data-drop],[data-grid]')) e.preventDefault(); });
@@ -324,12 +416,16 @@ async function setVideo() {
 $('#publish').onclick = async () => {
   const game = state.content.find(c => c.id === 'game');
   if (game?.storeUrl && !/^https:\/\//.test(game.storeUrl)) return toast('The store URL must start with https://', { error: true });
+  const unnamed = state.content.find(c => !c.label?.trim());
+  if (unnamed) return toast('Every collection needs a name.', { error: true });
+  if (state.content.every(c => c.hidden)) return toast('At least one collection must stay visible.', { error: true });
+  if (state.site.instagram?.trim() && !/^https:\/\//.test(state.site.instagram.trim())) return toast('The Instagram link must start with https://', { error: true });
   const bad = state.content.flatMap(c => c.items).find(item => item.url && !/^https:\/\//.test(item.url));
   if (bad) return toast(`The link on “${escape(bad.title || bad.id)}” must start with https://`, { error: true });
   $('#publish').disabled = true; $('#status').textContent = 'Publishing…';
   try {
     const files = [...state.uploads].map(([path, sha]) => ({ path, sha }));
-    const result = await api('/api/publish', { body: { baseSha: state.sha, content: state.content, files } });
+    const result = await api('/api/publish', { body: { baseSha: state.sha, siteSha: state.siteSha, content: state.content, site: state.site, files } });
     rememberOpen();
     await load();
     toast(`${result.deploying ? 'Published. The live site updates in about a minute.' : 'Saved to GitHub, but the site did not start rebuilding. Check DEPLOY_HOOK_URL in Vercel.'} <a href="${escape(result.url)}" target="_blank" rel="noopener">View commit ↗</a>`, { sticky: false });
