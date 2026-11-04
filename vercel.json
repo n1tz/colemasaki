@@ -53,6 +53,16 @@
       "source": "/admin",
       "destination": "/admin/",
       "permanent": false
+    },
+    {
+      "source": "/kofi",
+      "destination": "https://ko-fi.com/colemasaki",
+      "permanent": false
+    },
+    {
+      "source": "/discord",
+      "destination": "https://discord.gg/bqKPcyawd",
+      "permanent": false
     }
   ]
 }
