@@ -15,6 +15,13 @@ const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 const collections=allCollections.filter(c=>!c.hidden);
 const tagline=(site.tagline||'PORTFOLIO LIBRARY').toUpperCase(), instagram=site.instagram||'https://www.instagram.com/colemasaki/';
 const sentence=text=>text.charAt(0)+text.slice(1).toLowerCase();
+// About text comes from site.json (edited in /admin). Paragraphs are separated by blank lines;
+// experience and skills are one entry per line, split into two columns at "|".
+const about=site.about||{};
+const hasAbout=Boolean(about.intro||about.experience||about.skills);
+const paragraphs=text=>String(text||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>`<p>${escapeHTML(p).replace(/\n/g,'<br>')}</p>`).join('');
+const rows=text=>String(text||'').split('\n').map(line=>line.trim()).filter(Boolean).map(line=>{const [term,...rest]=line.split('|');const detail=rest.join('|').trim();return `<div><dt>${escapeHTML(term.trim())}</dt>${detail?`<dd>${escapeHTML(detail)}</dd>`:''}</div>`;}).join('');
+const aboutSection=(heading,key,kind)=>about[key]?.trim()?`<section><h3>${heading}</h3><dl class="about-rows ${kind}">${rows(about[key])}</dl></section>`:'';
 const isZine=index=>collections[index]?.id==='zine';
 const isGame=index=>collections[index]?.id==='game';
 const total=collections.reduce((n,c)=>n+c.items.length,0);
@@ -27,14 +34,14 @@ $('#app').innerHTML=`
     <button id="collection-side-next" aria-label="Next group of artworks" title="Next artworks"><svg viewBox="0 0 40 24" aria-hidden="true"><path d="M4 12h32M26 2l10 10-10 10"/></svg><span>NEXT</span></button>
   </nav></div><main id="space" aria-label="Interactive 3D artwork gallery"></main>
   <div class="border" aria-hidden="true"></div>
-  <header class="topline"><a class="site-logo" href="/" aria-label="Cole Masaki — overview"><img src="/favicon.svg" alt="" width="32" height="32" /></a><div class="top-actions"><span class="desktop">${escapeHTML(site.headerLine||'ART / DESIGN / INDEPENDENT WORK')}</span><button id="help" aria-label="Navigation help">[ ? ]</button></div></header>
+  <header class="topline"><a class="site-logo" href="/" aria-label="Cole Masaki — overview"><img src="/favicon.svg" alt="" width="32" height="32" /></a><div class="top-actions"><span class="desktop">${escapeHTML(site.headerLine||'ART / DESIGN / INDEPENDENT WORK')}</span>${hasAbout?'<button class="top-about" data-about aria-haspopup="dialog">ABOUT</button>':''}<button id="help" aria-label="Navigation help">[ ? ]</button></div></header>
   <div class="brand"><h1 aria-label="COLE MASAKI">COLE MASAKI</h1><p><span class="smallcross">✳</span>${escapeHTML(site.subtitle||'PERSONAL WORK & SELECTED DESIGN')}</p></div>
   <nav class="collection-nav" aria-label="Collections"><div class="nav-heading"><span>COLLECTIONS</span><span>01—${pad(collections.length)}</span></div>
     ${collections.map((c,i)=>`<button class="category ${c.items.length?'':'pending'}" data-category="${i}" aria-pressed="false"><span class="number">${pad(i+1)}</span><span class="category-label" data-short="${escapeHTML(c.shortLabel||c.label)}">${escapeHTML(c.label)}${c.items.length?'':'<small>To be added</small>'}</span><span class="count">${c.items.length?pad(c.items.length):'—'}</span></button>`).join('')}
-    <button class="index-button" id="open-index">WORK INDEX <span>↗</span></button>
+    <button class="index-button" id="open-index" data-index aria-haspopup="dialog">WORK INDEX <span>${pad(total)} ↗</span></button>${hasAbout?'<button class="nav-about" data-about aria-haspopup="dialog">ABOUT <span>↗</span></button>':''}
   </nav>
   <div id="markers" aria-hidden="true">${collections.map((c,i)=>`<button class="marker" data-marker="${i}" tabindex="-1" style="--i:${i%4+(i>3?2:0)}">${pad(i+1)} / ${escapeHTML(c.label.toUpperCase())} <span class="marker-count">${pad(c.items.length)} ${c.id==='zine'?'PAGES':'WORKS'} ↗</span></button>`).join('')}</div>
-  <section class="stage-caption" aria-live="polite"><div class="eyebrow" id="location">00 / OVERVIEW</div><h2 id="section-name">${escapeHTML(sentence(tagline))}.</h2><p id="section-info">Select a room to enter.</p><button id="view-collection" hidden>VIEW WORKS <span>↗</span></button></section>
+  <section class="stage-caption" aria-live="polite"><div class="eyebrow" id="location">00 / OVERVIEW</div><h2 id="section-name">${escapeHTML(sentence(tagline))}.</h2><p id="section-info">Select a room to enter.</p><button id="view-collection" hidden>VIEW WORKS <span>↗</span></button><div class="overview-actions"><button class="overview-index" data-index aria-haspopup="dialog"><span>WORK INDEX ↗</span><small>All ${total} works in one list</small></button>${hasAbout?'<button class="overview-about" data-about aria-haspopup="dialog">ABOUT COLE ↗</button>':''}</div></section>
   <div class="collection-pager" hidden><button id="collection-previous" aria-label="Previous group of artworks">←</button><span id="collection-range"></span><button id="collection-next" aria-label="Next group of artworks">→</button><span class="pager-store" hidden></span></div>
   <footer class="bottom-bar"><div><div class="controls" aria-label="Camera controls"><button class="home" id="home" aria-label="Return to overview">↖ OVERVIEW</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="motion" aria-label="Pause animation" title="Pause animation" aria-pressed="true">Ⅱ</button></div><div class="instructions"><span>DRAG</span> ROTATE &nbsp; <span>SCROLL</span> <span id="scroll-action">MOVE</span><br><span>CLICK</span> <span id="click-action">ENTER COLLECTION</span> &nbsp; <button id="help-bottom">? CONTROLS</button></div></div><div class="bottom-right"><a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><div class="copyright">© COLE MASAKI<br>${pad(total)} FILES / ${pad(collections.length)} COLLECTIONS</div></div></footer>
   <div class="axis" aria-hidden="true"><svg viewBox="0 0 84 58"><g stroke="#b5b7aa" stroke-width=".7"><path d="M42 36V7M42 36L15 49M42 36L69 49"/><circle cx="42" cy="36" r="3" fill="#11120f"/></g><text x="38" y="6">Y</text><text x="6" y="54">X</text><text x="74" y="54">Z</text></svg></div>
@@ -43,6 +50,11 @@ $('#app').innerHTML=`
   <div class="loading" role="status">LOADING WORKS…</div><div class="hover-label" hidden></div>
   <dialog class="viewer" aria-label="Artwork viewer"><div class="dialog-head"><span class="title" id="viewer-title"></span><button class="close" data-close="viewer" aria-label="Close artwork">CLOSE ×</button></div><div class="view-body"></div><aside class="viewer-info" id="viewer-info" aria-label="About this work" hidden><div class="viewer-info-head"><span>ABOUT THIS WORK</span><button class="viewer-info-close" aria-label="Hide description">HIDE ×</button></div><div class="viewer-info-body"><h3 id="viewer-info-title"></h3><p id="viewer-info-text"></p></div></aside><div class="viewer-store" hidden></div><div class="viewer-footer"><div class="pager"><button id="previous" aria-label="Previous work">←</button><span class="page-label" aria-live="polite" aria-atomic="true"></span><button id="next" aria-label="Next work">→</button></div><input id="page-range" type="range" min="1" aria-label="Go to zine page" hidden><div class="secondary"><button id="info-toggle" aria-controls="viewer-info" aria-expanded="false" hidden>INFO</button><button id="image-zoom" aria-pressed="false">ZOOM +</button><a id="original" target="_blank" rel="noopener">OPEN IMAGE ↗</a></div></div></dialog>
   <dialog class="index-dialog" aria-label="Work index"><div class="dialog-head"><span class="title">WORK INDEX / ${total} FILES</span><button class="close" data-close="index-dialog" aria-label="Close index">CLOSE ×</button></div><div class="index-content">${collections.map((c,ci)=>`<section class="index-section"><h3><span>${pad(ci+1)}</span>${escapeHTML(c.label)}</h3>${c.items.length?`<div class="index-grid">${c.items.map((item,i)=>`<button class="index-item" data-work="${ci},${i}"><img src="${item.thumb}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.title||(c.id==='zine'?'PAGE ':'WORK ')+pad(i+1))}</span></button>`).join('')}</div>`:'<p>No work added yet.</p>'}</section>`).join('')}</div></dialog>
+  ${hasAbout?`<dialog class="about-dialog" aria-labelledby="about-name"><div class="dialog-head"><span class="title">ABOUT</span><button class="close" data-close="about-dialog" aria-label="Close about">CLOSE ×</button></div><div class="about-content">
+    <div class="about-main"><h2 id="about-name">Cole Masaki</h2>${about.role?`<p class="about-role">${escapeHTML(about.role)}</p>`:''}<div class="about-text">${paragraphs(about.intro)}</div>${about.status?`<p class="about-status">${escapeHTML(about.status)}</p>`:''}
+      <div class="about-links"><button class="primary" data-index>WORK INDEX ↗</button>${about.email?`<a href="mailto:${escapeHTML(about.email)}">EMAIL ${escapeHTML(about.email)} ↗</a>`:''}${about.resume?`<a href="${escapeHTML(about.resume)}" target="_blank" rel="noopener">RÉSUMÉ ↗</a>`:''}<a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a></div></div>
+    <div class="about-side">${aboutSection('Experience','experience','experience')}${aboutSection('Skills & tools','skills','skills')}</div>
+  </div></dialog>`:''}
   <dialog class="help-dialog" aria-label="Navigation help"><div class="dialog-head"><span class="title">NAVIGATION</span><button class="close" data-close="help-dialog" aria-label="Close help">CLOSE ×</button></div><div class="help-content"><dl><dt>Rotate</dt><dd>Drag / one finger</dd><dt>Move through space</dt><dd>Scroll / ↑ ↓ on the overview</dd><dt>Zoom</dt><dd>Scroll in a collection / + −</dd><dt>Enter collection</dt><dd>Click a collection preview</dd><dt>Open work</dt><dd>Click an artwork</dd><dt>Change collection</dt><dd>Menu / keys 1–${collections.length}</dd><dt>Overview</dt><dd>Key 0 / overview button</dd><dt>Previous / next work</dt><dd>Left / right arrow keys in the viewer</dd><dt>Artwork description</dt><dd>Key I / Info in the viewer</dd><dt>Close viewer</dt><dd>Escape</dd><dt>Pause animation</dt><dd>Ⅱ in the camera controls</dd></dl><p>Use the work index for direct access to every image. The zine reads in page order; select an image to enlarge it.</p></div></dialog>
 `;
 
@@ -162,7 +174,18 @@ $('#home').onclick=()=>select(-1);$('#zoom-in').onclick=()=>space?.zoom(.8);$('#
 function updateMotionButton(){const label=motionEnabled?'Pause animation':'Resume animation';$('#motion').innerHTML=motionIcon(!motionEnabled);$('#motion').setAttribute('aria-pressed',String(motionEnabled));$('#motion').setAttribute('aria-label',label);$('#motion').title=label;}
 $('#motion').disabled=reducedMotion;updateMotionButton();$('#motion').onclick=()=>{motionEnabled=!motionEnabled;space?.setMotion(motionEnabled);updateMotionButton();};
 $('#scroll-cue').onclick=()=>space?.setHero(1);
-$('#open-index').onclick=()=>showDialog('.index-dialog');$('#help').onclick=$('#help-bottom').onclick=()=>showDialog('.help-dialog');
+// The work index and About can be opened from several places; one dialog at a time.
+function openIndex(){if($('.about-dialog')?.open)closeDialog($('.about-dialog'));showDialog('.index-dialog');}
+let aboutReturnURL=null;
+function openAbout(){
+  const dialog=$('.about-dialog');if(!dialog||dialog.open)return;
+  if($('.index-dialog').open)closeDialog($('.index-dialog'));
+  // #about is linkable; closing restores whatever address was showing before.
+  if(location.hash!=='#about'){aboutReturnURL=location.pathname+location.search+location.hash;history.replaceState(null,'','#about');}
+  showDialog('.about-dialog');dialog.querySelector('.about-content').scrollTop=0;
+}
+$('.about-dialog')?.addEventListener('close',()=>{if(location.hash==='#about')history.replaceState(null,'',aboutReturnURL??location.pathname+location.search);aboutReturnURL=null;});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-index],[data-about]');if(!el||!e.target.closest('#app'))return;if('about' in el.dataset)openAbout();else openIndex();});$('#help').onclick=$('#help-bottom').onclick=()=>showDialog('.help-dialog');
 $('#view-collection').onclick=()=>openWork(active,0);$('#previous').onclick=()=>turnPage(-1);$('#next').onclick=()=>turnPage(1);$('#image-zoom').onclick=toggleZoom;
 $('#info-toggle').onclick=toggleInfo;$('.viewer-info-close').onclick=()=>{infoChoice=false;setInfo(false);$('#info-toggle').focus({preventScroll:true});};
 addEventListener('resize',()=>{if(viewing)autoInfo();});
@@ -174,8 +197,8 @@ addEventListener('keydown',e=>{
   if(/^[0-9]$/.test(e.key)&&Number(e.key)<=collections.length)select(Number(e.key)-1);
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
 });
-function finishLoading(){ if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});taglineTitle.set(taglineTitle.target,{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
-function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';vectorizeArrows(button);button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
+function finishLoading(){ if(location.hash==='#about')requestAnimationFrame(openAbout); if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});taglineTitle.set(taglineTitle.target,{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
+function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';vectorizeArrows(button);button.onclick=openIndex;div.append(text,button);$('#space').append(div);}
 function onPage(layout){
   const hidden=!layout||layout.pages<2;
   $('.collection-pager').hidden=hidden&&!(layout&&isGame(active));$('.collection-sides').hidden=hidden;
@@ -199,7 +222,7 @@ function initializeSpace(){
   return spaceLoading;
 }
 
-mobileGallery=createMobileGallery(collections,{onSelect:select,onOpen:openWork,site:{headerLine:site.headerLine||'ART / DESIGN / INDEPENDENT WORK',tagline,instagram}});
+mobileGallery=createMobileGallery(collections,{onSelect:select,onOpen:openWork,hasAbout,site:{headerLine:site.headerLine||'ART / DESIGN / INDEPENDENT WORK',tagline,instagram}});
 if(mobileViewport.matches)finishLoading();else initializeSpace();
 mobileViewport.addEventListener('change',()=>{
   if(mobileViewport.matches){space?.setPaused(true);finishLoading();}
@@ -220,6 +243,6 @@ $('.viewer-info-head').addEventListener('touchstart',e=>{sheetTouch=e.touches.le
 $('.viewer-info-head').addEventListener('touchend',e=>{if(sheetTouch!==null&&mobileViewport.matches&&e.changedTouches[0].clientY-sheetTouch>40){infoChoice=false;setInfo(false);}sheetTouch=null;},{passive:true});
 
 const route=collections.findIndex(c=>c.id===location.hash.slice(1));if(route>=0)select(route,false);
-addEventListener('hashchange',()=>select(collections.findIndex(c=>c.id===location.hash.slice(1)),false));
+addEventListener('hashchange',()=>{if(location.hash==='#about'){aboutReturnURL=location.pathname+location.search;return openAbout();}if($('.about-dialog')?.open)$('.about-dialog').close();select(collections.findIndex(c=>c.id===location.hash.slice(1)),false);});
 // Read-only diagnostics for browser checks and performance inspection.
 window.portfolio={stats:()=>space?.stats(),get activeCollection(){return active;}};

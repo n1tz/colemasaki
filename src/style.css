@@ -207,3 +207,52 @@ a.store-link:hover{background:#fff;color:#11120f}
 @keyframes info-sheet{from{transform:translateY(100%)}}
 @keyframes info-side{from{transform:translateX(100%)}}
 @media(prefers-reduced-motion:reduce){.viewer-info{animation:none}}
+
+/* About and work-index entry points. */
+.top-about{border:1px solid currentColor;padding:7px 14px;font-size:10px;letter-spacing:.06em}
+.collection-nav .index-button{margin-top:12px;padding:11px 12px;border:1px solid var(--ink);align-items:center;color:#fff}
+.collection-nav .index-button span{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.collection-nav .index-button:hover{background:var(--ink);color:#11120f}
+.collection-nav .index-button:hover span{color:#11120f}
+.nav-about{display:flex;width:100%;justify-content:space-between;align-items:center;padding:12px 0 0;font-size:10px}
+.overview-actions{display:grid;gap:8px;margin-top:18px;pointer-events:auto}
+.focused .overview-actions{display:none}
+.stage-caption .overview-actions button{display:flex;margin:0;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #55584d;font-size:10px;text-align:left}
+.stage-caption .overview-actions .overview-index{display:grid;justify-content:stretch;gap:5px;background:var(--ink);color:#11120f;border-color:var(--ink)}
+.overview-index span{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.04em}
+.overview-index small{font-size:9px;text-transform:none;opacity:.75}
+.stage-caption .overview-actions .overview-index:hover{background:#fff;color:#11120f}
+.stage-caption .overview-actions .overview-about:hover{border-color:var(--ink)}
+@media(max-width:1100px) and (min-width:801px){.stage-caption .overview-actions button{padding:9px 10px;font-size:9px}
+.overview-index span{font-size:10px}
+}
+
+/* About dialog: bio on the left, experience and skills on the right; one column on phones. */
+.about-dialog{width:min(1060px,calc(100vw - 36px));height:min(820px,calc(100svh - 36px))}
+.about-content{height:calc(100% - 65px);overflow:auto;padding:36px 36px 44px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:56px;align-items:start}
+.about-main h2{font:700 48px/1 var(--display);letter-spacing:-.045em;margin:0 0 12px;color:#fff}
+.about-role{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 30px}
+.about-text p{font:400 16px/1.6 var(--display);margin:0 0 1em;max-width:62ch;color:var(--ink)}
+.about-status{font-size:11px;line-height:1.6;border-left:2px solid var(--ink);padding:2px 0 2px 14px;margin:28px 0;color:#fff}
+.about-links{display:flex;flex-wrap:wrap;gap:10px}
+.about-links a,.about-links button{display:inline-flex;align-items:center;gap:14px;min-height:42px;padding:0 14px;border:1px solid #55584d;font-size:10px;letter-spacing:.04em;text-transform:uppercase;overflow-wrap:anywhere}
+.about-links a:hover,.about-links button:hover{border-color:var(--ink)}
+.about-links .primary{background:var(--ink);color:#11120f;border-color:var(--ink)}
+.about-links .primary:hover{background:#fff;color:#11120f}
+.about-side section+section{margin-top:36px}
+.about-side h3{font-size:10px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.about-rows{margin:0}
+.about-rows div{display:grid;gap:4px 18px;padding:13px 0;border-bottom:1px solid var(--line)}
+.about-rows dt{font:400 14px/1.4 var(--display);color:#fff}
+.about-rows dd{margin:0;font-size:10px;line-height:1.6;color:var(--muted)}
+.about-rows.experience div{grid-template-columns:minmax(0,1fr) auto;align-items:baseline}
+.about-rows.experience dd{text-align:right;white-space:nowrap}
+.about-rows.skills div{grid-template-columns:110px minmax(0,1fr);align-items:baseline}
+@media(max-width:1000px){.about-content{grid-template-columns:minmax(0,1fr);gap:40px}
+}
+/* Short desktop windows: the top bar and overview panel already offer About; keep the menu clear of the controls. */
+@media(max-height:780px) and (min-width:801px){.nav-about{display:none}
+.collection-nav .index-button{margin-top:4px;padding:5px 10px}
+.stage-caption .overview-actions{margin-top:12px}
+.stage-caption .overview-actions button{padding:8px 10px}
+}
