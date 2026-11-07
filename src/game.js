@@ -1,4 +1,5 @@
 // Video Game collection helpers: the trailer slide and the store-page button.
+import { trailerPlayer } from './trailer-player.js';
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const isVideo=item=>item?.type==='video'&&Boolean(item.videoSrc||item.youtube);
 export const youtubeWatchUrl=item=>`https://www.youtube.com/watch?v=${encodeURIComponent(item.youtube)}`;
@@ -14,7 +15,7 @@ export function videoFrame(item,className='view-video'){
     video.preload='none';
     video.setAttribute('aria-label',item.title||item.alt||'Game trailer');
     video.textContent='Your browser does not support this video. Use the trailer link to watch it directly.';
-    return video;
+    return trailerPlayer(video);
   }
   const frame=document.createElement('iframe');
   frame.className=className;
