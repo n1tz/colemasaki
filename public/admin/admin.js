@@ -142,11 +142,10 @@ function card(c, ci, item, ii) {
   const fixed = isVideo(item) || c.id === 'fonts';
   const pinned = isVideo(item);
   const minIndex = c.items[0] && isVideo(c.items[0]) ? 1 : 0;
-  return `<article class="card ${item.uploading ? 'uploading' : ''} ${item.showcase === false ? 'off-showcase' : ''}" draggable="${!pinned}" data-ci="${ci}" data-ii="${ii}">
+  return `<article class="card ${item.uploading ? 'uploading' : ''}" draggable="${!pinned}" data-ci="${ci}" data-ii="${ii}">
     <div class="thumb"><img src="${escape(thumbOf(item))}" alt="" loading="lazy"><span class="badge">${pad(ii + 1)}</span>${pinned ? '<span class="badge video">▶ VIDEO</span>' : ''}</div>
     <input type="text" data-field="title" placeholder="Title" value="${escape(item.title || '')}" aria-label="Title">
     ${c.id === 'fonts' ? '' : `<textarea data-field="description" rows="2" maxlength="3000" placeholder="Description (optional)" aria-label="Description">${escape(item.description || '')}</textarea>`}
-    <label class="showcase-toggle" title="Include in the animated artwork showcase on phones"><input type="checkbox" data-showcase ${item.showcase === false ? '' : 'checked'}> In mobile showcase</label>
     <details><summary>More</summary>
       <label>Alt text (describes the image)<input type="text" data-field="alt" value="${escape(item.alt || '')}"></label>
       ${pinned ? '' : `<label>Link (optional)<input type="url" data-field="url" placeholder="https://…" value="${escape(item.url || '')}"></label>`}
@@ -210,12 +209,6 @@ $('#collections').addEventListener('input', e => {
 });
 $('#collections').addEventListener('change', e => {
   const el = e.target;
-  if (el.matches('[data-showcase]')) {
-    const cardEl = el.closest('.card'), item = state.content[cardEl.dataset.ci].items[cardEl.dataset.ii];
-    if (el.checked) delete item.showcase; else item.showcase = false;
-    cardEl.classList.toggle('off-showcase', !el.checked);
-    changed();
-  }
   if (el.matches('[data-collection-hidden]')) {
     const collection = state.content[el.closest('.collection').dataset.ci];
     if (el.checked) collection.hidden = true; else delete collection.hidden;

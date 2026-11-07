@@ -107,13 +107,9 @@ The curated portfolio includes 17 professional images (15 merchandise mockups, o
 
 Run `node scripts/curate-portfolio.mjs` after refreshing either artwork import to restore the reviewed additions, duplicate decisions, and ordering. It reads the 13 supplied originals from `/home/n1tz/Downloads` (or a directory passed as its first argument). It preserves the six requested opening personal pieces in order, then sorts remaining personal work by shortest source dimension, descending. Optimized images are capped at 2000px without enlargement; thumbnails are capped at 640px. See [the artwork audit](docs/artwork-audit.md) for duplicate decisions.
 
-## Mobile journey and performance
+## Mobile and performance
 
-The mobile homepage visual travels between staggered chambers, with a 1.25-second hold on each artwork pair followed by a 3.55-second curved flight. Artwork stays upright; ASCII peaks in transit. All 64 works cycle through a collection-interleaved sequence without repeats within a cycle.
-
-Three reused chambers and six artwork planes keep GPU residency bounded. A chamber is recycled only at zero visibility; its replacement is prefetched two stops ahead and fades in before arrival. Late textures have a separate half-second reveal. Room fades use a shared shader program and one uniform per chamber; geometry stays shared and instanced. The preview suspends offscreen, in hidden tabs, and when paused. Reduced motion provides a static preview, and WebGL failure retains the image fallback and complete gallery.
-
-The page shell, desktop scene, and mobile KV load separately. The desktop scene shares artwork geometry and reuses per-frame vectors; paused/hidden scene loops do not schedule frames. Fingerprinted build assets use immutable caching. See [the performance audit](docs/performance-audit.md) for validation and measurement limits.
+The page shell and desktop scene load separately; phones get no 3D at all and use a touch gallery that reuses the desktop presentation panels. The desktop scene shares artwork geometry and reuses per-frame vectors; paused/hidden scene loops do not schedule frames. Fingerprinted build assets use immutable caching. See [the performance audit](docs/performance-audit.md) for validation and measurement limits.
 
 ## October 27 artwork and fonts update
 
