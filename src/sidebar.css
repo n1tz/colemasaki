@@ -16,13 +16,12 @@
  .desktop-sidebar .category .count{font-size:9px}.desktop-sidebar .category .number{font-size:9px}
  .desktop-sidebar .index-button{position:static;display:flex;width:100%;margin:0;padding:14px 13px;border:0;font-size:9px}
  .desktop-sidebar .bottom-bar{position:static;inset:auto;width:100%;display:flex;flex-direction:column;align-items:stretch;gap:16px;margin-top:auto;flex:none;pointer-events:auto}
- .desktop-sidebar .camera-widget{border:1px solid #55584d;background:#11120fed;padding:13px}
- .sidebar-section-label{font-size:9px;letter-spacing:.08em;color:#b5b8ae;margin-bottom:12px}
+ .desktop-sidebar .camera-widget{border:1px solid #55584d;background:#11120fed;padding:8px 10px 10px}
+ .sidebar-section-label{display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:.08em;color:#b5b8ae;margin-bottom:6px}
+ .sidebar-section-label button{display:grid;place-items:center;width:24px;height:24px;padding:0;font-size:12px;border:1px solid #55584d}
  .desktop-sidebar .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;border:1px solid #55584d;background:transparent}
- .desktop-sidebar .controls button{min-width:0;width:auto;height:40px;padding:0;border:0;border-right:1px solid #55584d;font-size:16px}
+ .desktop-sidebar .controls button{min-width:0;width:auto;height:34px;padding:0;border:0;border-right:1px solid #55584d;font-size:16px}
  .desktop-sidebar .controls button:last-child{border:0}
- .desktop-sidebar .instructions{display:block!important;opacity:1;visibility:visible;font-size:9px;line-height:1.85;color:#a6aa9f;margin:12px 0 0;max-width:none}
- .desktop-sidebar .instructions button{display:flex;align-items:center;gap:8px;font-size:9px;padding:10px 0 0;color:var(--ink)}
  .desktop-sidebar .bottom-right{display:block;border:1px solid #55584d;background:#11120fed;text-align:left;padding:14px}
  .desktop-sidebar .bottom-right>a{display:flex;align-items:center;justify-content:space-between;border:0;font-size:11px;min-height:24px}
  .desktop-sidebar .bottom-right .copyright{display:block;margin:12px 0 0;border-top:1px solid #3b3d35;padding-top:11px;font-size:8px;line-height:1.8}
@@ -33,8 +32,7 @@
  .desktop-sidebar{bottom:18px}
  .desktop-sidebar .category{min-height:35px;padding-block:8px}
  .desktop-sidebar .nav-heading,.desktop-sidebar .index-button{padding-block:10px}
- .desktop-sidebar .bottom-bar{gap:12px}.desktop-sidebar .controls button{height:34px}
- .desktop-sidebar .instructions{margin-top:8px}.desktop-sidebar .bottom-right{padding:11px 13px}
+ .desktop-sidebar .bottom-bar{gap:12px}.desktop-sidebar .bottom-right{padding:11px 13px}
 }
 @media(max-width:800px),(pointer:coarse) and (max-height:500px){.desktop-sidebar{display:none!important}}
 @media(prefers-reduced-motion:reduce){.desktop-sidebar{transition:none}}
