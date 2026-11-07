@@ -113,9 +113,9 @@ function gameFields(c) {
   return `<div class="game-fields">
     <label class="field">Store page URL<input type="url" data-store placeholder="https://store.steampowered.com/app/…" value="${escape(c.storeUrl || '')}"></label>
     <div class="field"><label class="field" for="youtube-input">YouTube trailer (always the first slide)</label>
-      <div class="field-row"><input type="url" id="youtube-input" data-youtube placeholder="https://www.youtube.com/watch?v=…" value="${video ? `https://www.youtube.com/watch?v=${escape(video.youtube)}` : ''}">
+      <div class="field-row"><input type="url" id="youtube-input" data-youtube placeholder="https://www.youtube.com/watch?v=…" value="${video?.youtube ? `https://www.youtube.com/watch?v=${escape(video.youtube)}` : ''}">
       <button class="button small" data-set-video>${video ? 'Replace' : 'Set'}</button>${video ? '<button class="button small" data-remove-video>Remove</button>' : ''}</div></div>
-    <p class="note">Leave the store URL empty to show “Store page — coming soon”.</p>
+    <p class="note">${video?.videoSrc ? 'A directly hosted trailer is active. Setting a YouTube URL replaces it.<br>' : ''}Leave the store URL empty to show “Steam — coming soon”.</p>
   </div>`;
 }
 function card(c, ci, item, ii) {

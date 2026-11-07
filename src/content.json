@@ -1,5 +1,78 @@
 [
   {
+    "id": "game",
+    "label": "Wheels of Steel",
+    "items": [
+      {
+        "id": "game-trailer",
+        "title": "Wheels of Steel — Reveal trailer",
+        "alt": "Wheels of Steel reveal trailer, with an armed wheelchair in a snowy landscape",
+        "source": "trailer-thumb.png",
+        "src": "/art/wheels-of-steel-trailer.webp",
+        "thumb": "/art/wheels-of-steel-trailer-thumb.webp",
+        "width": 1920,
+        "height": 1080,
+        "type": "video",
+        "videoSrc": "/media/wheels-of-steel-trailer-v3.mp4"
+      },
+      {
+        "id": "game-screenshot-5",
+        "title": "Wheels of Steel — Screenshot 5",
+        "alt": "Wheels of Steel gameplay screenshot 5",
+        "source": "Screenshot5.jpg",
+        "src": "/art/wheels-of-steel-screenshot-5.webp",
+        "thumb": "/art/wheels-of-steel-screenshot-5-thumb.webp",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "game-screenshot-4",
+        "title": "Wheels of Steel — Screenshot 4",
+        "alt": "Wheels of Steel gameplay screenshot 4",
+        "source": "Screenshot4.jpg",
+        "src": "/art/wheels-of-steel-screenshot-4.webp",
+        "thumb": "/art/wheels-of-steel-screenshot-4-thumb.webp",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "game-screenshot-3",
+        "title": "Wheels of Steel — Screenshot 3",
+        "alt": "Wheels of Steel gameplay screenshot 3",
+        "source": "Screenshot3.jpg",
+        "src": "/art/wheels-of-steel-screenshot-3.webp",
+        "thumb": "/art/wheels-of-steel-screenshot-3-thumb.webp",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "game-screenshot-2",
+        "title": "Wheels of Steel — Screenshot 2",
+        "alt": "Wheels of Steel gameplay screenshot 2",
+        "source": "Screenshot2.jpg",
+        "src": "/art/wheels-of-steel-screenshot-2.webp",
+        "thumb": "/art/wheels-of-steel-screenshot-2-thumb.webp",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "game-screenshot-1",
+        "title": "Wheels of Steel — Screenshot 1",
+        "alt": "Wheels of Steel gameplay screenshot 1",
+        "source": "Screenshot1.jpg",
+        "src": "/art/wheels-of-steel-screenshot-1.webp",
+        "thumb": "/art/wheels-of-steel-screenshot-1-thumb.webp",
+        "width": 1920,
+        "height": 1080
+      }
+    ],
+    "shortLabel": "Game",
+    "intro": "An independent game by Cole Masaki. Watch the reveal trailer and explore the screenshots. Coming soon to Steam.",
+    "storeUrl": "",
+    "hero": "/art/wheels-of-steel-hero.webp",
+    "logo": "/art/wheels-of-steel-logo.png"
+  },
+  {
     "id": "professional",
     "label": "Professional Work",
     "shortLabel": "Client",
@@ -744,12 +817,6 @@
       }
     ],
     "shortLabel": "Zine"
-  },
-  {
-    "id": "game",
-    "label": "Video Game",
-    "items": [],
-    "shortLabel": "Game"
   },
   {
     "id": "drawings",

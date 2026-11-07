@@ -1,12 +1,15 @@
 import './style.css';
+import './sidebar.css';
 import { vectorizeArrows, motionIcon } from './icons.js';
 import allCollections from './content.json';
 import site from './site.json';
 import { createTitle } from './title.js';
 import { createMobileGallery } from './mobile-gallery.js';
+import { createShowcase } from './showcase.js';
 import { MOBILE_QUERY } from './viewport.js';
 import { fontSpecimen } from './font-specimen.js';
 import { isVideo, videoFrame, storeLink, youtubeWatchUrl } from './game.js';
+import './typography.css';
 
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
@@ -14,12 +17,13 @@ const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 // Collections hidden in the editor are left out entirely; numbering and keys follow the visible order.
 const collections=allCollections.filter(c=>!c.hidden);
 const tagline=(site.tagline||'PORTFOLIO LIBRARY').toUpperCase(), instagram=site.instagram||'https://www.instagram.com/colemasaki/';
+const aboutUrl='https://colemasaki.com/#about';
 const sentence=text=>text.charAt(0)+text.slice(1).toLowerCase();
 const isZine=index=>collections[index]?.id==='zine';
 const isGame=index=>collections[index]?.id==='game';
 const total=collections.reduce((n,c)=>n+c.items.length,0);
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let active=-1, space, viewing=null, returnFocus=null, motionEnabled=!reducedMotion, mobileGallery;
+let active=-1, space, viewing=null, returnFocus=null, motionEnabled=!reducedMotion, mobileGallery, overviewReady=false, presentationReady=false;
 const mobileViewport=matchMedia(MOBILE_QUERY);
 $('#app').innerHTML=`
   <div id="exhibition-frame"><nav class="collection-sides" aria-label="Artwork pages" hidden>
@@ -33,7 +37,7 @@ $('#app').innerHTML=`
     ${collections.map((c,i)=>`<button class="category ${c.items.length?'':'pending'}" data-category="${i}" aria-pressed="false"><span class="number">${pad(i+1)}</span><span class="category-label" data-short="${escapeHTML(c.shortLabel||c.label)}">${escapeHTML(c.label)}${c.items.length?'':'<small>To be added</small>'}</span><span class="count">${c.items.length?pad(c.items.length):'—'}</span></button>`).join('')}
     <button class="index-button" id="open-index">WORK INDEX <span>↗</span></button>
   </nav>
-  <div id="markers" aria-hidden="true">${collections.map((c,i)=>`<button class="marker" data-marker="${i}" tabindex="-1" style="--i:${i%4+(i>3?2:0)}">${pad(i+1)} / ${escapeHTML(c.label.toUpperCase())} <span class="marker-count">${pad(c.items.length)} ${c.id==='zine'?'PAGES':'WORKS'} ↗</span></button>`).join('')}</div>
+  <div id="markers" aria-hidden="true">${collections.map((c,i)=>`<button class="marker ${c.id==='game'?'marker-featured':''}" title="${escapeHTML(c.label)}" data-marker="${i}" tabindex="-1" style="--i:${i%4+(i>3?2:0)}"><span class="marker-name">${pad(i+1)} / ${escapeHTML(c.label.toUpperCase())}</span> <span class="marker-count">${pad(c.items.length)} ${c.id==='zine'?'PAGES':'WORKS'} ↗</span></button>`).join('')}</div>
   <section class="stage-caption" aria-live="polite"><div class="eyebrow" id="location">00 / OVERVIEW</div><h2 id="section-name">${escapeHTML(sentence(tagline))}.</h2><p id="section-info">Select a room to enter.</p><button id="view-collection" hidden>VIEW WORKS <span>↗</span></button></section>
   <div class="collection-pager" hidden><button id="collection-previous" aria-label="Previous group of artworks">←</button><span id="collection-range"></span><button id="collection-next" aria-label="Next group of artworks">→</button><span class="pager-store" hidden></span></div>
   <footer class="bottom-bar"><div><div class="controls" aria-label="Camera controls"><button class="home" id="home" aria-label="Return to overview">↖ OVERVIEW</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="motion" aria-label="Pause animation" title="Pause animation" aria-pressed="true">Ⅱ</button></div><div class="instructions"><span>DRAG</span> ROTATE &nbsp; <span>SCROLL</span> <span id="scroll-action">MOVE</span><br><span>CLICK</span> <span id="click-action">ENTER COLLECTION</span> &nbsp; <button id="help-bottom">? CONTROLS</button></div></div><div class="bottom-right"><a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a><div class="copyright">© COLE MASAKI<br>${pad(total)} FILES / ${pad(collections.length)} COLLECTIONS</div></div></footer>
@@ -43,9 +47,20 @@ $('#app').innerHTML=`
   <div class="loading" role="status">LOADING WORKS…</div><div class="hover-label" hidden></div>
   <dialog class="viewer" aria-label="Artwork viewer"><div class="dialog-head"><span class="title" id="viewer-title"></span><button class="close" data-close="viewer" aria-label="Close artwork">CLOSE ×</button></div><div class="view-body"></div><aside class="viewer-info" id="viewer-info" aria-label="About this work" hidden><div class="viewer-info-head"><span>ABOUT THIS WORK</span><button class="viewer-info-close" aria-label="Hide description">HIDE ×</button></div><div class="viewer-info-body"><h3 id="viewer-info-title"></h3><p id="viewer-info-text"></p></div></aside><div class="viewer-store" hidden></div><div class="viewer-footer"><div class="pager"><button id="previous" aria-label="Previous work">←</button><span class="page-label" aria-live="polite" aria-atomic="true"></span><button id="next" aria-label="Next work">→</button></div><input id="page-range" type="range" min="1" aria-label="Go to zine page" hidden><div class="secondary"><button id="info-toggle" aria-controls="viewer-info" aria-expanded="false" hidden>INFO</button><button id="image-zoom" aria-pressed="false">ZOOM +</button><a id="original" target="_blank" rel="noopener">OPEN IMAGE ↗</a></div></div></dialog>
   <dialog class="index-dialog" aria-label="Work index"><div class="dialog-head"><span class="title">WORK INDEX / ${total} FILES</span><button class="close" data-close="index-dialog" aria-label="Close index">CLOSE ×</button></div><div class="index-content">${collections.map((c,ci)=>`<section class="index-section"><h3><span>${pad(ci+1)}</span>${escapeHTML(c.label)}</h3>${c.items.length?`<div class="index-grid">${c.items.map((item,i)=>`<button class="index-item" data-work="${ci},${i}"><img src="${item.thumb}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.title||(c.id==='zine'?'PAGE ':'WORK ')+pad(i+1))}</span></button>`).join('')}</div>`:'<p>No work added yet.</p>'}</section>`).join('')}</div></dialog>
-  <dialog class="help-dialog" aria-label="Navigation help"><div class="dialog-head"><span class="title">NAVIGATION</span><button class="close" data-close="help-dialog" aria-label="Close help">CLOSE ×</button></div><div class="help-content"><dl><dt>Rotate</dt><dd>Drag / one finger</dd><dt>Move through space</dt><dd>Scroll / ↑ ↓ on the overview</dd><dt>Zoom</dt><dd>Scroll in a collection / + −</dd><dt>Enter collection</dt><dd>Click a collection preview</dd><dt>Open work</dt><dd>Click an artwork</dd><dt>Change collection</dt><dd>Menu / keys 1–${collections.length}</dd><dt>Overview</dt><dd>Key 0 / overview button</dd><dt>Previous / next work</dt><dd>Left / right arrow keys in the viewer</dd><dt>Artwork description</dt><dd>Key I / Info in the viewer</dd><dt>Close viewer</dt><dd>Escape</dd><dt>Pause animation</dt><dd>Ⅱ in the camera controls</dd></dl><p>Use the work index for direct access to every image. The zine reads in page order; select an image to enlarge it.</p></div></dialog>
+  <dialog class="help-dialog" aria-label="Navigation help"><div class="dialog-head"><span class="title">NAVIGATION</span><button class="close" data-close="help-dialog" aria-label="Close help">CLOSE ×</button></div><div class="help-content"><dl><dt>Rotate</dt><dd>Drag / one finger</dd><dt>Browse work</dt><dd>Scroll the page / touch swipe</dd><dt>Zoom background</dt><dd>Sidebar + / −</dd><dt>Enter collection</dt><dd>Sidebar / collection preview</dd><dt>Open work</dt><dd>Click an artwork</dd><dt>Change collection</dt><dd>Menu / keys 1–${collections.length}</dd><dt>Overview</dt><dd>Key 0 / overview button</dd><dt>Previous / next work</dt><dd>Left / right arrow keys in the viewer</dd><dt>Artwork description</dt><dd>Key I / Info in the viewer</dd><dt>Close viewer</dt><dd>Escape</dd><dt>Pause animation</dt><dd>Ⅱ in the camera controls</dd></dl><p>Use the work index for direct access to every image. The zine reads in page order; select an image to enlarge it.</p></div></dialog>
 `;
 
+const sidebar=document.createElement('aside');sidebar.className='desktop-sidebar';sidebar.setAttribute('aria-label','Portfolio navigation and 3D controls');
+sidebar.innerHTML='<a class="sidebar-brand" href="/" aria-label="Cole Masaki — home"><img src="/favicon.svg" width="30" height="30" alt=""><span>COLE MASAKI<small>ART / DESIGN / INDEPENDENT WORK</small></span></a>';
+sidebar.append($('.collection-nav'),$('.bottom-bar'));$('#app').append(sidebar);
+const aboutLink=document.createElement('a');aboutLink.className='sidebar-about';aboutLink.href=aboutUrl;
+aboutLink.innerHTML='<span><small>THE PERSON BEHIND THE WORK</small><strong>About Cole Masaki</strong></span><span aria-hidden="true">↗</span>';
+$('.collection-nav').after(aboutLink);
+const controlsHeading=document.createElement('div');controlsHeading.className='sidebar-section-label';controlsHeading.textContent='3D SPACE';$('.controls').before(controlsHeading);
+$('.instructions').innerHTML='<div>Drag the background to rotate.</div><div>Scroll the page to browse work.</div><button id="help-bottom">NAVIGATION HELP ↗</button>';
+$('#zoom-out').setAttribute('aria-label','Zoom background out');$('#zoom-in').setAttribute('aria-label','Zoom background in');
+$('#app').classList.add('overview-route');
+const showcase=createShowcase(collections,{onSelect:select,onOpen:openWork});
 vectorizeArrows($('#app'));
 
 const title=createTitle($('.brand h1'),reducedMotion);
@@ -58,6 +73,10 @@ taglineTitle.set(tagline,{animate:false});
 function select(index,updateHash=true){
   const changed=index!==active;
   active=index;
+  document.documentElement.dataset.theme=isGame(index)?'game':'portfolio';
+  $('#app').classList.toggle('overview-route',index<0);
+  if(index<0)overviewReady=true;
+  if(index>=0)$('#app').classList.remove('hero','hero-intro');
   if(changed)title.set(titleText(),{animate:titleReady});
   $('#app').classList.toggle('focused',index>=0);
   document.querySelectorAll('.category').forEach((b,i)=>{b.classList.toggle('active',i===index);b.setAttribute('aria-pressed',String(i===index));});
@@ -65,18 +84,28 @@ function select(index,updateHash=true){
   $('#section-name').textContent=index<0?`${sentence(tagline)}.`:collections[index].label;
   const intro=index>=0&&collections[index].intro?`<span class="section-intro">${escapeHTML(collections[index].intro)}</span>`:'';
   $('#section-info').innerHTML=intro+(index<0?'Select a room to enter.':collections[index].id==='fonts'?'02 custom typefaces / Try the fonts and download.':collections[index].items.length?`${pad(collections[index].items.length)} ${isZine(index)?'pages':'works'} / Click an image to open.`:'No work added yet.');
-  $('#view-collection').hidden=index<0||!collections[index].items.length;
+  $('#view-collection').hidden=index<0||isGame(index)||!collections[index].items.length;
   $('#view-collection').innerHTML=collections[index]?.id==='fonts'?'TRY FONTS <span>↗</span>':isZine(index)?'READ ZINE <span>↗</span>':isGame(index)&&isVideo(collections[index].items[0])?'WATCH TRAILER <span>↗</span>':'VIEW WORKS <span>↗</span>';
   $('.pager-store').hidden=!isGame(index);$('.pager-store').innerHTML=isGame(index)?storeLink(collections[index]):'';vectorizeArrows($('.pager-store'));
   vectorizeArrows($('#view-collection'));
-  $('#click-action').textContent=index<0?'ENTER COLLECTION':'OPEN WORK';
-  $('#scroll-action').textContent=index<0?'MOVE':'ZOOM';
-  if(!mobileViewport.matches)space?.select(index);
+  presentationReady=mobileViewport.matches||!space||reducedMotion;
+  if(!mobileViewport.matches){
+    if(!space)initializeSpace();
+    space?.select(index);
+  }
   mobileGallery?.select(index);
+  syncShowcase();
+  pauseForDialog();
+  if(isGame(index))finishLoading();
   if(!reducedMotion){
     document.querySelectorAll('.stage-caption > *').forEach((el,i)=>{el.getAnimations().forEach(a=>a.cancel());el.animate([{opacity:0,transform:'translateY(24px)',clipPath:'inset(100% 0 0)'},{opacity:1,transform:'none',clipPath:'inset(0)'}],{duration:700,delay:i*65,easing:'cubic-bezier(.16,1,.3,1)',fill:'backwards'});});
   }
   if(updateHash)history[mobileViewport.matches&&changed?'pushState':'replaceState'](null,'',index<0?location.pathname:`#${collections[index].id}`);
+}
+function syncShowcase(){
+  $('#app').classList.toggle('archive-shell',!mobileViewport.matches&&(active>=0||overviewReady));
+  showcase.select(active,overviewReady&&!mobileViewport.matches,presentationReady||mobileViewport.matches);
+  space?.setPresentation(true);
 }
 function pauseForDialog(){space?.setPaused(mobileViewport.matches||Boolean(document.querySelector('dialog[open]')));}
 function showDialog(selector){returnFocus=document.activeElement;$(selector).showModal();pauseForDialog();}
@@ -96,9 +125,9 @@ function renderWork(){
   $('.view-body').scrollLeft=0;
   $('.page-label').textContent=`${pad(index+1)} / ${pad(collection.items.length)}`;
   $('#previous').disabled=index===0;$('#next').disabled=index+items.length>=collection.items.length;
-  $('#original').href=isFont?item.download:video?youtubeWatchUrl(item):item.url||item.src;
+  $('#original').href=isFont?item.download:video?(item.videoSrc||youtubeWatchUrl(item)):item.url||item.src;
   if(isFont){$('#original').setAttribute('download',`${item.fontFamily}.ttf`);$('#original').removeAttribute('target');}else{$('#original').removeAttribute('download');$('#original').target='_blank';}
-  $('#original').textContent=isFont?'DOWNLOAD TTF ↓':video?'WATCH ON YOUTUBE ↗':item.url?(collection.id==='websites'?'VISIT WEBSITE ↗':item.url?.includes('instagram.com/')?'VIEW POST ↗':'VIEW PROJECT ↗'):'OPEN IMAGE ↗';
+  $('#original').textContent=isFont?'DOWNLOAD TTF ↓':video?(item.videoSrc?'OPEN TRAILER ↗':'WATCH ON YOUTUBE ↗'):item.url?(collection.id==='websites'?'VISIT WEBSITE ↗':item.url?.includes('instagram.com/')?'VIEW POST ↗':'VIEW PROJECT ↗'):'OPEN IMAGE ↗';
   vectorizeArrows($('#original'));
   $('#image-zoom').hidden=video;$('#image-zoom').textContent='ZOOM +';$('#image-zoom').setAttribute('aria-pressed','false');
   renderInfo(isFont?'':item.description,item.title||(isZine(category)?`Page ${pad(index+1)}`:''));
@@ -168,14 +197,14 @@ $('#info-toggle').onclick=toggleInfo;$('.viewer-info-close').onclick=()=>{infoCh
 addEventListener('resize',()=>{if(viewing)autoInfo();});
 $('#page-range').oninput=e=>{viewing.index=Number(e.target.value)-1;renderWork();};
 addEventListener('keydown',e=>{
-  if(e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.target.matches('input,textarea,select,video,[contenteditable="true"]'))return;
   if(document.querySelector('dialog[open]')){if($('.viewer').open&&e.target.tagName!=='INPUT'){if(e.key==='ArrowLeft'){e.preventDefault();turnPage(-1);}if(e.key==='ArrowRight'){e.preventDefault();turnPage(1);}if((e.key==='i'||e.key==='I')&&describedItem()){e.preventDefault();toggleInfo();}}return;}
-  if(active<0&&!mobileViewport.matches){if(['ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();space?.setHero(1);}if(['ArrowUp','PageUp'].includes(e.key)){e.preventDefault();space?.setHero(0);}}
+  if(active<0&&!mobileViewport.matches&&!showcase.visible){if(['ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();space?.setHero(1);}if(['ArrowUp','PageUp'].includes(e.key)){e.preventDefault();space?.setHero(0);}}
   if(/^[0-9]$/.test(e.key)&&Number(e.key)<=collections.length)select(Number(e.key)-1);
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
 });
 function finishLoading(){ if(!titleReady){titleReady=true;title.set(titleText(),{delay:650});taglineTitle.set(taglineTitle.target,{delay:650});} $('.loading').hidden=true;$('#app').inert=false;const boot=$('#boot');if(boot){boot.classList.add('ready');setTimeout(()=>boot.remove(),reducedMotion?0:750);} }
-function fallback(message){finishLoading();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';vectorizeArrows(button);button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
+function fallback(message){finishLoading();overviewReady=true;presentationReady=true;syncShowcase();$('#markers').hidden=true;const div=document.createElement('div');div.className='fallback';const text=document.createElement('p');text.textContent=message;const button=document.createElement('button');button.textContent='OPEN WORK INDEX ↗';vectorizeArrows(button);button.onclick=()=>showDialog('.index-dialog');div.append(text,button);$('#space').append(div);}
 function onPage(layout){
   const hidden=!layout||layout.pages<2;
   $('.collection-pager').hidden=hidden&&!(layout&&isGame(active));$('.collection-sides').hidden=hidden;
@@ -192,18 +221,21 @@ let spaceLoading;
 function initializeSpace(){
   if(space||spaceLoading)return spaceLoading;
   spaceLoading=import('./scene.js').then(({createSpace})=>{
-    space=createSpace($('#space'),collections,{onOpen:openWork,onSelect:select,onHover,onPage,reducedMotion,onHero:value=>$('#app').classList.toggle('hero',value),onHeroIntro:value=>{$('#app').classList.toggle('hero-intro',value);if(value&&titleReady)taglineTitle.set(taglineTitle.target);},onProgress:value=>{const boot=$('#boot');if(boot){boot.style.setProperty('--progress',value);$('#boot-percent').textContent=Math.round(value*100)+'%';}},onReady:message=>{if(message)fallback(message);else finishLoading();}});
-    if(active>=0)space.select(active);
+    space=createSpace($('#space'),collections,{onOpen:openWork,onSelect:select,onHover,onPage,reducedMotion,onHero:value=>$('#app').classList.toggle('hero',value&&active<0),onPresentation:({index,ready})=>{if(index!==active)return;presentationReady=ready;if(index<0&&ready)overviewReady=true;syncShowcase();},onHeroIntro:value=>{$('#app').classList.toggle('hero-intro',value);if(value&&titleReady)taglineTitle.set(taglineTitle.target);},onProgress:value=>{const boot=$('#boot');if(boot){boot.style.setProperty('--progress',value);$('#boot-percent').textContent=Math.round(value*100)+'%';}},onReady:message=>{if(message)fallback(message);else finishLoading();}});
+    if(active>=0||overviewReady)space.select(active,true);
+    space.setPresentation(true);
     space.setMotion(motionEnabled);pauseForDialog();
   }).catch(error=>{console.warn('3D unavailable:',error);fallback('The 3D view is unavailable on this device. All artwork is available in the work index.');});
   return spaceLoading;
 }
 
-mobileGallery=createMobileGallery(collections,{onSelect:select,onOpen:openWork,site:{headerLine:site.headerLine||'ART / DESIGN / INDEPENDENT WORK',tagline,instagram}});
-if(mobileViewport.matches)finishLoading();else initializeSpace();
+mobileGallery=createMobileGallery(collections,{onSelect:select,onOpen:openWork,site:{headerLine:site.headerLine||'ART / DESIGN / INDEPENDENT WORK',tagline,instagram,aboutUrl}});
+if(mobileViewport.matches||location.hash==='#game')finishLoading();
+if(!mobileViewport.matches)initializeSpace();
 mobileViewport.addEventListener('change',()=>{
+  presentationReady=true;syncShowcase();
   if(mobileViewport.matches){space?.setPaused(true);finishLoading();}
-  else{initializeSpace();space?.select(active);pauseForDialog();}
+  else{initializeSpace();space?.select(active,true);pauseForDialog();}
 });
 // Touch navigation complements the visible previous/next controls.
 let viewerTouch=null;

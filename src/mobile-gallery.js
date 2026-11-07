@@ -1,8 +1,8 @@
 import './mobile-gallery.css';
+import { gameFeature } from './showcase.js';
 import { vectorizeArrows, motionIcon } from './icons.js';
 import { MOBILE_QUERY } from './viewport.js';
 import { fontSpecimen } from './font-specimen.js';
-import { isVideo, videoFrame, storeLink } from './game.js';
 
 // A touch-first presentation of the same manifest. Desktop stays in the 3D scene.
 export function createMobileGallery(collections, { onSelect, onOpen, site }) {
@@ -13,7 +13,7 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
   const pad = n => String(n).padStart(2,'0');
   const titleCase = text => text.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
   const intro = c => c.intro ? `<p class="mobile-collection-intro">${escape(c.intro)}</p>` : '';
-  let active = -1, large = false, kv=null, kvPaused=false, slide=0, slideTouch=null;
+  let active = -1, large = true, kv=null, kvPaused=false;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Items flagged showcase:false in the editor never appear in the animated preview.
   const inShowcase=item=>item.showcase!==false;
@@ -35,11 +35,12 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
       <button class="mobile-menu-button" aria-haspopup="dialog" aria-controls="mobile-menu">Collections <span aria-hidden="true">＋</span></button>
     </header>
     <main id="mobile-content" tabindex="-1"></main>
-    <footer class="mobile-footer"><span>© COLE MASAKI</span><a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
+    <footer class="mobile-footer"><span>© COLE MASAKI</span><a href="${escape(site.aboutUrl)}">About ↗</a><a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
     <dialog id="mobile-menu" aria-labelledby="mobile-menu-title">
       <div class="mobile-menu-head"><h2 id="mobile-menu-title">Collections</h2><button class="mobile-menu-close" aria-label="Close collections">Close ×</button></div>
       <nav aria-label="Mobile collections"><button data-room="-1"><span>00</span><strong>All collections</strong><span>↗</span></button>
       ${collections.map((c,i)=>`<button data-room="${i}"><span>${pad(i+1)}</span><strong>${escape(c.label)}${!c.items.length?'<small>Coming later</small>':''}</strong><span>${c.items.length?pad(c.items.length):'—'}</span></button>`).join('')}</nav>
+      <a class="mobile-about" href="${escape(site.aboutUrl)}"><span><small>THE PERSON BEHIND THE WORK</small><strong>About Cole Masaki</strong></span><span aria-hidden="true">↗</span></a>
     </dialog>`;
   document.querySelector('#app').append(root);
   const content = root.querySelector('#mobile-content'), menu = root.querySelector('#mobile-menu'), menuButton = root.querySelector('.mobile-menu-button');
@@ -58,21 +59,16 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
           <figcaption><button class="mobile-kv-browse">Browse collections <span>↓</span></button></figcaption>
         </figure>
         <div class="mobile-meta" id="mobile-collections" tabindex="-1">${pad(collections.length)} COLLECTIONS <span>${collections.reduce((n,c)=>n+c.items.length,0)} WORKS</span></div></div>
-        <div class="mobile-rooms">${collections.map((c,ci)=>`<button class="mobile-room ${!c.items.length?'is-empty':''}" data-enter="${ci}" aria-label="${escape(c.label)}, ${c.items.length} ${c.id==='zine'?'pages':'works'}">
+        ${collections.map((c,ci)=>c.id==='game'&&c.items.length?gameFeature(c,ci,{mobile:true}):'').join('')}
+        <div class="mobile-rooms">${collections.map((c,ci)=>c.id==='game'&&c.items.length?'':`<button class="mobile-room ${!c.items.length?'is-empty':''}" data-enter="${ci}" aria-label="${escape(c.label)}, ${c.items.length} ${c.id==='zine'?'pages':'works'}">
           <span class="mobile-room-label"><span>${pad(ci+1)}</span><strong>${escape(c.label)}</strong><span>${c.items.length?pad(c.items.length):'SOON'} ↗</span></span>
           ${c.items.length?`<div class="mobile-room-preview">${c.items.slice(0,2).map((item,i)=>image(item,ci===0)).join('')}</div>`:''}
         </button>`).join('')}</div>`;
     }else{
       const c=collections[active];
       if(c.id==='game'){
-        // One slide at a time: the trailer first, then screenshots, with the store button always below.
-        slide=Math.min(slide,Math.max(0,c.items.length-1));
-        const item=c.items[slide];
-        content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1>${intro(c)}</div>
-          <div class="mobile-game">${item?`<div class="mobile-game-slide">${isVideo(item)?'':`<button class="mobile-art" data-mobile-work="${slide}" aria-label="Open ${escape(item.alt)}">${image(item,true)}</button>`}</div>
-          <div class="mobile-game-pager"><button data-game-step="-1" aria-label="Previous slide" ${slide===0?'disabled':''}>←</button><span aria-live="polite">${pad(slide+1)} / ${pad(c.items.length)}</span><button data-game-step="1" aria-label="Next slide" ${slide>=c.items.length-1?'disabled':''}>→</button></div>`:'<p class="mobile-empty">No work added yet.</p>'}
-          ${storeLink(c,'store-link mobile-store')}</div>`;
-        if(isVideo(item))content.querySelector('.mobile-game-slide').append(videoFrame(item,'mobile-game-video'));
+        // The shared game page owns the inline player on every viewport.
+        content.innerHTML='';
       }else if(c.id==='fonts'){
         content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1>${intro(c)}</div><div class="mobile-browse"><p>02 CUSTOM TYPEFACES <span>Type to try · Download TTF</span></p></div><div class="mobile-fonts"></div>`;
         content.querySelector('.mobile-fonts').replaceChildren(...c.items.map(item=>fontSpecimen(item,{compact:true})));
@@ -90,6 +86,7 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
   root.querySelector('.mobile-menu-close').onclick=closeMenu;
   menu.addEventListener('click',e=>{if(e.target===menu){const r=menu.getBoundingClientRect();if(e.clientY<r.top||e.clientY>r.bottom)closeMenu();}});
   root.addEventListener('click', e=>{
+    if(e.target.closest('.portfolio-showcase'))return;
     if(e.target.closest('.mobile-kv-pause')){
       kvPaused=!kvPaused;kv?.setPaused(kvPaused);
       const button=root.querySelector('.mobile-kv-pause');button.innerHTML=motionIcon(kvPaused);button.setAttribute('aria-label',kvPaused?'Resume preview animation':'Pause preview animation');button.setAttribute('aria-pressed',String(!kvPaused));return;
@@ -98,21 +95,14 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
       e.preventDefault();const target=active<0?root.querySelector('#mobile-collections'):content;
       target.scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'start'});target.focus({preventScroll:true});return;
     }
-    const room=e.target.closest('[data-room],[data-enter],.mobile-home,.mobile-back');
-    if(room){if(menu.open)menu.close();onSelect(Number(room.dataset.room??room.dataset.enter??-1));return;}
+    const room=e.target.closest('[data-room],[data-enter],[data-showcase-enter],.mobile-home,.mobile-back');
+    if(room){if(menu.open)menu.close();onSelect(Number(room.dataset.room??room.dataset.enter??room.dataset.showcaseEnter??-1));return;}
     const work=e.target.closest('[data-mobile-work]');if(work){onOpen(active,Number(work.dataset.mobileWork));return;}
-    const step=e.target.closest('[data-game-step]');if(step){slide+=Number(step.dataset.gameStep);render();root.querySelector(`[data-game-step="${step.dataset.gameStep}"]`)?.focus({preventScroll:true});return;}
     const density=e.target.closest('[data-density]');if(density){large=density.dataset.density==='large';render();root.querySelector(`[data-density="${large?'large':'grid'}"]`).focus({preventScroll:true});return;}
-    if(e.target.closest('.mobile-top')){scrollTo({top:0,behavior:'instant'});content.querySelector('h1').focus({preventScroll:true});}
+    if(e.target.closest('.mobile-top')){scrollTo({top:0,behavior:'instant'});content.querySelector('h1')?.focus({preventScroll:true});}
   });
-  root.addEventListener('touchstart',e=>{slideTouch=e.target.closest('.mobile-game-slide')&&e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null;},{passive:true});
-  root.addEventListener('touchend',e=>{
-    if(!slideTouch)return;const t=e.changedTouches[0],dx=t.clientX-slideTouch.x,dy=t.clientY-slideTouch.y;slideTouch=null;
-    const count=collections[active]?.items.length??0,next=slide+(dx<0?1:-1);
-    if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5&&next>=0&&next<count){slide=next;render();}
-  },{passive:true});
   media.addEventListener('change',()=>{if(!media.matches&&menu.open)menu.close();render();});
   vectorizeArrows(root);
   render();
-  return {select(index){const changed=active!==index;active=index;if(changed)slide=0;render();if(media.matches&&changed){scrollTo({top:0,behavior:'instant'});content.querySelector('h1').focus({preventScroll:true});}}};
+  return {select(index){const changed=active!==index;active=index;render();if(media.matches&&changed){scrollTo({top:0,behavior:'instant'});content.querySelector('h1')?.focus({preventScroll:true});}}};
 }

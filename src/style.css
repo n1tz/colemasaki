@@ -207,3 +207,18 @@ a.store-link:hover{background:#fff;color:#11120f}
 @keyframes info-sheet{from{transform:translateY(100%)}}
 @keyframes info-side{from{transform:translateX(100%)}}
 @media(prefers-reduced-motion:reduce){.viewer-info{animation:none}}
+/* The featured game stays prominent; secondary labels fit their smaller columns. */
+.marker-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.marker:not(.marker-featured){gap:5px;padding:4px 8px;font-size:9px;line-height:12px}
+.marker .marker-count{display:none}
+.marker-featured{border-color:#9b9d91;padding:6px 10px;line-height:12px}
+.marker{transform:translate(-50%,0)}
+
+/* Portfolio identity; the game owns the blue variant, including its viewer. */
+:root{--accent:#ff8a3d;--accent-wash:#ff8a3d14;accent-color:var(--accent)}
+:root[data-theme=game],.game-viewer{--accent:#82adf5;--accent-wash:#82adf514}
+button:focus-visible,a:focus-visible,input:focus-visible{outline-color:var(--accent)}
+::selection{background:var(--accent);color:#11120f}
+.category.active .number{color:var(--accent)}
+.desktop-sidebar a:hover,.desktop-sidebar button:hover:not(:disabled),.collection-back button:hover,.showcase-footer button:hover,.collection-work-info>a:hover{color:var(--accent)}
+#page-range{accent-color:var(--accent)}

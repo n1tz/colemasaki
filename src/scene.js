@@ -18,7 +18,7 @@ const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], 
 const lowEnd = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
 const maxPixelRatio = Math.min(devicePixelRatio, lowEnd ? 1 : 1.5);
 
-export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, onHero, onHeroIntro, reducedMotion }) {
+export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, onHero, onHeroIntro, onPresentation, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
   const architectureTime={value:0};
@@ -44,6 +44,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   let viewportSignature = '';
   function syncViewport() {
     const rect = layoutFrame.getBoundingClientRect(), hostRect = host.getBoundingClientRect();
+    // The native mobile layout hides this frame; retain the valid desktop camera.
+    if(rect.width<1||rect.height<1||hostRect.width<1||hostRect.height<1)return false;
     const signature = [rect.left,rect.top,rect.width,rect.height,hostRect.width,hostRect.height].join(',');
     if(signature === viewportSignature)return false;
     viewportSignature=signature;
@@ -71,6 +73,13 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   let heroProgress = 0, heroTarget = 0, heroShown = 1, heroAngle = .35, heroAnchor = null, heroPointer = 0, heroState = null, heroIntro = null;
   const heroHead = HERO_ORIGIN.clone(), heroCamera = new THREE.PerspectiveCamera();
   let active = -1, page = 0, tween = null, paused = false, frame = 0, last = performance.now();
+  let presentationOverlay = false, presentationState = '';
+  function notifyPresentation(ready) {
+    const state = `${active}:${ready}`;
+    if(state === presentationState)return;
+    presentationState = state;
+    onPresentation?.({ index: active, ready });
+  }
   let motionEnabled = !reducedMotion, down = null, hovered = null;
   const isMobile = () => innerWidth <= 800;
   const locations = () => isMobile() ? mobileLocations : desktopLocations;
@@ -177,11 +186,12 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     }
   }
 
-  function select(index) {
+  function select(index, instant = false) {
     if (index < 0) heroProgress = heroTarget = 1;
     active = index; page = 0; hovered = null; onHover(null);
     // Paging controls change the frame bounds. Settle them before the flight.
-    arrange(); syncViewport(); arrange(); travel();
+    arrange(); syncViewport(); arrange(); travel(instant);
+    notifyPresentation(!tween);
   }
   function turnExhibition(direction) { if (active < 0) return; page += direction; hovered = null; onHover(null); arrange(); travel(); }
   arrange(); travel(true);
@@ -274,7 +284,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       el.style.left=`${(projected.x*.5+.5)*rect.width}px`;el.style.top=`${(-projected.y*.5+.5)*rect.height+7}px`;
     });
     groups.forEach((g, i) => {
-      const el = labelElements[i]; if (tween || heroProgress < .8 || !g.visible || active !== -1 || !collections[i].items.length) { el.classList.remove('in'); return; }
+      const el = labelElements[i]; if (presentationOverlay || tween || heroProgress < .8 || !g.visible || active !== -1 || !collections[i].items.length) { el.classList.remove('in'); return; }
       projected.set(0, -layouts[i].height / 2 - .65, 0).multiply(boards[i].scale).applyQuaternion(boards[i].quaternion).add(boards[i].position).project(camera);
       const x = (projected.x * .5 + .5) * rect.width, y = (-projected.y * .5 + .5) * rect.height;
       el.classList.toggle('in', !(projected.z > 1 || x < 0 || x > rect.width || y < 0 || y > rect.height));
@@ -296,7 +306,10 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   function heroUpdate(delta, elapsed) {
     if (active < 0 && !tween) {
       heroProgress += (heroTarget - heroProgress) * (reducedMotion ? 1 : 1 - Math.exp(-elapsed * 2.6));
-      if (Math.abs(heroTarget - heroProgress) < .002) heroProgress = heroTarget;
+      // Quintic camera easing is already visually settled near either endpoint.
+      // Finish there instead of spending another second on an invisible exponential tail.
+      const settleThreshold = heroTarget === 0 || heroTarget === 1 ? .04 : .002;
+      if (Math.abs(heroTarget - heroProgress) < settleThreshold) heroProgress = heroTarget;
       groups.forEach((g, ci) => { g.visible = boards[ci].visible = heroProgress > .3; });
     }
     const shown = active < 0 ? 1 - THREE.MathUtils.smoothstep(heroProgress, .04, .55) : 0;
@@ -365,7 +378,10 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     const surge=Math.max(tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,active<0?Math.pow(Math.sin(Math.PI*heroProgress),2)*.7:0);
     ascii.render(scene,camera,architectureTime.value,surge,!reducedMotion);
     if(hero.group.visible){renderer.clearDepth();renderer.render(heroScene,camera);}
-    renderer.clearDepth(); renderer.render(artScene, camera); labels();
+    renderer.clearDepth(); if(!presentationOverlay)renderer.render(artScene, camera); labels();
+    workLabels.hidden = presentationOverlay || active < 0 || Boolean(tween);
+    // Hand over the readable panels only after the camera has actually arrived.
+    notifyPresentation(!tween && (active >= 0 || heroProgress >= 1));
     if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
   }
   function schedule(){cancelAnimationFrame(frame);frame=0;last=performance.now();if(!paused&&!document.hidden)frame=requestAnimationFrame(tick);}
@@ -381,10 +397,11 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   return {
     select, turnExhibition, scrollHero,
+    setPresentation(value) { presentationOverlay = value; },
     setHero(value) { if (active < 0 && !tween) { clearTimeout(wheelTimer); heroTarget = value; } },
     zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
     setPaused(value) { paused = value; if(value){hovered=null;onHover(null);} controls.enabled = !value && !tween; schedule(); }, setMotion(value) { motionEnabled = value && !reducedMotion; },
-    stats() { const rect = layoutFrame.getBoundingClientRect(); return { gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
+    stats() { const rect = layoutFrame.getBoundingClientRect(); return { presentationOverlay, paused, gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
     dispose() { cancelAnimationFrame(frame);removeEventListener('wheel',onWheel);removeEventListener('pointermove',onPointer);hero.dispose();document.removeEventListener('visibilitychange',schedule); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
   };

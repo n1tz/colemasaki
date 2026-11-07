@@ -31,7 +31,7 @@ try{
   assert.equal(await page.locator('#original').getAttribute('href'),`/fonts/${family}.ttf`);
   await page.locator('.font-tools input').fill('84');
   assert.equal(await page.locator('textarea').evaluate(el=>getComputedStyle(el).fontSize),'84px');
-  await page.locator('.font-reset').click();assert.equal(await page.locator('textarea').inputValue(),'Aa');
+  await page.locator('.font-reset').click();assert.equal(await page.locator('textarea').inputValue(),family.toLowerCase());
   const download=page.waitForEvent('download');await page.locator('#original').click();
   const downloaded=await download;assert.equal(downloaded.suggestedFilename(),`${family}.ttf`);
   const actual=await readFile(await downloaded.path()),expected=await readFile(`public/fonts/${family}.ttf`);

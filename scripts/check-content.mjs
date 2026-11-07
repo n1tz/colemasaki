@@ -9,7 +9,7 @@ for(const c of collections){
   for(const item of c.items){
     assert(!ids.has(item.id),`Duplicate id: ${item.id}`);ids.add(item.id);
     assert(item.width>0&&item.height>0&&item.alt);
-    if(item.type==='video'){assert.equal(c.id,'game','Videos belong in the Video Game collection');assert.equal(c.items.indexOf(item),0,'The video must be the first slide');assert(/^[\w-]{11}$/.test(item.youtube),`Invalid YouTube id: ${item.id}`);}
+    if(item.type==='video'){assert.equal(c.id,'game','Videos belong in the Video Game collection');assert.equal(c.items.indexOf(item),0,'The video must be the first slide');if(item.videoSrc){assert(/^\/media\/[a-z0-9-]+\.mp4$/.test(item.videoSrc),`Invalid video path: ${item.id}`);await access(new URL(`../public${item.videoSrc}`,import.meta.url));}else assert(/^[\w-]{11}$/.test(item.youtube),`Invalid YouTube id: ${item.id}`);}
     for(const key of ['src','thumb']){
       assert(item[key].startsWith('/art/'));
       const file=new URL(`../public${item[key]}`,import.meta.url);
