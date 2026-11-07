@@ -1,0 +1,32 @@
+/* Desktop artwork viewer. Everything here is scoped to .viewer[data-zoomable],
+   which main.js sets only outside the phone layout. */
+.zoom-hint{display:none}
+.zoom-controls[hidden]{display:none}
+
+/* Slimmer chrome: the artwork gets the height back. */
+.viewer[data-zoomable]{--head:46px;--foot:52px;--store:56px}
+.viewer[data-zoomable] .dialog-head{height:var(--head);padding:0 18px}
+.viewer[data-zoomable] .dialog-head .close{min-height:40px}
+.viewer[data-zoomable] .view-body{inset:calc(var(--head) + 1px) 0 var(--foot);padding:12px}
+.viewer[data-zoomable] .viewer-footer{min-height:var(--foot);padding:4px 18px}
+.viewer[data-zoomable] .viewer-footer .pager button{min-height:40px}
+.viewer[data-zoomable] .viewer-info{top:calc(var(--head) + 1px);bottom:var(--foot)}
+.viewer[data-zoomable] .viewer-info-head{min-height:40px}
+.viewer[data-zoomable].game-viewer .view-body,.viewer[data-zoomable].game-viewer .viewer-info{bottom:calc(var(--foot) + var(--store))}
+.viewer[data-zoomable] .viewer-store{bottom:var(--foot);height:var(--store);padding-block:6px}
+
+/* Zoom stage: the image sits at its natural size, placed by one transform. */
+.viewer[data-zoomable] .view-body.zoom-stage{display:block;overflow:hidden;padding:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:zoom-in;overscroll-behavior:contain}
+.viewer[data-zoomable] .view-body.zoom-stage[data-zoom=in]{cursor:grab}
+.viewer[data-zoomable] .view-body.zoom-stage[data-dragging]{cursor:grabbing}
+.viewer[data-zoomable] .view-body img.zoom-image{position:absolute;left:0;top:0;max-width:none;max-height:none;min-width:0;transform-origin:0 0;cursor:inherit;-webkit-user-drag:none}
+
+/* Footer controls: the sidebar's segmented control, plus a one-time hint. */
+.viewer[data-zoomable] #image-zoom{display:none}
+.zoom-controls{display:inline-grid;grid-template-columns:34px minmax(58px,auto) 34px;align-items:stretch;border:1px solid #55584d}
+.zoom-controls button{min-height:32px;padding:0 8px;font-size:15px;line-height:1}
+.zoom-controls button+button{border-left:1px solid #55584d}
+.zoom-controls #art-zoom-level{font-size:10px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.zoom-controls #art-zoom-level:not(:disabled):hover{color:var(--accent)}
+.viewer[data-zoomable]:not(.zoom-hint-seen):has(.zoom-stage) .zoom-hint{display:inline;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+@media(max-width:1100px){.viewer[data-zoomable] .zoom-hint{display:none!important}}

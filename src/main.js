@@ -11,6 +11,8 @@ import { fontSpecimen } from './font-specimen.js';
 import { isVideo, videoFrame, storeLink, youtubeWatchUrl } from './game.js';
 import './typography.css';
 import './controls.css';
+import { createViewerZoom } from './viewer-zoom.js';
+import './viewer-zoom.css';
 
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
@@ -76,6 +78,14 @@ $('#zoom-out').setAttribute('aria-label','Zoom background out');$('#zoom-in').se
 $('#app').classList.add('overview-route');
 const showcase=createShowcase(collections,{onSelect:select,onOpen:openWork});
 vectorizeArrows($('#app'));
+// Desktop viewer zoom (wheel/pinch at cursor, drag to pan, click to toggle).
+// Phones keep the native pinch-zoom and swipe paging below, untouched.
+$('#image-zoom').insertAdjacentHTML('beforebegin','<span class="zoom-hint" aria-hidden="true">Scroll to zoom · Drag to move</span><div class="zoom-controls" role="group" aria-label="Zoom" hidden><button id="art-zoom-out" aria-label="Zoom out" title="Zoom out (−)">−</button><button id="art-zoom-level" aria-label="Fit to screen" title="Fit to screen (0)">100%</button><button id="art-zoom-in" aria-label="Zoom in" title="Zoom in (+)">+</button></div>');
+const artZoom=createViewerZoom($('.view-body'),{reducedMotion,onChange:state=>{
+  $('.zoom-controls').hidden=!state;if(!state)return;
+  $('#art-zoom-level').textContent=`${state.percent}%`;$('#art-zoom-out').disabled=state.atFit;$('#art-zoom-in').disabled=state.atMax;$('#art-zoom-level').disabled=state.atFit;
+}});
+$('#art-zoom-in').onclick=()=>artZoom.zoomIn();$('#art-zoom-out').onclick=()=>artZoom.zoomOut();$('#art-zoom-level').onclick=()=>artZoom.fit();
 
 const title=createTitle($('.brand h1'),reducedMotion);
 const taglineTitle=createTitle($('.hero-tagline'),reducedMotion);
@@ -133,8 +143,11 @@ function renderWork(){
   $('.viewer-store').hidden=!game;$('.viewer-store').innerHTML=game?storeLink(collection):'';vectorizeArrows($('.viewer-store'));
   const items=[item];
   $('#viewer-title').textContent=`${pad(category+1)} / ${collection.label}${isZine(category)?' / John Voynich’s Guide to the Basics':item.title?' / '+item.title:''}`;
+  artZoom.detach();
+  const desktopZoom=!mobileViewport.matches;$('.viewer').toggleAttribute('data-zoomable',desktopZoom);
   $('.view-body').className='view-body';
-  $('.view-body').replaceChildren(...items.map(item=>{if(isFont)return fontSpecimen(item);if(video)return videoFrame(item);const image=new Image();image.src=item.src;image.alt=item.alt;image.addEventListener('click',toggleZoom);image.addEventListener('error',()=>{const p=document.createElement('p');p.className='image-error';p.textContent='Image could not load. Close and try again.';image.replaceWith(p);});return image;}));
+  $('.view-body').replaceChildren(...items.map(item=>{if(isFont)return fontSpecimen(item);if(video)return videoFrame(item);const image=new Image();image.src=item.src;image.alt=item.alt;if(!desktopZoom)image.addEventListener('click',toggleZoom);image.addEventListener('error',()=>{artZoom.detach();const p=document.createElement('p');p.className='image-error';p.textContent='Image could not load. Close and try again.';image.replaceWith(p);});return image;}));
+  if(desktopZoom&&!isFont&&!video)artZoom.attach($('.view-body img'),item.width,item.height);
   $('.view-body').scrollTop=0;
   $('.view-body').scrollLeft=0;
   $('.page-label').textContent=`${pad(index+1)} / ${pad(collection.items.length)}`;
@@ -200,7 +213,7 @@ function onHover(data,x=0,y=0){const label=$('.hover-label');label.hidden=!data;
 document.querySelectorAll('[data-category],[data-marker]').forEach(el=>el.addEventListener('click',()=>select(Number(el.dataset.category??el.dataset.marker))));
 document.querySelectorAll('[data-work]').forEach(el=>el.addEventListener('click',()=>openWork(...el.dataset.work.split(',').map(Number))));
 document.querySelectorAll('[data-close]').forEach(el=>el.addEventListener('click',()=>closeDialog($(`.${el.dataset.close}`))));
-document.querySelectorAll('dialog').forEach(dialog=>{dialog.addEventListener('close',()=>{if(dialog===$('.viewer')){viewing=null;$('.view-body').replaceChildren();setInfo(false);if(mobileViewport.matches)infoChoice=null;}pauseForDialog();});dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog(dialog);}});});
+document.querySelectorAll('dialog').forEach(dialog=>{dialog.addEventListener('close',()=>{if(dialog===$('.viewer')){artZoom.detach();viewing=null;$('.view-body').replaceChildren();setInfo(false);if(mobileViewport.matches)infoChoice=null;}pauseForDialog();});dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog(dialog);}});});
 $('#zoom-in').onclick=()=>space?.zoom(.8);$('#zoom-out').onclick=()=>space?.zoom(1.25);
 function updateMotionButton(){const label=motionEnabled?'Pause animation':'Resume animation';$('#motion').innerHTML=motionIcon(!motionEnabled);$('#motion').setAttribute('aria-pressed',String(motionEnabled));$('#motion').setAttribute('aria-label',label);$('#motion').title=label;}
 $('#motion').disabled=reducedMotion;updateMotionButton();$('#motion').onclick=()=>{motionEnabled=!motionEnabled;space?.setMotion(motionEnabled);updateMotionButton();};
@@ -223,7 +236,7 @@ addEventListener('resize',()=>{if(viewing)autoInfo();});
 $('#page-range').oninput=e=>{viewing.index=Number(e.target.value)-1;renderWork();};
 addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea,select,video,[contenteditable="true"]'))return;
-  if(document.querySelector('dialog[open]')){if($('.viewer').open&&e.target.tagName!=='INPUT'){if(e.key==='ArrowLeft'){e.preventDefault();turnPage(-1);}if(e.key==='ArrowRight'){e.preventDefault();turnPage(1);}if((e.key==='i'||e.key==='I')&&describedItem()){e.preventDefault();toggleInfo();}}return;}
+  if(document.querySelector('dialog[open]')){if($('.viewer').open&&e.target.tagName!=='INPUT'){if(e.key==='ArrowLeft'){e.preventDefault();turnPage(-1);}if(e.key==='ArrowRight'){e.preventDefault();turnPage(1);}if((e.key==='i'||e.key==='I')&&describedItem()){e.preventDefault();toggleInfo();}if(artZoom.attached){if(e.key==='+'||e.key==='='){e.preventDefault();artZoom.zoomIn();}if(e.key==='-'||e.key==='_'){e.preventDefault();artZoom.zoomOut();}if(e.key==='0'){e.preventDefault();artZoom.fit();}}}return;}
   if(active<0&&!mobileViewport.matches&&!showcase.visible){if(['ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();space?.setHero(1);}}
   if(/^[0-9]$/.test(e.key)&&Number(e.key)<=collections.length)select(Number(e.key)-1);
   if(e.key==='+'||e.key==='=')space?.zoom(.8);if(e.key==='-')space?.zoom(1.25);
@@ -258,6 +271,7 @@ mobileGallery=createMobileGallery(collections,{onSelect:select,onOpen:openWork,h
 if(mobileViewport.matches||location.hash==='#game')finishLoading();
 if(!mobileViewport.matches)initializeSpace();
 mobileViewport.addEventListener('change',()=>{
+  if(viewing)renderWork();
   presentationReady=true;syncShowcase();
   if(mobileViewport.matches){space?.setPaused(true);finishLoading();}
   else{initializeSpace();space?.select(active,true);pauseForDialog();}
