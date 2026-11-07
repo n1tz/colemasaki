@@ -13,11 +13,9 @@ button,input,select,textarea{font-kerning:normal}
 .collection-heading h1{font-size:clamp(28px,2.6vw,44px);line-height:1.16;letter-spacing:-.025em;text-wrap:balance}
 .collection-heading>span{line-height:1.5;letter-spacing:.04em}
 .collection-heading p{margin-top:14px}
-.showcase-heading,.showcase-more{align-items:baseline}
-.showcase-heading h1,.showcase-more h2{line-height:1.2;letter-spacing:-.02em}
+.showcase-heading,.showcase-more{align-items:center}
 .showcase-heading>span,.showcase-more>span{line-height:1.5}
-.showcase-card-title{line-height:1.3;gap:16px;padding:16px}
-.showcase-card-title>span{min-width:0;text-wrap:pretty}
+.showcase-card-name{text-wrap:pretty}
 .collection-work-info h2{line-height:1.4;text-wrap:pretty}
 .collection-work-info p{margin-top:10px;line-height:1.75}
 .collection-work-number,.page-label,.category .number,.category .count{font-variant-numeric:tabular-nums}
@@ -59,7 +57,7 @@ button,input,select,textarea{font-kerning:normal}
 /* Overview artwork and collection title boxes share the Collections top edge. */
 @media(min-width:801px){
  .archive-shell .portfolio-showcase>.collection-back{height:var(--sidebar-brand-height);padding-block:0;margin-bottom:var(--sidebar-gap)}
- .overview-route .showcase-heading{height:var(--sidebar-brand-height);padding:0 18px;align-items:center;margin-bottom:var(--sidebar-gap);border-top:0}
+ .overview-route .showcase-heading{margin-bottom:var(--sidebar-gap)}
 }
 
 .desktop-sidebar .index-button:hover:not(:disabled){color:#11120f}

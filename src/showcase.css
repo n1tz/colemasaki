@@ -6,10 +6,10 @@
 .presentation-enter{animation:panel-arrival .45s cubic-bezier(.16,1,.3,1) both}
 @keyframes panel-arrival{from{opacity:0;transform:perspective(1500px) translate3d(0,18px,-40px)}to{opacity:1;transform:none}}
 .overview-route:not(.hero)>.brand,.overview-route>.stage-caption,.overview-route>#markers{display:none!important}
-.showcase-heading,.showcase-more{display:flex;justify-content:space-between;align-items:center;gap:20px;background:linear-gradient(90deg,#11120ff2,#11120f80);border-top:1px solid #777e72;padding:18px;margin-bottom:20px}
-.showcase-heading h1,.showcase-more h2{font:700 26px/1.1 var(--display);margin:0;letter-spacing:-.025em}
-.showcase-heading>span,.showcase-more>span{font-size:10px;line-height:1.6;color:var(--muted);text-align:right}
-.showcase-more{margin-top:48px}
+.showcase-heading,.showcase-more{display:flex;justify-content:space-between;align-items:center;gap:20px;height:var(--sidebar-brand-height);padding:0 16px;background:#11120fe8;border:1px solid #55584d;margin-bottom:24px}
+.showcase-heading h1,.showcase-more h2{font:400 11px/1.5 Mono,'Courier New',monospace;margin:0;letter-spacing:normal;text-transform:uppercase}
+.showcase-heading>span,.showcase-more>span{font-size:9px;line-height:1.6;color:var(--muted);text-align:right}
+.showcase-more{margin-top:24px}
 /* Preserve the feature's 1080p proportions as desktop width and zoom change. */
 .game-feature{display:block;position:relative;width:100%;aspect-ratio:5/2;overflow:hidden;text-align:left;background:#11151d;border:1px solid #777e72;color:white;padding:0;isolation:isolate;box-shadow:0 12px 40px #0005}
 .game-feature-background,.game-feature-shade{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -35,8 +35,11 @@
 .showcase-card-image{display:grid;place-items:center;aspect-ratio:4/3;background:#11120fdb;overflow:hidden;border:1px solid #55584d}
 .showcase-card img{display:block;width:100%;height:100%;object-fit:contain;transition:transform .5s}
 .showcase-card:hover img{transform:scale(1.025)}
-.showcase-card-title{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 12px;background:#11120fed;border:1px solid #55584d;border-top:0;font:700 clamp(16px,1.4vw,23px)/1.25 var(--display);text-transform:none}
-.showcase-card-title>.ui-arrow{width:22px;height:22px}
+.showcase-card-title{display:flex;align-items:baseline;gap:14px;padding:18px 16px;background:#11120fea;border:1px solid #55584d;border-top:0;text-transform:none}
+.showcase-card-number{font-size:10px;line-height:1.6;color:#939c8c;flex:none;font-variant-numeric:tabular-nums}
+.showcase-card-name{flex:1;min-width:0;font:700 clamp(16px,1.15vw,19px)/1.3 var(--display);letter-spacing:-.01em}
+.showcase-card:hover .showcase-card-number{color:inherit}
+.showcase-card-title>.ui-arrow{width:18px;height:18px;flex:none;align-self:center}
 .showcase-card:hover .showcase-card-title{border-color:var(--accent);color:var(--accent)}
 .showcase-footer{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:48px;padding:20px 0 4px;border-top:1px solid #55584d;font-size:10px;color:#a6aa9f}
 .showcase-footer button,.collection-back button{display:inline-flex;align-items:center;gap:10px;min-height:36px;padding:0;font-size:11px}

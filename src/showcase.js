@@ -44,12 +44,12 @@ export function createShowcase(collections,{onSelect,onOpen}){
     </article>`;
   }
   function renderOverview(){
-    root.innerHTML=`<div class="showcase-heading"><h1>Selected work</h1><span>${pad(collections.length)} COLLECTIONS</span></div>
+    root.innerHTML=`<div class="showcase-heading"><h1>Selected work</h1><span>${pad(collections.length)} COLLECTIONS / ${collections.reduce((n,c)=>n+c.items.length,0)} WORKS</span></div>
       ${gameIndex>=0?gameFeature(collections[gameIndex],gameIndex):''}
-      <div class="showcase-more"><h2>More work</h2><span>ART / DESIGN / INDEPENDENT WORK</span></div>
+      <div class="showcase-more"><h2>More collections</h2><span>${pad(collections.length-(gameIndex>=0?1:0))} COLLECTIONS</span></div>
       <div class="showcase-collections">${collections.map((c,i)=>i===gameIndex?'':`<button class="showcase-card" data-showcase-enter="${i}">
         <span class="showcase-card-image">${c.items[0]?`<img src="${escape(c.items[0].src)}" alt="${escape(c.items[0].alt)}" loading="lazy">`:'<span>Coming soon</span>'}</span>
-        <span class="showcase-card-title"><span>${pad(i+1)} / ${escape(c.label)}</span>${arrow('↗')}</span>
+        <span class="showcase-card-title"><span class="showcase-card-number">${pad(i+1)}</span><span class="showcase-card-name">${escape(c.label)}</span>${arrow('↗')}</span>
       </button>`).join('')}</div>${footer()}`;
   }
   function renderCollection(index){
