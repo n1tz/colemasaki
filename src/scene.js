@@ -70,6 +70,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   // The hero bust has its own scene so the background ASCII pass never touches it.
   const heroScene = new THREE.Scene(), hero = createHero({ manager }); heroScene.add(hero.group);
   // Overview scroll: 0 orbits the knight's head, 1 rests on the collections.
+  let heroEntered = false;
   let heroProgress = 0, heroTarget = 0, heroShown = 1, heroAngle = .35, heroAnchor = null, heroPointer = 0, heroState = null, heroIntro = null;
   const heroHead = HERO_ORIGIN.clone(), heroCamera = new THREE.PerspectiveCamera();
   let active = -1, page = 0, tween = null, paused = false, frame = 0, last = performance.now();
@@ -187,6 +188,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
 
   function select(index, instant = false) {
+    heroEntered = true;
     if (index < 0) heroProgress = heroTarget = 1;
     active = index; page = 0; hovered = null; onHover(null);
     // Paging controls change the frame bounds. Settle them before the flight.
@@ -323,6 +325,7 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     if (intro !== heroIntro) { heroIntro = intro; onHeroIntro?.(intro); }
     if (active >= 0 || tween) { heroAnchor = null; return false; }
     if (heroProgress >= 1) {
+      heroEntered = true;
       if (heroAnchor) {
         camera.position.copy(heroAnchor.position); camera.quaternion.copy(heroAnchor.quaternion);
         controls.target.copy(heroAnchor.target); heroAnchor = null; controls.enabled = !paused; controls.update();
@@ -342,11 +345,11 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   let wheelTimer = 0, wheelDirection = 0;
   function scrollHero(amount) {
-    if (active >= 0 || tween || paused) return;
+    if (heroEntered || active >= 0 || tween || paused) return;
     heroTarget = THREE.MathUtils.clamp(heroTarget + amount, 0, 1); wheelDirection = Math.sign(amount) || wheelDirection;
     // Settle at either end once the wheel stops, like a snapped section.
     clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => { heroTarget = wheelDirection > 0 ? (heroTarget > .1 ? 1 : 0) : (heroTarget < .9 ? 0 : 1); }, 180);
+    wheelTimer = setTimeout(() => { if(heroEntered)return; heroTarget = wheelDirection > 0 ? (heroTarget > .1 ? 1 : 0) : (heroTarget < .9 ? 0 : 1); }, 180);
   }
   function onWheel(e) {
     if (active >= 0 || isMobile() || e.ctrlKey) return;
@@ -398,10 +401,10 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   return {
     select, turnExhibition, scrollHero,
     setPresentation(value) { presentationOverlay = value; },
-    setHero(value) { if (active < 0 && !tween) { clearTimeout(wheelTimer); heroTarget = value; } },
+    setHero(value) { if (active < 0 && !tween && (!heroEntered || value >= 1)) { clearTimeout(wheelTimer); heroTarget = THREE.MathUtils.clamp(value, 0, 1); } },
     zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
     setPaused(value) { paused = value; if(value){hovered=null;onHover(null);} controls.enabled = !value && !tween; schedule(); }, setMotion(value) { motionEnabled = value && !reducedMotion; },
-    stats() { const rect = layoutFrame.getBoundingClientRect(); return { presentationOverlay, paused, gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
+    stats() { const rect = layoutFrame.getBoundingClientRect(); return { presentationOverlay, paused, gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{entered:heroEntered,progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
     dispose() { cancelAnimationFrame(frame);removeEventListener('wheel',onWheel);removeEventListener('pointermove',onPointer);hero.dispose();document.removeEventListener('visibilitychange',schedule); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
   };

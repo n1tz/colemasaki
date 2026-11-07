@@ -33,6 +33,8 @@ This requires Poppler's `pdftoppm` for the PDF-compatible Illustrator pages. It 
 
 `https://colemasaki.com/admin/` lets you reorder, add, move, retitle, describe, and remove work without touching code. Collections can be renamed (plus an optional short name for the compact menu and an intro line), dragged by ⠿ or moved with ↑ ↓ to change their order on the site, and hidden. The Site text panel edits the tagline, subtitle, header line and Instagram link, stored in `src/site.json`; empty fields fall back to the built-in text.
 
+The About panel edits the About section, stored as `about` in `src/site.json`: role line, availability line, bio (blank line between paragraphs), experience and skills (one entry per line, split into two columns at `|`), and an optional contact email and résumé link (each hidden while empty). About opens as a dialog from its separate desktop sidebar box or the hero top bar, and from the About buttons on the phone home screen, menu and footer. `/#about` links to it directly. The work index is available below the desktop collection list and on the phone home screen, menu and footer.
+
 An artwork's optional description appears in the viewer. On desktop it is a column beside the image that opens by itself only when it would not shrink the image (otherwise a dotted INFO button opens it; key I toggles, and the visitor's choice is remembered for the visit). On phones it is a sheet pulled up with INFO and dismissed with Hide or a downward swipe; on landscape phones it is a side panel. Sign in with GitHub (only the account in `ADMIN_GITHUB_LOGIN`, default `n1tz`, is accepted). Images are resized in the browser to 2000px plus a 640px thumbnail (WebP, or JPEG on Safari), uploaded one at a time, and committed together when you press Publish; Vercel then redeploys. Images no longer referenced are deleted in the same commit. Publishing refuses if `content.json` changed since the editor loaded.
 
 The game collection supports a directly hosted MP4 (`"type": "video"`, `"videoSrc": "/media/filename.mp4"`) or a YouTube trailer (`"youtube": "<id>"`). Its poster uses `src`/`thumb`, and the trailer stays first. `storeUrl` on the collection drives the Steam button, which reads "Steam — coming soon" while empty. Existing hosted videos are preserved by editor publishes; setting a YouTube URL replaces the trailer.
@@ -85,7 +87,7 @@ Browser checks expect a server at `http://localhost:3010`; override with `REVIEW
 
 ## Typography
 
-Large display text uses Helvetica Neue Bold when installed. The bundled Nimbus Sans Bold provides a consistent Helvetica-compatible fallback on devices without Helvetica Neue. A licensed Helvetica Neue webfont can replace that fallback if one is supplied. The font stack is defined by `--display` in `src/style.css`.
+Display text uses the bundled Nimbus Sans Bold with normalized UI metrics and explicit leading, defined in `src/typography.css`. The font is preloaded so headings retain consistent widths and baselines across platforms. Gutz and Yomenee specimens use their original fonts.
 
 The unmodified fallback font is from [Artifex's URW base35 collection](https://github.com/ArtifexSoftware/urw-base35-fonts). Its distribution license and copyright notices are retained in `public/fonts/LICENSE` and `public/fonts/COPYING`; the source repository contains its original font files.
 

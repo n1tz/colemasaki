@@ -5,7 +5,7 @@ import { MOBILE_QUERY } from './viewport.js';
 import { fontSpecimen } from './font-specimen.js';
 
 // A touch-first presentation of the same manifest. Desktop stays in the 3D scene.
-export function createMobileGallery(collections, { onSelect, onOpen, site }) {
+export function createMobileGallery(collections, { onSelect, onOpen, site, hasAbout }) {
   const media = matchMedia(MOBILE_QUERY);
   const root = document.createElement('div');
   root.className = 'mobile-gallery';
@@ -13,6 +13,9 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
   const pad = n => String(n).padStart(2,'0');
   const titleCase = text => text.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
   const intro = c => c.intro ? `<p class="mobile-collection-intro">${escape(c.intro)}</p>` : '';
+  const total = collections.reduce((n,c)=>n+c.items.length,0);
+  // [data-index] and [data-about] are handled by main.js, which owns both dialogs.
+  const shortcuts = `<div class="mobile-shortcuts"><button class="mobile-shortcut primary" data-index aria-haspopup="dialog"><span>Work index ↗</span><small>All ${total} works</small></button>${hasAbout?'<button class="mobile-shortcut" data-about aria-haspopup="dialog"><span>About ↗</span><small>Experience & skills</small></button>':''}</div>`;
   let active = -1, large = true, kv=null, kvPaused=false;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Items flagged showcase:false in the editor never appear in the animated preview.
@@ -35,12 +38,12 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
       <button class="mobile-menu-button" aria-haspopup="dialog" aria-controls="mobile-menu">Collections <span aria-hidden="true">＋</span></button>
     </header>
     <main id="mobile-content" tabindex="-1"></main>
-    <footer class="mobile-footer"><span>© COLE MASAKI</span><a href="${escape(site.aboutUrl)}">About ↗</a><a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
+    <footer class="mobile-footer"><span>© COLE MASAKI</span><button data-index>Work index</button>${hasAbout?'<button data-about>About</button>':''}<a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
     <dialog id="mobile-menu" aria-labelledby="mobile-menu-title">
       <div class="mobile-menu-head"><h2 id="mobile-menu-title">Collections</h2><button class="mobile-menu-close" aria-label="Close collections">Close ×</button></div>
       <nav aria-label="Mobile collections"><button data-room="-1"><span>00</span><strong>All collections</strong><span>↗</span></button>
       ${collections.map((c,i)=>`<button data-room="${i}"><span>${pad(i+1)}</span><strong>${escape(c.label)}${!c.items.length?'<small>Coming later</small>':''}</strong><span>${c.items.length?pad(c.items.length):'—'}</span></button>`).join('')}</nav>
-      <a class="mobile-about" href="${escape(site.aboutUrl)}"><span><small>THE PERSON BEHIND THE WORK</small><strong>About Cole Masaki</strong></span><span aria-hidden="true">↗</span></a>
+      ${shortcuts}
     </dialog>`;
   document.querySelector('#app').append(root);
   const content = root.querySelector('#mobile-content'), menu = root.querySelector('#mobile-menu'), menuButton = root.querySelector('.mobile-menu-button');
@@ -52,7 +55,7 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
     if (!media.matches) return;
     root.querySelectorAll('[data-room]').forEach(b => {if(Number(b.dataset.room)===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     if(active < 0){
-      content.innerHTML=`<div class="mobile-intro"><p>${escape(site.headerLine)}</p><h1 tabindex="-1">${escape(titleCase(site.tagline))}</h1>
+      content.innerHTML=`<div class="mobile-intro"><p>${escape(site.headerLine)}</p><h1 tabindex="-1">${escape(titleCase(site.tagline))}</h1>${shortcuts}
         <figure class="mobile-kv" aria-label="Animated artwork preview">
           <div class="mobile-kv-space" aria-hidden="true"><div class="mobile-kv-fallback">${featured.map(item=>image(item,true)).join('')}</div></div>
           <button class="mobile-kv-pause" aria-label="${kvPaused||reducedMotion?'Resume preview animation':'Pause preview animation'}" aria-pressed="${!(kvPaused||reducedMotion)}" ${reducedMotion?'disabled':''}>${motionIcon(kvPaused||reducedMotion)}</button>
@@ -68,7 +71,10 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
       const c=collections[active];
       if(c.id==='game'){
         // The shared game page owns the inline player on every viewport.
-        content.innerHTML='';
+        const shared=content.querySelector('.portfolio-showcase');
+        // Media-query listeners can fire in either order on an orientation change.
+        // Keep the shared player if main.js has already moved it into this host.
+        for(const child of [...content.childNodes])if(child!==shared)child.remove();
       }else if(c.id==='fonts'){
         content.innerHTML=`<div class="mobile-intro mobile-section"><button class="mobile-back">← All collections</button><h1 tabindex="-1">${escape(c.label)}</h1>${intro(c)}</div><div class="mobile-browse"><p>02 CUSTOM TYPEFACES <span>Type to try · Download TTF</span></p></div><div class="mobile-fonts"></div>`;
         content.querySelector('.mobile-fonts').replaceChildren(...c.items.map(item=>fontSpecimen(item,{compact:true})));
@@ -87,6 +93,7 @@ export function createMobileGallery(collections, { onSelect, onOpen, site }) {
   menu.addEventListener('click',e=>{if(e.target===menu){const r=menu.getBoundingClientRect();if(e.clientY<r.top||e.clientY>r.bottom)closeMenu();}});
   root.addEventListener('click', e=>{
     if(e.target.closest('.portfolio-showcase'))return;
+    if(e.target.closest('[data-index],[data-about]')){e.preventDefault();if(menu.open)menu.close();return;}
     if(e.target.closest('.mobile-kv-pause')){
       kvPaused=!kvPaused;kv?.setPaused(kvPaused);
       const button=root.querySelector('.mobile-kv-pause');button.innerHTML=motionIcon(kvPaused);button.setAttribute('aria-label',kvPaused?'Resume preview animation':'Pause preview animation');button.setAttribute('aria-pressed',String(!kvPaused));return;

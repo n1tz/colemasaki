@@ -15,6 +15,10 @@ assert.deepEqual(game.items.slice(1).map(item=>item.source),[5,4,3,2,1].map(i=>`
 // Editor saves must retain the hosted trailer even when other content is edited.
 const publish=await readFile(new URL('../api/publish.js',import.meta.url),'utf8');
 const merge=vm.runInNewContext(publish.replace(/^import .*;\n/,'').split('export default')[0]+'\nmerge;');
+const site=JSON.parse(await readFile(new URL('../src/site.json',import.meta.url),'utf8'));
+const mergeSite=vm.runInNewContext(publish.replace(/^import .*;\n/,'').split('export default')[0]+'\nmergeSite;');
+assert.equal(mergeSite(site,{tagline:'Portfolio'}).about.intro,site.about.intro,'Site edits must preserve the imported About content');
+assert.equal(mergeSite(site,{about:{status:'Available for work'}}).about.skills,site.about.skills,'Editing availability must preserve skills');
 const edited=structuredClone(collections);edited[0].label='Wheels of Steel';edited[0].storeUrl='https://store.steampowered.com/app/123/';
 const saved=merge(collections,edited,new Set());
 assert.equal(saved[0].items[0].videoSrc,game.items[0].videoSrc);

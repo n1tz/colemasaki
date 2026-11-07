@@ -20,10 +20,14 @@
 .game-feature-kicker{position:absolute;top:28px;left:32px;right:32px;display:flex;justify-content:space-between;gap:14px;font-size:10px;line-height:1.6;letter-spacing:.09em;border-bottom:1px solid #9ca7bd66;padding-bottom:14px}
 .game-feature-bottom{position:absolute;bottom:32px;left:32px;right:32px;display:flex;justify-content:space-between;align-items:center;gap:20px}
 .game-feature-bottom>span{font-size:9px;letter-spacing:.08em;padding:8px 10px;border:1px solid #9ca7bd66;background:#080c16a8}
-.game-feature-cta{font:700 clamp(20px,1.7vw,28px)/1.2 var(--display);text-transform:none;display:inline-flex;gap:18px;align-items:center;min-height:60px;padding:16px 20px;border:1px solid #527094;background:linear-gradient(115deg,#1b2b42,#101823 70%);color:#edf2fa}
-.game-feature:hover .game-feature-cta{border-color:#91b2e0;background:linear-gradient(115deg,#263d5c,#15233a)}
+.game-feature-cta{display:inline-flex;align-items:center;gap:18px;min-height:44px;padding:0;border:0;background:none;color:#edf2fa;font:400 12px/1.5 Mono,monospace;letter-spacing:.09em;text-transform:uppercase}
+.game-feature-cta-label{display:block;padding:10px 0;border-bottom:1px solid #6e8aaa}
+.game-feature-cta-icon{display:grid;place-items:center;width:44px;height:44px;border:1px solid #6e8aaa;background:#0d1824b3;transition:border-color .25s,background .25s}
+.game-feature-cta-icon>.ui-arrow{display:block;width:22px;height:22px;transition:transform .25s}
+.game-feature:hover .game-feature-cta-label{border-color:#c0d6f4}
+.game-feature:hover .game-feature-cta-icon{background:#1b2b42;border-color:#c0d6f4}
+.game-feature:hover .game-feature-cta-icon>.ui-arrow{transform:translateX(2px)}
 .game-feature,.mobile-game-card{--accent:#82adf5;--accent-wash:#82adf514}
-.game-feature-cta>span{display:block}.game-feature-cta>.ui-arrow{display:block;width:26px;height:26px;vertical-align:0}
 .game-feature-name{position:absolute;top:40%;left:7%;font:700 64px var(--display)}
 .showcase-collections{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 24px}
 .showcase-card{display:block;text-align:left;padding:0;min-width:0}

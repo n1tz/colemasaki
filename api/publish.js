@@ -86,6 +86,29 @@ function mergeSite(current, incoming) {
     check(!incoming.instagram || https(incoming.instagram), 'The Instagram link must start with https://.');
     if (incoming.instagram) next.instagram = incoming.instagram.trim(); else delete next.instagram;
   }
+  if (incoming.about !== undefined) next.about = mergeAbout(current.about || {}, incoming.about);
+  if (next.about && !Object.keys(next.about).length) delete next.about;
+  return next;
+}
+// The About section; empty fields are dropped so the site hides them.
+const ABOUT_TEXT = { role: 120, status: 200, intro: 4000, experience: 2000, skills: 2000 };
+function mergeAbout(current, incoming) {
+  check(incoming && typeof incoming === 'object' && !Array.isArray(incoming), 'Invalid About section.');
+  const next = { ...current };
+  const set = (key, value) => { const clean = value.replace(/\r\n?/g, '\n').trim(); if (clean) next[key] = clean; else delete next[key]; };
+  for (const [key, max] of Object.entries(ABOUT_TEXT)) {
+    if (incoming[key] === undefined) continue;
+    check(text(incoming[key], max), `About “${key}” must be at most ${max} characters.`);
+    set(key, incoming[key]);
+  }
+  if (incoming.email !== undefined) {
+    check(text(incoming.email, 120) && (!incoming.email.trim() || /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(incoming.email.trim())), 'The contact email is not valid.');
+    set('email', incoming.email);
+  }
+  if (incoming.resume !== undefined) {
+    check(text(incoming.resume, 600) && (!incoming.resume.trim() || https(incoming.resume.trim())), 'The résumé link must start with https://.');
+    set('resume', incoming.resume);
+  }
   return next;
 }
 const artPaths = content => new Set(content.flatMap(c => c.items.flatMap(i => [i.src, i.thumb])).filter(p => ART.test(p)));

@@ -146,20 +146,19 @@ a.store-link:hover{background:#fff;color:#11120f}
 .collection-pager.single-page .pager-store{margin-left:0}
 
 /* Desktop hero: the knight owns the first screen; scrolling reveals the collections. */
-.scroll-cue,.hero-tagline{display:none}
+.hero-entry,.hero-tagline{display:none}
 @media(min-width:801px){
  .collection-nav,.stage-caption,#markers,.instructions{transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
  .hero .collection-nav,.hero .stage-caption,.hero #markers,.hero .instructions{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .4s,transform .4s,visibility 0s .4s}
  .hero .collection-nav{transform:translateX(-24px)}.hero .stage-caption{transform:translateX(24px)}
- .scroll-cue{display:flex;position:absolute;left:50%;bottom:44px;transform:translateX(-50%);flex-direction:column;align-items:center;gap:8px;padding:10px 14px;border:1px solid #55584d;background:#11120fed;font-size:9px;letter-spacing:.12em;color:var(--ink);opacity:0;pointer-events:none;transition:opacity .4s;z-index:2}
- .scroll-cue i{display:block;width:1px;height:26px;background:linear-gradient(var(--ink) 50%,transparent 0) 0 0/1px 200% no-repeat;animation:cue 1.8s cubic-bezier(.65,0,.35,1) infinite}
- .hero .scroll-cue{opacity:1;pointer-events:auto}
- .hero-tagline{display:block;position:absolute;left:0;right:0;bottom:160px;margin:0;text-align:center;white-space:nowrap;font:700 clamp(40px,5vw,76px)/1.12 var(--display);letter-spacing:.015em;color:#fff;mix-blend-mode:difference;pointer-events:none;z-index:3;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s .12s}
+ .hero-entry{display:flex;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);align-items:center;justify-content:center;min-height:48px;padding:14px 22px;border:1px solid #777e72;background:#11120fe8;font:11px/1.5 Mono,monospace;letter-spacing:.12em;color:var(--ink);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s,background .2s,border-color .2s;z-index:4}
+ .hero-entry:hover{background:#20221ded;border-color:var(--ink)}
+ .hero-intro .hero-entry{opacity:1;visibility:visible;pointer-events:auto}
+ .hero-tagline{display:block;position:absolute;left:0;right:0;bottom:52px;margin:0;text-align:center;white-space:nowrap;font:700 clamp(40px,5vw,76px)/1.12 var(--display);letter-spacing:.015em;color:#fff;mix-blend-mode:difference;pointer-events:none;z-index:3;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s .12s}
  .hero-intro .hero-tagline{opacity:1;visibility:visible;transition:opacity .4s}
- @keyframes cue{from{background-position:0 100%}to{background-position:0 -100%}}
 }
-@media(max-height:700px) and (min-width:801px){.hero-tagline{font-size:44px;bottom:150px}}
-@media(prefers-reduced-motion:reduce){.scroll-cue i{animation:none;background:var(--ink)}}
+@media(max-height:700px) and (min-width:801px){.hero-tagline{font-size:44px;bottom:38px}}
+@media(prefers-reduced-motion:reduce){.hero-entry{transition:none}}
 /* Overview labels wipe in, staggered across the grid, as soon as the flight lands. */
 @media(min-width:801px){
  .marker{opacity:0;pointer-events:none;clip-path:inset(0 100% 0 0);transition:opacity .12s,clip-path .12s}
@@ -222,3 +221,52 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline-color:var(--acc
 .category.active .number{color:var(--accent)}
 .desktop-sidebar a:hover,.desktop-sidebar button:hover:not(:disabled),.collection-back button:hover,.showcase-footer button:hover,.collection-work-info>a:hover{color:var(--accent)}
 #page-range{accent-color:var(--accent)}
+
+/* About and work-index entry points. */
+.top-about{border:1px solid currentColor;padding:7px 14px;font-size:10px;letter-spacing:.06em}
+.collection-nav .index-button{margin-top:12px;padding:11px 12px;border:1px solid var(--ink);align-items:center;color:#fff}
+.collection-nav .index-button span{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.collection-nav .index-button:hover{background:var(--ink);color:#11120f}
+.collection-nav .index-button:hover span{color:#11120f}
+.nav-about{display:flex;width:100%;justify-content:space-between;align-items:center;padding:12px 0 0;font-size:10px}
+.overview-actions{display:grid;gap:8px;margin-top:18px;pointer-events:auto}
+.focused .overview-actions{display:none}
+.stage-caption .overview-actions button{display:flex;margin:0;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #55584d;font-size:10px;text-align:left}
+.stage-caption .overview-actions .overview-index{display:grid;justify-content:stretch;gap:5px;background:var(--ink);color:#11120f;border-color:var(--ink)}
+.overview-index span{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.04em}
+.overview-index small{font-size:9px;text-transform:none;opacity:.75}
+.stage-caption .overview-actions .overview-index:hover{background:#fff;color:#11120f}
+.stage-caption .overview-actions .overview-about:hover{border-color:var(--ink)}
+@media(max-width:1100px) and (min-width:801px){.stage-caption .overview-actions button{padding:9px 10px;font-size:9px}
+.overview-index span{font-size:10px}
+}
+
+/* About dialog: bio on the left, experience and skills on the right; one column on phones. */
+.about-dialog{width:min(1060px,calc(100vw - 36px));height:min(820px,calc(100svh - 36px))}
+.about-content{height:calc(100% - 65px);overflow:auto;padding:36px 36px 44px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:56px;align-items:start}
+.about-main h2{font:700 48px/1 var(--display);letter-spacing:-.045em;margin:0 0 12px;color:#fff}
+.about-role{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 30px}
+.about-text p{font:400 16px/1.6 var(--display);margin:0 0 1em;max-width:62ch;color:var(--ink)}
+.about-status{font-size:11px;line-height:1.6;border-left:2px solid var(--ink);padding:2px 0 2px 14px;margin:28px 0;color:#fff}
+.about-links{display:flex;flex-wrap:wrap;gap:10px}
+.about-links a,.about-links button{display:inline-flex;align-items:center;gap:14px;min-height:42px;padding:0 14px;border:1px solid #55584d;font-size:10px;letter-spacing:.04em;text-transform:uppercase;overflow-wrap:anywhere}
+.about-links a:hover,.about-links button:hover{border-color:var(--ink)}
+.about-links .primary{background:var(--ink);color:#11120f;border-color:var(--ink)}
+.about-links .primary:hover{background:#fff;color:#11120f}
+.about-side section+section{margin-top:36px}
+.about-side h3{font-size:10px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.about-rows{margin:0}
+.about-rows div{display:grid;gap:4px 18px;padding:13px 0;border-bottom:1px solid var(--line)}
+.about-rows dt{font:400 14px/1.4 var(--display);color:#fff}
+.about-rows dd{margin:0;font-size:10px;line-height:1.6;color:var(--muted)}
+.about-rows.experience div{grid-template-columns:minmax(0,1fr) auto;align-items:baseline}
+.about-rows.experience dd{text-align:right;white-space:nowrap}
+.about-rows.skills div{grid-template-columns:110px minmax(0,1fr);align-items:baseline}
+@media(max-width:1000px){.about-content{grid-template-columns:minmax(0,1fr);gap:40px}
+}
+/* Short desktop windows: the top bar and overview panel already offer About; keep the menu clear of the controls. */
+@media(max-height:780px) and (min-width:801px){.nav-about{display:none}
+.collection-nav .index-button{margin-top:4px;padding:5px 10px}
+.stage-caption .overview-actions{margin-top:12px}
+.stage-caption .overview-actions button{padding:8px 10px}
+}

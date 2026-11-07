@@ -21,7 +21,7 @@ export function gameFeature(collection,index,{mobile=false}={}){
     <span class="game-feature-shade"></span>
     <span class="game-feature-kicker">${pad(index+1)} / INDEPENDENT GAME <span>${collection.storeUrl?'ON STEAM':'COMING SOON TO STEAM'}</span></span>
     ${collection.logo?`<img class="game-feature-logo" src="${escape(collection.logo)}" alt="${escape(collection.label)}">`:`<strong class="game-feature-name">${escape(collection.label)}</strong>`}
-    <span class="game-feature-bottom"><span>BY COLE MASAKI</span><strong class="game-feature-cta"><span>Explore the game</span>${arrow('↗')}</strong></span>
+    <span class="game-feature-bottom"><span>BY COLE MASAKI</span><strong class="game-feature-cta"><span class="game-feature-cta-label">Explore the game</span><span class="game-feature-cta-icon">${arrow('→')}</span></strong></span>
   </button>`;
 }
 

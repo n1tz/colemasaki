@@ -14,6 +14,17 @@ const SITE_FIELDS = [
   { key: 'instagram', label: 'Instagram link', hint: 'Footer link', max: 600, fallback: 'https://www.instagram.com/colemasaki/', type: 'url' },
 ];
 
+// The About section (site.json "about"). Empty fields are left off the page.
+const ABOUT_FIELDS = [
+  { key: 'role', label: 'Role line', hint: 'Small line under your name', max: 120 },
+  { key: 'status', label: 'Availability', hint: 'Highlighted line under the bio, e.g. what work you are open to', max: 200 },
+  { key: 'intro', label: 'Bio', hint: 'Separate paragraphs with a blank line', max: 4000, rows: 10, wide: true },
+  { key: 'experience', label: 'Experience', hint: 'One per line. Put | before the time, e.g. Lead Designer, Company | 2.5 years', max: 2000, rows: 5, wide: true },
+  { key: 'skills', label: 'Skills & tools', hint: 'One per line. Put | after the area, e.g. 3D | Modeling, sculpting', max: 2000, rows: 6, wide: true },
+  { key: 'email', label: 'Contact email', hint: 'Shown as an Email button. Leave empty to hide', max: 120, type: 'email' },
+  { key: 'resume', label: 'Résumé link', hint: 'https:// link to a PDF. Leave empty to hide', max: 600, type: 'url' },
+];
+
 async function api(path, { body, raw } = {}) {
   const response = await fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Request': '1' }, body: JSON.stringify(body) } : {});
   if (raw && response.ok) return response;
@@ -75,7 +86,7 @@ const thumbOf = item => state.previews.get(item.thumb) || item.thumb;
 function render() {
   const root = $('#collections');
   let visible = 0;
-  root.innerHTML = siteSettings() + state.content.map((c, ci) => `
+  root.innerHTML = siteSettings() + aboutSettings() + state.content.map((c, ci) => `
     <details class="collection ${c.hidden ? 'is-hidden' : ''}" data-ci="${ci}" ${state.open.has(c.id) ? 'open' : ''}>
       <summary>
         <span class="handle" draggable="true" data-collection-handle title="Drag to change the order on the site" aria-hidden="true">⠿</span>
@@ -98,6 +109,15 @@ function siteSettings() {
     <div class="settings-grid">${SITE_FIELDS.map(f => `<label class="field">${f.label}<span class="hint">${f.hint}</span>
       <input type="${f.type || 'text'}" data-site-field="${f.key}" maxlength="${f.max}" placeholder="${escape(f.fallback)}" value="${escape(state.site[f.key] || '')}"></label>`).join('')}</div>
     <p class="note">Leave a field empty to use the text shown in grey. Drag collections by ⠿ (or use ↑ ↓) to change their order on the site.</p>
+  </details>`;
+}
+function aboutSettings() {
+  const about = state.site.about || {};
+  return `<details class="panel about-settings" ${state.open.has('#about') ? 'open' : ''}>
+    <summary><h2>About</h2><span class="num">Bio, experience, skills, contact</span></summary>
+    <div class="settings-grid">${ABOUT_FIELDS.map(f => `<label class="field ${f.wide ? 'wide' : ''}">${f.label}<span class="hint">${f.hint}</span>
+      ${f.rows ? `<textarea data-about-field="${f.key}" maxlength="${f.max}" rows="${f.rows}">${escape(about[f.key] || '')}</textarea>` : `<input type="${f.type || 'text'}" data-about-field="${f.key}" maxlength="${f.max}" value="${escape(about[f.key] || '')}">`}</label>`).join('')}</div>
+    <p class="note">Opens from the About box in the desktop sidebar and the hero top bar, and from the About buttons on phones. Leaving Bio, Experience and Skills all empty removes the About section.</p>
   </details>`;
 }
 function collectionFields(c) {
@@ -141,7 +161,7 @@ function card(c, ci, item, ii) {
 }
 function rememberOpen() {
   document.querySelectorAll('.collection').forEach(el => { const id = state.content[el.dataset.ci].id; if (el.open) state.open.add(id); else state.open.delete(id); });
-  const site = $('.site-settings'); if (site) { if (site.open) state.open.add('#site'); else state.open.delete('#site'); }
+  for (const [selector, key] of [['.site-settings', '#site'], ['.about-settings', '#about']]) { const panel = $(selector); if (panel) { if (panel.open) state.open.add(key); else state.open.delete(key); } }
 }
 function rerender() { rememberOpen(); const y = scrollY; render(); scrollTo(0, y); }
 
@@ -179,6 +199,9 @@ $('#collections').addEventListener('input', e => {
     const block = el.closest('.collection'), collection = state.content[block.dataset.ci];
     collection[el.dataset.collectionField] = el.value;
     if (el.dataset.collectionField === 'label') block.querySelector('summary h2').textContent = el.value || 'Untitled';
+    once(el);
+  } else if (el.dataset.aboutField) {
+    state.site.about = { ...(state.site.about || {}), [el.dataset.aboutField]: el.value };
     once(el);
   } else if (el.dataset.siteField) {
     state.site[el.dataset.siteField] = el.value;
@@ -420,6 +443,9 @@ $('#publish').onclick = async () => {
   if (unnamed) return toast('Every collection needs a name.', { error: true });
   if (state.content.every(c => c.hidden)) return toast('At least one collection must stay visible.', { error: true });
   if (state.site.instagram?.trim() && !/^https:\/\//.test(state.site.instagram.trim())) return toast('The Instagram link must start with https://', { error: true });
+  const about = state.site.about || {};
+  if (about.resume?.trim() && !/^https:\/\//.test(about.resume.trim())) return toast('The résumé link must start with https://', { error: true });
+  if (about.email?.trim() && !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(about.email.trim())) return toast('The contact email does not look like an email address.', { error: true });
   const bad = state.content.flatMap(c => c.items).find(item => item.url && !/^https:\/\//.test(item.url));
   if (bad) return toast(`The link on “${escape(bad.title || bad.id)}” must start with https://`, { error: true });
   $('#publish').disabled = true; $('#status').textContent = 'Publishing…';
