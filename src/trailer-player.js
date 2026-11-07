@@ -18,7 +18,7 @@ export function trailerPlayer(video){
   player.className=`trailer-player ${video.className}-player`;
   player.setAttribute('role','group');
   player.setAttribute('aria-label',video.getAttribute('aria-label'));
-  player.innerHTML=`<div class="trailer-screen"></div>
+  player.innerHTML=`<div class="trailer-screen"><button type="button" class="trailer-poster-play" aria-label="Play reveal trailer">${icons.play}</button></div>
     <div class="trailer-controls">
       <input class="trailer-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Trailer position" disabled>
       <div class="trailer-toolbar">
@@ -31,7 +31,8 @@ export function trailerPlayer(video){
         <button type="button" class="trailer-fullscreen" aria-label="Enter fullscreen">${icons.expand}</button>
       </div>
     </div><p class="trailer-status" role="status" hidden></p>`;
-  player.querySelector('.trailer-screen').append(video);
+  player.querySelector('.trailer-screen').prepend(video);
+  const posterPlay=player.querySelector('.trailer-poster-play');
   const play=player.querySelector('.trailer-play'),mute=player.querySelector('.trailer-mute');
   const seek=player.querySelector('.trailer-seek'),volume=player.querySelector('.trailer-volume');
   const fullscreen=player.querySelector('.trailer-fullscreen'),status=player.querySelector('.trailer-status');
@@ -51,6 +52,10 @@ export function trailerPlayer(video){
   }
   function syncPlayback(){
     const paused=video.paused||video.ended;
+    if(!paused){
+      if(document.activeElement===posterPlay)play.focus({preventScroll:true});
+      posterPlay.hidden=true;
+    }
     play.innerHTML=`${paused?icons.play:icons.pause}<span>${video.ended?'Replay':paused?'Play':'Pause'}</span>`;
     play.setAttribute('aria-label',video.ended?'Replay trailer':paused?'Play trailer':'Pause trailer');
   }
@@ -60,6 +65,11 @@ export function trailerPlayer(video){
     try{await video.play();}catch(error){if(error.name!=='AbortError')playbackError();}
   }
   play.addEventListener('click',toggle);
+  posterPlay.addEventListener('click',()=>{
+    // Move keyboard focus before asynchronous playback can hide the button.
+    if(document.activeElement===posterPlay)play.focus({preventScroll:true});
+    toggle();
+  });
   video.addEventListener('click',toggle);
   seek.addEventListener('input',()=>{video.currentTime=Number(seek.value);syncTime();});
   mute.addEventListener('click',()=>{

@@ -1,23 +1,30 @@
-.trailer-player{--accent:#8bb9ff;--accent-wash:#233b59;width:100%;background:#090e16;color:#e5edfa}
+.trailer-player{--accent:#8bb9ff;--accent-wash:#1a1a1a;width:100%;background:#080808;color:#eeeeec}
 .trailer-screen{position:relative;aspect-ratio:16/9;background:#000}
 .trailer-player .trailer-screen>video{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;border:0;cursor:pointer}
+.trailer-poster-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(64px,8vw,88px);aspect-ratio:1;padding:0;border:1px solid #8bb9ff;background:#080808eb;color:#f5f5f3;box-shadow:0 4px 24px #0008;cursor:pointer}
+.trailer-poster-play[hidden]{display:none}
+.trailer-poster-play svg{width:38%;height:38%;transform:translateX(-1px);fill:currentColor;stroke-width:1}
+.trailer-poster-play:hover{background:#151515;color:#8bb9ff}
+.trailer-poster-play:focus-visible{outline:2px solid #8bb9ff;outline-offset:5px}
 .game-media-stage:has(.trailer-player){aspect-ratio:auto}
-.trailer-controls{border-top:1px solid #527094;padding:0 12px 6px;background:linear-gradient(110deg,#172537,#0e1621 70%)}
+.trailer-controls{border-top:1px solid #404040;padding:0 12px 6px;background:#080808}
 .trailer-controls input.trailer-seek{display:block;width:100%;height:28px;--played:0%;--accent:#8bb9ff}
-.trailer-controls .trailer-seek::-webkit-slider-runnable-track{background:linear-gradient(90deg,#8bb9ff var(--played),transparent var(--played)),repeating-linear-gradient(90deg,#527094 0 1px,transparent 1px 12px) center/100% 2px no-repeat,#090e16;border-color:#3c526d}
-.trailer-controls .trailer-seek::-moz-range-track{background:linear-gradient(90deg,#8bb9ff var(--played),transparent var(--played)),repeating-linear-gradient(90deg,#527094 0 1px,transparent 1px 12px) center/100% 2px no-repeat,#090e16;border-color:#3c526d}
+.trailer-controls input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,#8bb9ff var(--played,0%),transparent var(--played,0%)),repeating-linear-gradient(90deg,#555 0 1px,transparent 1px 12px) center/100% 2px no-repeat,#101010;border-color:#404040}
+.trailer-controls input[type=range]::-moz-range-track{background:linear-gradient(90deg,#8bb9ff var(--played,0%),transparent var(--played,0%)),repeating-linear-gradient(90deg,#555 0 1px,transparent 1px 12px) center/100% 2px no-repeat,#101010;border-color:#404040}
+.trailer-controls input[type=range]::-webkit-slider-thumb{background-color:#080808;box-shadow:0 0 0 3px #080808}
+.trailer-controls input[type=range]::-moz-range-thumb{background-color:#080808;box-shadow:0 0 0 3px #080808}
 .trailer-controls input:disabled{opacity:.4;cursor:default}
 .trailer-toolbar{display:flex;align-items:center;gap:12px}
-.trailer-toolbar button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-width:44px;min-height:44px;padding:0 10px;border:1px solid #425975;background:#101b29;color:#e5edfa;font:10px/1 Mono,monospace;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
-.trailer-toolbar button:hover{border-color:#8bb9ff;background:#233b59;color:#fff}
+.trailer-toolbar button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-width:44px;min-height:44px;padding:0 10px;border:1px solid #404040;background:#101010;color:#eeeeec;font:10px/1 Mono,monospace;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.trailer-toolbar button:hover{border-color:#8bb9ff;background:#1a1a1a;color:#fff}
 .trailer-toolbar button:focus-visible{outline:2px solid #8bb9ff;outline-offset:3px}
 .trailer-toolbar button[hidden]{display:none}
 .trailer-toolbar svg{display:block;width:18px;height:18px;flex:none}
 .trailer-play{min-width:100px!important}
-.trailer-time{font:10px/1.4 Mono,monospace;font-variant-numeric:tabular-nums;white-space:nowrap;color:#b7c9df}
+.trailer-time{font:10px/1.4 Mono,monospace;font-variant-numeric:tabular-nums;white-space:nowrap;color:#bcbcbc}
 .trailer-audio{display:flex;align-items:center;gap:12px;margin-left:auto}
 .trailer-controls .trailer-volume{width:64px}
-.trailer-status{margin:0;padding:10px 12px;border-top:1px solid #425975;font:11px/1.5 Mono,monospace;color:#c7d7ec}
+.trailer-status{margin:0;padding:10px 12px;border-top:1px solid #404040;font:11px/1.5 Mono,monospace;color:#ccc}
 .trailer-status a{text-decoration:underline}
 .view-body .view-video-player{width:min(100cqw,calc((100cqh - 80px)*16/9))}
 .trailer-player:fullscreen{display:flex;flex-direction:column;justify-content:center;width:100%;height:100%;background:#000}

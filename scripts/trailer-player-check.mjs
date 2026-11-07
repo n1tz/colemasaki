@@ -13,10 +13,16 @@ try{
     await player.waitFor();
     assert.equal(await video.evaluate(el=>el.controls),false);
     assert.equal(await video.getAttribute('preload'),'none');
-    await player.getByRole('button',{name:'Play trailer',exact:true}).click();
+    const posterPlay=player.getByRole('button',{name:'Play reveal trailer',exact:true});
+    await posterPlay.waitFor();
+    await player.screenshot({path:`/tmp/cole-trailer-poster-${width}.png`});
+    await posterPlay.press('Enter');
     await page.waitForFunction(()=>document.querySelector('.game-inline-video').currentTime>.1);
+    assert.equal(await posterPlay.isVisible(),false);
+    assert.equal(await player.locator('.trailer-play').evaluate(el=>document.activeElement===el),true);
     await player.getByRole('button',{name:'Pause trailer',exact:true}).click();
     assert(await video.evaluate(el=>el.paused));
+    assert.equal(await posterPlay.isVisible(),false);
     const seek=player.getByRole('slider',{name:'Trailer position'});
     await seek.fill('10');
     assert(Math.abs(await video.evaluate(el=>el.currentTime)-10)<.2);
