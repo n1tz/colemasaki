@@ -39,8 +39,16 @@ export function createAsciiPass(renderer) {
       }`});
   const scene=new THREE.Scene(),camera=new THREE.Camera();
   const quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),material);scene.add(quad);
+  // The scene is drawn into the target at `scale` of the canvas resolution and
+  // upscaled by the final pass. Glyph cells only read one texel per 10×14 px,
+  // and the plain half is dark, fogged geometry, so a smaller target is the
+  // cheapest quality knob available: fill cost falls with scale².
+  let width=1,height=1,scale=1;
+  function size(){target.setSize(Math.max(1,Math.round(width*renderer.getPixelRatio()*scale)),Math.max(1,Math.round(height*renderer.getPixelRatio()*scale)));uniforms.resolution.value.set(width,height);}
   return {
-    resize(width,height){target.setSize(Math.round(width*renderer.getPixelRatio()),Math.round(height*renderer.getPixelRatio()));uniforms.resolution.value.set(width,height);},
+    resize(w,h){width=w;height=h;size();},
+    setScale(value){if(value===scale)return;scale=value;size();},
+    get scale(){return scale;},
     render(world,view,time,travel,enabled){
       uniforms.time.value=time;uniforms.travel.value=travel;uniforms.enabled.value=enabled?1:0;
       renderer.setRenderTarget(target);renderer.clear();renderer.render(world,view);

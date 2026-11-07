@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ImprovedNoise } from 'three/addons/math/ImprovedNoise.js';
 import { createFieldMaterials } from './motion.js';
-import { createDepthField, roomLocations } from './depth-field.js';
+import { createDepthField, roomLocations, fogCutoff } from './depth-field.js';
 import { createAsciiPass } from './ascii-pass.js';
 import { exhibitionLayout, focusLayout } from './layout.js';
 import { createHero, HERO_ORIGIN } from './hero.js';
@@ -13,17 +12,32 @@ const desktopLocations = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [(i % 4 - 1.5) * 8.6,
 const overviewScale = .6;
 const mobileLocations = [[-4, 2.5, 0], [4, 2.5, 0], [0, -5, 0], [-5, -6.5, -4], [5, -6.5, -4]];
 
-// Weak GPUs get a lighter field and start at a lower resolution; the frame
-// timer below adapts further at runtime.
-const lowEnd = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+// Weak machines get a lighter sculpture, no MSAA and a 30 fps cap;
+// the frame timer below adapts further at runtime. A fast CPU says nothing
+// about the GPU, so integrated/mobile/software renderers count as weak too.
+// `?quality=low|high` forces either path for testing.
+function weakGPU() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2'); if (!gl) return true;
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return /swiftshader|llvmpipe|softpipe|software|basic render|mali|adreno|powervr|intel(?!.*arc)|radeon\(tm\) graphics|radeon vega|radeon \d{3}m\b|ryzen/i.test(name);
+  } catch { return false; }
+}
+const forcedQuality = new URLSearchParams(location.search).get('quality');
+const lowEnd = forcedQuality ? forcedQuality === 'low' : (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || weakGPU();
 const maxPixelRatio = Math.min(devicePixelRatio, lowEnd ? 1 : 1.5);
+// The background drifts slowly; 30 fps reads the same and halves the GPU work.
+const minFrame = lowEnd ? 1 / 30 : 0;
+const FOG_DENSITY = .0035;
 
 export function createSpace(host, collections, { onOpen, onSelect, onReady, onHover, onPage, onProgress, onHero, onHeroIntro, onPresentation, reducedMotion }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#11120f');
   const architectureTime={value:0};
-  const depthField = createDepthField(architectureTime, [[0,0,0], ...roomLocations, HERO_ORIGIN.toArray()]); scene.add(depthField);
-  scene.fog = new THREE.FogExp2('#11120f', .0035);
+  const depthField = createDepthField(architectureTime, [[0,0,0], ...roomLocations, HERO_ORIGIN.toArray()], { fogDensity: FOG_DENSITY }); scene.add(depthField);
+  scene.fog = new THREE.FogExp2('#11120f', FOG_DENSITY);
   // Artwork is rendered last with cleared depth. Neither opaque cubes nor
   // transparent wires can ever cross an image, including during camera travel.
   const artScene = new THREE.Scene();
@@ -36,10 +50,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   renderer.autoClear = false; renderer.info.autoReset = false;
   host.appendChild(renderer.domElement);
   const ascii=createAsciiPass(renderer);
-  const environment = new RoomEnvironment(), pmrem = new THREE.PMREMGenerator(renderer);
-  const environmentMap = pmrem.fromScene(environment, .04);
-  scene.environment = environmentMap.texture; environment.dispose(); pmrem.dispose();
-  const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, 900);
+  // Nothing survives the fog past this distance (see fogCutoff), so the far
+  // plane sits just beyond it: fewer fragments and better depth precision.
+  const camera = new THREE.PerspectiveCamera(43, host.clientWidth / host.clientHeight, .1, Math.ceil(fogCutoff(FOG_DENSITY, .005)));
   const layoutFrame = document.querySelector('#exhibition-frame');
   let viewportSignature = '';
   function syncViewport() {
@@ -57,16 +70,16 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .075; controls.enablePan = false;
   controls.minDistance = 6; controls.maxDistance = 110; controls.rotateSpeed = .4; controls.zoomSpeed = .65;
-  scene.add(new THREE.AmbientLight(0xffffff, .5));
-  const key = new THREE.DirectionalLight(0xffffff, 3); key.position.set(-10, 20, 15); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xe2e4dd, 1.8); rim.position.set(15, -3, -10); scene.add(rim);
   const artworkPlane = new THREE.PlaneGeometry(1, 1);
-  const boxes = new THREE.BoxGeometry(1, 1, 1), field = createFieldMaterials(), noise = new ImprovedNoise();
+  const boxes = new THREE.BoxGeometry(1, 1, 1), noise = new ImprovedNoise();
   const groups = [], boards = [], artworks = [], hitTargets = [], layouts = [];
   let assetsReady=false, fontsReady=false, ready=false;
   document.fonts.ready.then(()=>{fontsReady=true;});
-  const manager = new THREE.LoadingManager(()=>{assetsReady=true;}), loader = new THREE.TextureLoader(manager), dummy = new THREE.Object3D();
+  // Artwork textures load on demand (see requestTextures), outside the boot
+  // manager: the opening screen only waits for the hero model.
+  const manager = new THREE.LoadingManager(()=>{assetsReady=true;}), loader = new THREE.TextureLoader(), dummy = new THREE.Object3D();
   manager.onProgress=(_url,loaded,total)=>onProgress?.(loaded/total*.9);
+  const field = createFieldMaterials({ manager });
   // The hero bust has its own scene so the background ASCII pass never touches it.
   const heroScene = new THREE.Scene(), hero = createHero({ manager }); heroScene.add(hero.group);
   // Overview scroll: 0 orbits the knight's head, 1 rests on the collections.
@@ -123,10 +136,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     const zone = new THREE.Mesh(new THREE.BoxGeometry(7, 7, 7), new THREE.MeshBasicMaterial({ visible: false }));
     zone.userData = { category: ci }; group.add(zone); hitTargets.push(zone);
     collection.items.forEach((item, i) => {
-      const texture = loader.load(item.thumb, undefined, undefined, () => {}); texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
-      const mesh = new THREE.Mesh(artworkPlane, new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false, transparent: true }));
-      mesh.userData = { category: ci, item: i, origin: new THREE.Vector3(), seed: i * 1.71 + ci * 4.3, phase: 0 };
+      const mesh = new THREE.Mesh(artworkPlane, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, toneMapped: false, transparent: true, visible: false }));
+      mesh.userData = { category: ci, item: i, origin: new THREE.Vector3(), seed: i * 1.71 + ci * 4.3, phase: 0, detail: 0 };
       board.add(mesh); artworks.push(mesh);
     });
   });
@@ -139,21 +150,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       const layout = exhibitionLayout(collections[ci], { overview: active < 0, mobile: isMobile(), aspect: camera.aspect, page }); layouts[ci] = layout;
       boards[ci].children.forEach(mesh => {
         const slot = layout.slots.find(s => s.index === mesh.userData.item); mesh.visible = Boolean(slot); if (!slot) return;
-        // Fetch full detail only for works entering an exhibition, not the entire library.
-        if(active === ci && !mesh.userData.fullRequested){
-          mesh.userData.fullRequested=true;
-          loader.load(collections[ci].items[mesh.userData.item].src, texture=>{
-            texture.colorSpace=THREE.SRGBColorSpace;
-            texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);
-            mesh.material.map.dispose();mesh.material.map=texture;
-          },undefined,()=>{mesh.userData.fullRequested=false;});
-        }
         mesh.userData.origin.set(slot.x, slot.y, 0); mesh.position.copy(mesh.userData.origin); mesh.scale.set(slot.width, slot.height, 1); mesh.userData.baseScale=mesh.scale.clone(); mesh.userData.displayScale=mesh.scale.clone(); mesh.userData.order=layout.slots.indexOf(slot);
       });
     });
-    // Sculptures stay the same dark grey on the overview as inside the rooms.
-    field.metal.envMapIntensity = .22; field.metal.color.set('#5d6358');
-    field.wire.uniforms.uOpacity.value = .1; key.intensity = 1.6; field.strength.value = .12;
     // In the overview the wheel travels between the knight and the collections.
     controls.enableZoom = active >= 0;
     if (active >= 0) { page = layouts[active].page; onPage?.(layouts[active]); } else onPage?.(null);
@@ -220,15 +219,41 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   const workLabels = document.createElement('div'); workLabels.className = 'work-labels'; workLabels.setAttribute('aria-hidden', 'true'); host.appendChild(workLabels);
   const itemLabels = artworks.map(mesh => { const el = document.createElement('span'); el.className = 'work-label'; el.textContent = `${collections[mesh.userData.category].id === 'zine' ? 'PAGE ' : ''}${String(mesh.userData.item + 1).padStart(2, '0')}`; workLabels.appendChild(el); return el; });
   const projected = new THREE.Vector3(), direction = new THREE.Vector3(), scratch = new THREE.Vector3(), inverseCamera = new THREE.Quaternion();
-  function animateArt(delta, elapsed = delta) {
+  function animateWorld(delta) {
     if (motionEnabled) {field.time.value += delta;architectureTime.value+=delta;}
-    const progress=tween?tween.progress:1;
-    const pulse=Math.sin(progress*Math.PI);
+    const pulse=Math.sin((tween?tween.progress:1)*Math.PI);
     groups.forEach(group=>{
       const base=active<0?(isMobile()?.65:overviewScale):.85;
       group.scale.setScalar(base*(1+pulse*.08));
       group.rotation.set(0,pulse*.12,0);
     });
+  }
+  // Textures are requested only for works actually on show: thumbnails first,
+  // full detail once their exhibition is entered. While the HTML presentation
+  // covers the scene, the artwork pass never draws and nothing is fetched.
+  function applyTexture(mesh, texture) {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
+    mesh.material.map?.dispose(); mesh.material.map = texture; mesh.material.visible = true; mesh.material.needsUpdate = true;
+  }
+  function requestTextures() {
+    boards.forEach((board, ci) => {
+      if (!board.visible) return;
+      board.children.forEach(mesh => {
+        const data = mesh.userData, want = active === ci ? 2 : 1;
+        if (!mesh.visible || data.detail >= want) return;
+        const level = data.detail = want, item = collections[ci].items[data.item];
+        loader.load(level === 2 ? item.src : item.thumb, texture => {
+          if (data.detail === level || level === 2) applyTexture(mesh, texture); else texture.dispose();
+        }, undefined, () => {
+          // No retry loop: a missing full image falls back to the thumbnail once.
+          if (level === 2 && !mesh.material.map) loader.load(item.thumb, texture => { if (!mesh.material.map) applyTexture(mesh, texture); else texture.dispose(); });
+        });
+      });
+    });
+  }
+  function animateArt(delta, elapsed = delta) {
+    const progress=tween?tween.progress:1;
     inverseCamera.copy(camera.quaternion).invert();
     const overviewView = active < 0 && heroProgress >= 1 ? destination() : null;
     const overviewZoom = overviewView ? camera.position.distanceTo(controls.target) / overviewView.position.distanceTo(overviewView.target) : 1;
@@ -278,8 +303,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     });
   }
   function labels() {
+    workLabels.hidden = presentationOverlay || active < 0 || Boolean(tween);
+    if (presentationOverlay) { labelElements.forEach(el => el.classList.remove('in')); return; }
     const rect = host.getBoundingClientRect();
-    workLabels.hidden = active < 0 || Boolean(tween);
     if(active >= 0) artworks.forEach((mesh,i)=>{
       const el=itemLabels[i]; el.hidden=!mesh.visible||!mesh.parent.visible; if(el.hidden)return;
       projected.set(-.5,-.5,0).applyMatrix4(mesh.matrixWorld).project(camera);
@@ -295,13 +321,22 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   }
   function setPixelRatio(value) { pixelRatio = value; renderer.setPixelRatio(value); viewportSignature = ''; syncViewport(); }
   // Frame-time governor: drop resolution on slow GPUs instead of stuttering.
+  // The scene buffer goes first (it only feeds the ASCII pass), then the
+  // canvas. Recovery runs in reverse. With the 30 fps cap the frame interval
+  // is ~33 ms by design, so "slow" means missing that cadence.
   let frameSamples = 0, frameTotal = 0, governorStart = performance.now() + 2500;
+  const slowFrame = Math.max(.026, minFrame * 1.3);
   function governor(now, elapsed) {
     if (now < governorStart || elapsed > .25) return;
     frameTotal += elapsed; if (++frameSamples < 45) return;
     const average = frameTotal / frameSamples; frameSamples = 0; frameTotal = 0;
-    if (average > .026 && pixelRatio > .6) setPixelRatio(Math.max(.6, pixelRatio - .2));
-    else if (average < .0125 && pixelRatio < maxPixelRatio) setPixelRatio(Math.min(maxPixelRatio, pixelRatio + .1));
+    if (average > slowFrame) {
+      if (ascii.scale > .5) ascii.setScale(ascii.scale - .25);
+      else if (pixelRatio > .6) setPixelRatio(Math.max(.6, pixelRatio - .2));
+    } else if (average < .0125) {
+      if (pixelRatio < maxPixelRatio) setPixelRatio(Math.min(maxPixelRatio, pixelRatio + .1));
+      else if (ascii.scale < 1) ascii.setScale(ascii.scale + .25);
+    }
   }
   // Drives the overview camera between the orbiting head shot and the
   // collections. Returns true while it owns the camera.
@@ -361,7 +396,9 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
   addEventListener('pointermove', onPointer, { passive: true });
   function tick(now) {
     frame=0;if(paused||document.hidden)return;
-    frame = requestAnimationFrame(tick); const elapsed = Math.max(0,(now-last)/1000), delta = Math.min(elapsed,.05); last = now;
+    frame = requestAnimationFrame(tick);
+    if (minFrame && now - last < minFrame * 1000 - 2) return;
+    const elapsed = Math.max(0,(now-last)/1000), delta = Math.min(elapsed,.05); last = now;
     // Resizing clears the canvas, so quality changes happen before drawing.
     governor(now, elapsed);
     if (tween) {
@@ -377,12 +414,13 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
       if(t===1){tween=null;camera.up.set(0,1,0);controls.enabled=!paused;controls.update();}
     }
     const heroDriving=heroUpdate(delta, elapsed);
-    if(!tween&&!heroDriving)controls.update(delta); animateArt(delta, elapsed); renderer.info.reset();
+    if(!tween&&!heroDriving)controls.update(delta); animateWorld(delta);
+    if(!presentationOverlay){animateArt(delta, elapsed);requestTextures();}
+    depthField.userData.update(camera.position); renderer.info.reset();
     const surge=Math.max(tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0,active<0?Math.pow(Math.sin(Math.PI*heroProgress),2)*.7:0);
     ascii.render(scene,camera,architectureTime.value,surge,!reducedMotion);
     if(hero.group.visible){renderer.clearDepth();renderer.render(heroScene,camera);}
     renderer.clearDepth(); if(!presentationOverlay)renderer.render(artScene, camera); labels();
-    workLabels.hidden = presentationOverlay || active < 0 || Boolean(tween);
     // Hand over the readable panels only after the camera has actually arrived.
     notifyPresentation(!tween && (active >= 0 || heroProgress >= 1));
     if(!ready&&assetsReady&&fontsReady){ready=true;onProgress?.(1);onReady();}
@@ -404,8 +442,8 @@ export function createSpace(host, collections, { onOpen, onSelect, onReady, onHo
     setHero(value) { if (active < 0 && !tween && (!heroEntered || value >= 1)) { clearTimeout(wheelTimer); heroTarget = THREE.MathUtils.clamp(value, 0, 1); } },
     zoom(factor) { tween = null; camera.up.set(0,1,0); controls.enabled=!paused;camera.fov=43;camera.updateProjectionMatrix(); const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor); offset.clampLength(controls.minDistance, controls.maxDistance); camera.position.copy(controls.target).add(offset); controls.update(); },
     setPaused(value) { paused = value; if(value){hovered=null;onHover(null);} controls.enabled = !value && !tween; schedule(); }, setMotion(value) { motionEnabled = value && !reducedMotion; },
-    stats() { const rect = layoutFrame.getBoundingClientRect(); return { presentationOverlay, paused, gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{entered:heroEntered,progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
+    stats() { const rect = layoutFrame.getBoundingClientRect(); return { presentationOverlay, paused, gpu:{...renderer.info.memory}, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, artworks: visibleArt().length, camera: camera.position.toArray(), target: controls.target.toArray(), active, page, transitioning:Boolean(tween), backgroundInstances:depthField.userData.instances, architectureTime:architectureTime.value, asciiTravel:tween?Math.pow(Math.sin(Math.PI*tween.progress),2)*.94:0, cameraFov:camera.fov,hero:{entered:heroEntered,progress:heroProgress,target:heroTarget,shown:heroShown,ready:hero.ready},pixelRatio,lowEnd,sceneBufferScale:ascii.scale,frameCap:minFrame?Math.round(1/minFrame):null,backgroundChunks:depthField.userData.chunks, cameraRotation:camera.quaternion.toArray(), canvas:{width:host.clientWidth,height:host.clientHeight},
       viewport: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }, artworkPass: 'after-geometry-clear-depth', motion: { enabled: motionEnabled, time: field.time.value, art: visibleArt().map(artworkStats) } }; },
-    dispose() { cancelAnimationFrame(frame);removeEventListener('wheel',onWheel);removeEventListener('pointermove',onPointer);hero.dispose();document.removeEventListener('visibilitychange',schedule); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose();environmentMap.dispose(); renderer.dispose(); }
+    dispose() { cancelAnimationFrame(frame);removeEventListener('wheel',onWheel);removeEventListener('pointermove',onPointer);hero.dispose();document.removeEventListener('visibilitychange',schedule); resize.disconnect(); controls.dispose(); [scene, artScene].forEach(s => s.traverse(o => { o.geometry?.dispose(); if (o.material) { const materials = Array.isArray(o.material) ? o.material : [o.material]; materials.forEach(m => { m.map?.dispose(); m.dispose(); }); } })); ascii.dispose(); renderer.dispose(); }
   };
 }

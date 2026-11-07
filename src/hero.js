@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { noiseTexture, noiseGLSL } from './noise-texture.js';
 
 // Desktop key visual: the Demon Knight bust, one draw call. A rough, drifting
 // noise field splits the surface into wireframe, ASCII, heatmap and opaque
@@ -9,11 +10,10 @@ export const HERO_ORIGIN = new THREE.Vector3(0, 0, 120);
 // Head bone midpoint, in the baked model's own space (scripts/export-knight.py).
 const HEAD = new THREE.Vector3(-.18, 8.55, .8);
 
-const noiseGLSL = /* glsl */`
+// h31 stays for the per-pixel film grain; the band field uses the baked
+// noise texture (one fetch per octave instead of eight hashes).
+const hashGLSL = /* glsl */`
 float h31(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
-float vnoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
-  return mix(mix(mix(h31(i),h31(i+vec3(1,0,0)),f.x),mix(h31(i+vec3(0,1,0)),h31(i+vec3(1,1,0)),f.x),f.y),
-             mix(mix(h31(i+vec3(0,0,1)),h31(i+vec3(1,0,1)),f.x),mix(h31(i+vec3(0,1,1)),h31(i+vec3(1,1,1)),f.x),f.y),f.z);}
 `;
 
 function glyphAtlas() {
@@ -52,7 +52,7 @@ export function createHero({ manager, url = '/models/knight.bin' }) {
   const group = new THREE.Group(); group.position.copy(HERO_ORIGIN);
   const uniforms = {
     uTime: { value: 0 }, uDissolve: { value: 0 }, uPixel: { value: 1 },
-    uGlyphs: { value: glyphAtlas() },
+    uGlyphs: { value: glyphAtlas() }, uNoise3D: { value: noiseTexture() },
   };
   const material = new THREE.ShaderMaterial({
     uniforms, side: THREE.DoubleSide, toneMapped: false,
@@ -67,6 +67,7 @@ export function createHero({ manager, url = '/models/knight.bin' }) {
     fragmentShader: /* glsl */`
       uniform float uTime,uDissolve,uPixel; uniform sampler2D uGlyphs;
       varying vec3 vBary,vLocal,vWorld;
+      ${hashGLSL}
       ${noiseGLSL}
       vec3 thermal(float t){
         t=clamp(t,0.,1.);
