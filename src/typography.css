@@ -61,7 +61,7 @@ button,input,select,textarea{font-kerning:normal}
  .mobile-footer>span{grid-column:1/-1;line-height:1.5}
  .mobile-footer>a{gap:8px}
  .mobile-footer .mobile-shortcuts{grid-column:1/-1;margin:0 0 16px}
- .mobile-footer .mobile-shortcut{display:grid;gap:4px;padding:10px 14px;text-decoration:none}
+ .mobile-footer .mobile-shortcuts .mobile-shortcut{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:10px 14px;text-decoration:none}
  .mobile-footer .mobile-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-top:8px;border-top:1px solid var(--line);line-height:1.5}
 }
 
