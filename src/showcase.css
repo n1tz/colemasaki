@@ -1,6 +1,6 @@
 /* One content frame for every desktop collection, over the live 3D world. */
 .portfolio-showcase[hidden]{display:none}
-.portfolio-showcase{position:absolute;inset:var(--page-top,24px) var(--page-right,24px) 0 calc(var(--rail-left,24px) + var(--rail-width,224px) + var(--page-gap,28px));z-index:2;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-top:20px;background:transparent;outline:none;padding:0 0 32px;color:var(--ink)}
+.portfolio-showcase{position:absolute;inset:var(--page-top,24px) 4px 0 calc(var(--rail-left,24px) + var(--rail-width,224px) + var(--page-gap,28px));z-index:2;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;scroll-padding-top:20px;background:transparent;outline:none;padding:0 calc(var(--page-right,24px) - 4px) 32px 0;color:var(--ink)}
 /* The invisible camera measurement frame must retain its dimensions. */
 .archive-shell>#space{visibility:visible}
 .presentation-enter{animation:panel-arrival .45s cubic-bezier(.16,1,.3,1) both}

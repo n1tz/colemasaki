@@ -60,6 +60,8 @@ button,input,select,textarea{font-kerning:normal}
  .mobile-footer{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
  .mobile-footer>span{grid-column:1/-1;line-height:1.5}
  .mobile-footer>a{gap:8px}
+ .mobile-footer .mobile-shortcuts{grid-column:1/-1;margin:0 0 16px}
+ .mobile-footer .mobile-shortcut{display:grid;gap:4px;padding:10px 14px;text-decoration:none}
  .mobile-footer .mobile-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-top:8px;border-top:1px solid var(--line);line-height:1.5}
 }
 
@@ -74,3 +76,8 @@ button,input,select,textarea{font-kerning:normal}
 .desktop-sidebar .index-button{margin:0;border:0;border-top:1px solid var(--line);padding:14px 13px}
 .mobile-footer [data-about],.mobile-footer [data-index]{display:flex;align-items:center;gap:8px;text-align:left;text-transform:none}
 @media(prefers-reduced-motion:reduce){.game-feature-cta-icon,.game-feature-cta-icon>.ui-arrow{transition:none}}
+
+/* The overview feature and Collections share the same top edge. */
+@media(min-width:801px){
+ .overview-route .showcase-heading{height:var(--sidebar-brand-height);padding:0 18px;align-items:center;margin-bottom:var(--sidebar-gap)}
+}

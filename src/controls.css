@@ -1,0 +1,29 @@
+/* Native scrolling and keyboard controls, framed like the site's instruments. */
+:root{--scroll-thumb:#858a7b;--scroll-track:#1a1c16}
+*{scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) var(--scroll-track)}
+/* Chromium/WebKit expose square thumbs; Firefox uses the native thin variant. */
+@supports selector(::-webkit-scrollbar){
+ *{scrollbar-width:auto;scrollbar-color:auto}
+ ::-webkit-scrollbar{width:8px;height:8px}
+ ::-webkit-scrollbar-track{background:var(--scroll-track);border:1px solid #3b3d35}
+ ::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border:2px solid var(--scroll-track);border-radius:0;min-height:32px}
+ ::-webkit-scrollbar-thumb:hover{background:var(--accent,#ff8a3d)}
+ ::-webkit-scrollbar-thumb:active{background:var(--ink)}
+ ::-webkit-scrollbar-corner{background:var(--scroll-track)}
+ ::-webkit-scrollbar-button{display:none}
+}
+/* The font-size and zine-page controls share a ticked rail and square cursor.
+   The full input remains 32px tall for touch and keyboard interaction. */
+input[type=range]{appearance:none;-webkit-appearance:none;height:32px;margin:0;padding:0;border:0;border-radius:0;background:transparent;cursor:ew-resize;color:var(--accent);touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border:1px solid #55584d;border-radius:0;background:repeating-linear-gradient(90deg,#777e72 0 1px,transparent 1px 12px) center/100% 2px no-repeat,#1a1c16}
+input[type=range]::-moz-range-track{height:4px;border:1px solid #55584d;border-radius:0;background:repeating-linear-gradient(90deg,#777e72 0 1px,transparent 1px 12px) center/100% 2px no-repeat,#1a1c16}
+input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:12px;height:20px;margin-top:-8px;border:1px solid var(--accent);border-radius:0;background:linear-gradient(var(--accent),var(--accent)) center/2px 10px no-repeat,#11120f;box-shadow:0 0 0 3px #11120f}
+input[type=range]::-moz-range-thumb{width:10px;height:18px;border:1px solid var(--accent);border-radius:0;background:linear-gradient(var(--accent),var(--accent)) center/2px 10px no-repeat,#11120f;box-shadow:0 0 0 3px #11120f}
+input[type=range]:hover::-webkit-slider-thumb,input[type=range]:active::-webkit-slider-thumb{background-color:var(--accent-wash)}
+input[type=range]:hover::-moz-range-thumb,input[type=range]:active::-moz-range-thumb{background-color:var(--accent-wash)}
+input[type=range]:focus-visible{outline:1px solid var(--accent);outline-offset:4px}
+@media(forced-colors:active){
+ *{scrollbar-color:auto}
+ input[type=range]{appearance:auto;accent-color:auto}
+ input[type=range]::-webkit-slider-thumb{appearance:auto;box-shadow:none}
+}

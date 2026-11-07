@@ -154,7 +154,6 @@
   .mobile-shortcut small{font-size:11px;color:#c1c2b9}
   .mobile-shortcut.primary{background:#f1efeb;color:#11120f;border-color:#f1efeb}
   .mobile-shortcut.primary small{color:#3b3d35}
-  .mobile-intro:has(.mobile-kv) .mobile-shortcuts{margin:18px 0 16px}
   #mobile-menu .mobile-shortcuts{margin:24px 0 8px}
   .mobile-footer button{text-decoration:underline;text-underline-offset:5px;text-transform:none}
 

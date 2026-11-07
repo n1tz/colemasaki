@@ -10,6 +10,7 @@ import { MOBILE_QUERY } from './viewport.js';
 import { fontSpecimen } from './font-specimen.js';
 import { isVideo, videoFrame, storeLink, youtubeWatchUrl } from './game.js';
 import './typography.css';
+import './controls.css';
 
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');

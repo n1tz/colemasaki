@@ -38,7 +38,7 @@ export function createMobileGallery(collections, { onSelect, onOpen, site, hasAb
       <button class="mobile-menu-button" aria-haspopup="dialog" aria-controls="mobile-menu">Collections <span aria-hidden="true">＋</span></button>
     </header>
     <main id="mobile-content" tabindex="-1"></main>
-    <footer class="mobile-footer"><span>© COLE MASAKI</span><button data-index>Work index</button>${hasAbout?'<button data-about>About</button>':''}<a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
+    <footer class="mobile-footer">${shortcuts}<span>© COLE MASAKI</span><a href="${escape(site.instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a><button class="mobile-top">Back to top ↑</button></footer>
     <dialog id="mobile-menu" aria-labelledby="mobile-menu-title">
       <div class="mobile-menu-head"><h2 id="mobile-menu-title">Collections</h2><button class="mobile-menu-close" aria-label="Close collections">Close ×</button></div>
       <nav aria-label="Mobile collections"><button data-room="-1"><span>00</span><strong>All collections</strong><span>↗</span></button>
@@ -55,7 +55,7 @@ export function createMobileGallery(collections, { onSelect, onOpen, site, hasAb
     if (!media.matches) return;
     root.querySelectorAll('[data-room]').forEach(b => {if(Number(b.dataset.room)===active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
     if(active < 0){
-      content.innerHTML=`<div class="mobile-intro"><p>${escape(site.headerLine)}</p><h1 tabindex="-1">${escape(titleCase(site.tagline))}</h1>${shortcuts}
+      content.innerHTML=`<div class="mobile-intro"><p>${escape(site.headerLine)}</p><h1 tabindex="-1">${escape(titleCase(site.tagline))}</h1>
         <figure class="mobile-kv" aria-label="Animated artwork preview">
           <div class="mobile-kv-space" aria-hidden="true"><div class="mobile-kv-fallback">${featured.map(item=>image(item,true)).join('')}</div></div>
           <button class="mobile-kv-pause" aria-label="${kvPaused||reducedMotion?'Resume preview animation':'Pause preview animation'}" aria-pressed="${!(kvPaused||reducedMotion)}" ${reducedMotion?'disabled':''}>${motionIcon(kvPaused||reducedMotion)}</button>
