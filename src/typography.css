@@ -79,7 +79,7 @@ button,input,select,textarea{font-kerning:normal}
 
 /* Overview artwork and collection title boxes share the Collections top edge. */
 @media(min-width:801px){
- .portfolio-showcase:not(.is-game)>.collection-back{height:var(--sidebar-brand-height);padding-block:0;margin-bottom:var(--sidebar-gap)}
+ .archive-shell .portfolio-showcase>.collection-back{height:var(--sidebar-brand-height);padding-block:0;margin-bottom:var(--sidebar-gap)}
  .overview-route .showcase-heading{height:var(--sidebar-brand-height);padding:0 18px;align-items:center;margin-bottom:var(--sidebar-gap)}
 }
 
