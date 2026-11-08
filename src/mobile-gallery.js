@@ -61,9 +61,9 @@ export function createMobileGallery(collections, { onSelect, onOpen, site, hasAb
       const game = collections.findIndex(c=>c.id==='game'&&c.items.length);
       content.innerHTML=`<aside class="mobile-desktop-note" aria-label="Viewing note"><span class="mobile-note-kicker"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="12"/><path d="M8 20h8M12 16v4"/></svg>Best on desktop</span><p>This portfolio is built around an interactive 3D gallery. Visit on a desktop for the full experience. Every work is still here in this mobile layout.</p></aside>
         <header class="collection-heading mobile-landing"><div><span class="mobile-kicker">${escape(site.headerLine)}</span><h1 tabindex="-1">${escape(titleCase(site.tagline))}</h1></div><span>00 / OVERVIEW</span></header>
-        <div class="showcase-heading" id="mobile-collections" tabindex="-1"><h2>Selected work</h2><span>${pad(collections.length)} COLLECTIONS<br>${total} WORKS</span></div>
+        <div class="showcase-heading" id="mobile-collections" tabindex="-1"><h2>Selected work</h2><span>${pad(collections.length)} COLLECTIONS / ${total} WORKS</span></div>
         ${game>=0?gameFeature(collections[game],game,{mobile:true}):''}
-        <div class="showcase-more"><h2>More work</h2><span>${escape(site.headerLine)}</span></div>
+        <div class="showcase-more"><h2>More collections</h2><span>${pad(collections.length-(game>=0?1:0))} COLLECTIONS</span></div>
         <div class="showcase-collections">${collections.map((c,ci)=>ci===game?'':`<button class="showcase-card ${!c.items.length?'is-empty':''}" data-enter="${ci}" aria-label="${escape(c.label)}, ${c.items.length?`${c.items.length} ${unit(c).toLowerCase()}`:'coming soon'}">
           <span class="showcase-card-image">${c.items[0]?image(c.items[0],false,'50vw'):'<span>Coming soon</span>'}</span>
           <span class="showcase-card-title"><span><small>${pad(ci+1)} / ${c.items.length?`${pad(c.items.length)} ${unit(c)}`:'SOON'}</small>${escape(c.label)}</span>↗</span>

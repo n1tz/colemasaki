@@ -40,9 +40,10 @@
   .mobile-gallery .collection-heading p{font-size:12px;margin-top:12px}
   .mobile-gallery .collection-heading>span{font-size:9px}
   .mobile-kicker{display:block;margin-bottom:12px;font-size:9px;line-height:1.6;letter-spacing:.04em;color:var(--muted)}
-  .mobile-gallery .showcase-heading{padding:14px 0 0;margin:28px 0 16px;background:none;outline:none;scroll-margin-top:72px}
-  .mobile-gallery .showcase-heading h2{font:700 24px/1.2 var(--display);letter-spacing:-.02em;margin:0}
-  .mobile-gallery .showcase-heading>span,.mobile-gallery .showcase-more>span{font-size:8px}
+  /* Section bars match the mobile back bar: framed, Mono label left, muted count right. */
+  .mobile-gallery .showcase-heading,.mobile-gallery .showcase-more{height:auto;min-height:44px;padding:0 12px;margin:24px 0 12px;gap:12px;outline:none;scroll-margin-top:72px}
+  .mobile-gallery .showcase-heading h2,.mobile-gallery .showcase-more h2{font:400 10px/1.5 Mono,'Courier New',monospace;letter-spacing:.04em;text-transform:uppercase;margin:0}
+  .mobile-gallery .showcase-heading>span,.mobile-gallery .showcase-more>span{font-size:8px;white-space:nowrap}
 
   /* Featured game: one bordered card, kicker and title inside the frame. */
   .mobile-gallery .mobile-game-card{padding:0;border:1px solid #777e72;background:#11151d;box-shadow:0 12px 40px #0005}
@@ -54,8 +55,8 @@
   /* Collection cards: the desktop showcase card, two across. */
   .mobile-gallery .showcase-collections{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px}
   .mobile-gallery .showcase-card-image span{font-size:9px;letter-spacing:.06em;color:var(--muted)}
-  .mobile-gallery .showcase-card-title{align-items:flex-start;gap:8px;padding:10px;font-size:14px;line-height:1.25}
-  .mobile-gallery .showcase-card-title>span{display:grid;gap:6px}
+  .mobile-gallery .showcase-card-title{justify-content:space-between;align-items:flex-start;gap:8px;padding:10px;font:700 14px/1.25 var(--display);letter-spacing:normal}
+  .mobile-gallery .showcase-card-title>span{display:grid;gap:6px;flex:1;min-width:0}
   .mobile-gallery .showcase-card-title small{font:8px/1.5 Mono,monospace;letter-spacing:.04em;color:var(--muted)}
   .mobile-gallery .showcase-card-title>.ui-arrow{flex:none;width:16px;height:16px;margin-top:1px}
   .mobile-gallery .showcase-card.is-empty .showcase-card-title{color:#b5b8ae}
