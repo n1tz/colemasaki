@@ -70,7 +70,7 @@ sidebar.innerHTML='<a class="sidebar-brand" href="/" aria-label="Cole Masaki —
 sidebar.append($('.collection-nav'),$('.bottom-bar'));$('#app').append(sidebar);
 $('.bottom-bar').append($('.camera-widget'));
 const aboutLink=document.createElement('button');aboutLink.className='sidebar-about';aboutLink.dataset.about='';aboutLink.setAttribute('aria-haspopup','dialog');aboutLink.hidden=!hasAbout;
-aboutLink.innerHTML='<span><small>THE PERSON BEHIND THE WORK</small><strong>About Cole Masaki</strong></span><span aria-hidden="true">↗</span>';
+aboutLink.innerHTML=`<span class="sidebar-about-head"><strong>About Cole Masaki</strong><span aria-hidden="true">↗</span></span><span class="sidebar-about-meta">${about.status?.trim()?'<span class="sidebar-about-status">OPEN TO WORK</span><span>BIO / SKILLS</span>':'<span>THE PERSON BEHIND THE WORK</span>'}</span>`;
 $('.collection-nav').after(aboutLink);
 const controlsHeading=document.createElement('div');controlsHeading.className='sidebar-section-label';controlsHeading.innerHTML='<span>3D SPACE</span><button id="help-bottom" aria-label="Navigation help" aria-haspopup="dialog" title="Navigation help">?</button>';$('.controls').before(controlsHeading);
 $('.instructions').remove();

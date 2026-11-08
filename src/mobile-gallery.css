@@ -40,6 +40,13 @@
   .mobile-gallery .collection-heading p{font-size:12px;margin-top:12px}
   .mobile-gallery .collection-heading>span{font-size:9px}
   .mobile-kicker{display:block;margin-bottom:12px;font-size:9px;line-height:1.6;letter-spacing:.04em;color:var(--muted)}
+  /* Landing: kicker and section number share the top row; the title always gets the full width,
+     so it never flips between one and two lines as the label wraps around it. */
+  .mobile-gallery .mobile-landing{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:12px 16px}
+  .mobile-gallery .mobile-landing>div{display:contents}
+  .mobile-gallery .mobile-landing .mobile-kicker{grid-area:1/1;margin:0}
+  .mobile-gallery .mobile-landing>span{grid-area:1/2;white-space:nowrap}
+  .mobile-gallery .mobile-landing h1{grid-area:2/1/3/3;font-size:clamp(30px,calc((100vw - 66px)/8.2),46px);text-wrap:balance}
   /* Section bars match the mobile back bar: framed, Mono label left, muted count right. */
   .mobile-gallery .showcase-heading,.mobile-gallery .showcase-more{height:auto;min-height:44px;padding:0 12px;margin:24px 0 12px;gap:12px;outline:none;scroll-margin-top:72px}
   .mobile-gallery .showcase-heading h2,.mobile-gallery .showcase-more h2{font:400 10px/1.5 Mono,'Courier New',monospace;letter-spacing:.04em;text-transform:uppercase;margin:0}
