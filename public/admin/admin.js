@@ -20,10 +20,9 @@ const ABOUT_FIELDS = [
   { key: 'role', label: 'Role line', hint: 'Small line under your name', max: 120 },
   { key: 'status', label: 'Availability', hint: 'Highlighted line under the bio, e.g. what work you are open to', max: 200 },
   { key: 'intro', label: 'Bio', hint: 'Separate paragraphs with a blank line', max: 4000, rows: 10, wide: true },
-  { key: 'experience', label: 'Experience', hint: 'One per line: Company — Role | Dates | Optional summary', max: 2000, rows: 5, wide: true },
+  { key: 'experience', label: 'Selected experience', hint: 'One per line: Company — Role | Dates | Optional summary', max: 2000, rows: 5, wide: true },
   { key: 'skills', label: 'Skills & tools', hint: 'One per line. Put | after the area, e.g. 3D | Modeling, sculpting', max: 2000, rows: 6, wide: true },
   { key: 'project', label: 'Independent project', hint: 'Title, then a blank line and description', max: 2000, rows: 4, wide: true },
-  { key: 'education', label: 'Education', hint: 'One per line: School | Study details', max: 2000, rows: 3, wide: true },
   { key: 'email', label: 'Contact email', hint: 'Shown as an Email button. Leave empty to hide', max: 120, type: 'email' },
   { key: 'resume', label: 'Résumé link', hint: 'Set automatically when you upload a PDF, or paste an https:// link. Clear to hide.', max: 600 },
 ];

@@ -92,7 +92,7 @@ function mergeSite(current, incoming) {
   return next;
 }
 // The About section; empty fields are dropped so the site hides them.
-const ABOUT_TEXT = { location: 120, project: 2000, education: 2000, role: 120, status: 200, intro: 4000, experience: 2000, skills: 2000 };
+const ABOUT_TEXT = { location: 120, project: 2000, role: 120, status: 200, intro: 4000, experience: 2000, skills: 2000 };
 function mergeAbout(current, incoming) {
   check(incoming && typeof incoming === 'object' && !Array.isArray(incoming), 'Invalid About section.');
   const next = { ...current };
