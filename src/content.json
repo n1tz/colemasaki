@@ -692,14 +692,13 @@
         "alt": "Zine, page 5"
       },
       {
-        "id": "zine-07",
-        "source": "Page07.ai",
-        "src": "/art/zine-07.webp",
-        "thumb": "/art/zine-07-thumb.webp",
-        "width": 1426,
+        "id": "zine-page07-c3fy",
+        "source": "Page07.jpg",
+        "src": "/art/zine-page07-c3fy.webp",
+        "thumb": "/art/zine-page07-c3fy-thumb.webp",
+        "width": 1410,
         "height": 2000,
-        "alt": "Zine, page 6",
-        "showcase": false
+        "alt": "Zine, work 6"
       },
       {
         "id": "zine-08",
