@@ -5,7 +5,7 @@ const pad = n => String(n).padStart(2, '0');
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const FULL = 2000, THUMB = 640, MAX_UPLOAD = 3_000_000;
 
-const state = { content: null, sha: null, site: {}, siteSha: null, uploads: new Map(), previews: new Map(), changes: 0, busy: 0, open: new Set(), drag: null, dragCollection: null };
+const state = { content: null, sha: null, site: {}, siteSha: null, uploads: new Map(), previews: new Map(), changes: 0, busy: 0, resumeBusy: false, open: new Set(), drag: null, dragCollection: null };
 // Placeholders show what the site uses when a setting is left empty.
 const SITE_FIELDS = [
   { key: 'tagline', label: 'Tagline', hint: 'Large words under the knight and the overview heading', max: 40, fallback: 'PORTFOLIO LIBRARY' },
@@ -25,7 +25,7 @@ const ABOUT_FIELDS = [
   { key: 'project', label: 'Independent project', hint: 'Title, then a blank line and description', max: 2000, rows: 4, wide: true },
   { key: 'education', label: 'Education', hint: 'One per line: School | Study details', max: 2000, rows: 3, wide: true },
   { key: 'email', label: 'Contact email', hint: 'Shown as an Email button. Leave empty to hide', max: 120, type: 'email' },
-  { key: 'resume', label: 'Résumé link', hint: 'https:// link or /resume/filename.pdf. Leave empty to hide', max: 600 },
+  { key: 'resume', label: 'Résumé link', hint: 'Set automatically when you upload a PDF, or paste an https:// link. Clear to hide.', max: 600 },
 ];
 
 async function api(path, { body, raw } = {}) {
@@ -50,7 +50,7 @@ function changed() {
 }
 function updateStatus() {
   const status = $('#status');
-  status.textContent = state.busy ? `Uploading ${state.busy} image${state.busy > 1 ? 's' : ''}…` : state.changes ? `${state.changes} unpublished change${state.changes > 1 ? 's' : ''}` : 'No changes';
+  status.textContent = state.busy ? `Uploading ${state.busy} file${state.busy > 1 ? 's' : ''}…` : state.changes ? `${state.changes} unpublished change${state.changes > 1 ? 's' : ''}` : 'No changes';
   status.classList.toggle('dirty', Boolean(state.changes));
   $('#publish').disabled = !state.changes || state.busy > 0;
   $('#discard').disabled = !state.changes || state.busy > 0;
@@ -76,6 +76,7 @@ async function boot() {
 async function load() {
   $('#loading').hidden = false;
   const data = await api('/api/content');
+  for (const [path, url] of state.previews) if (path.startsWith('/resume/')) { URL.revokeObjectURL(url); state.previews.delete(path); }
   state.content = data.content; state.sha = data.sha; state.site = data.site || {}; state.siteSha = data.siteSha ?? null; state.uploads.clear(); state.changes = 0;
   $('#loading').hidden = true;
   $('.publish').hidden = false;
@@ -118,8 +119,16 @@ function aboutSettings() {
   const about = state.site.about || {};
   return `<details class="panel about-settings" ${state.open.has('#about') ? 'open' : ''}>
     <summary><h2>About</h2><span class="num">Bio, experience, skills, contact</span></summary>
+    <div class="resume-upload">
+      <h3>Résumé PDF</h3>
+      <div class="dropzone" data-resume-drop aria-busy="${state.resumeBusy}">
+        <div>${state.resumeBusy ? 'Uploading résumé…' : 'Drag your résumé here or'} <label>${state.resumeBusy ? 'please wait' : 'choose a PDF'}<input type="file" accept=".pdf,application/pdf" data-resume-file aria-label="Upload résumé PDF" ${state.resumeBusy ? 'disabled' : ''}></label></div>
+        <span>One PDF, up to 3 MB. Publish to make the replacement live.</span>
+      </div>
+      <p class="note">${about.resume && /^(https:\/\/|\/resume\/)/.test(about.resume) ? `<a href="${escape(state.previews.get(about.resume) || about.resume)}" target="_blank" rel="noopener">${state.uploads.has('public' + about.resume) ? 'Preview uploaded résumé' : 'View current résumé'} ↗</a>` : 'No résumé linked.'} Uploading replaces the PDF link; your About text stays editable below.</p>
+    </div>
     <div class="settings-grid">${ABOUT_FIELDS.map(f => `<label class="field ${f.wide ? 'wide' : ''}">${f.label}<span class="hint">${f.hint}</span>
-      ${f.rows ? `<textarea data-about-field="${f.key}" maxlength="${f.max}" rows="${f.rows}">${escape(about[f.key] || '')}</textarea>` : `<input type="${f.type || 'text'}" data-about-field="${f.key}" maxlength="${f.max}" value="${escape(about[f.key] || '')}">`}</label>`).join('')}</div>
+      ${f.rows ? `<textarea data-about-field="${f.key}" maxlength="${f.max}" rows="${f.rows}">${escape(about[f.key] || '')}</textarea>` : `<input type="${f.type || 'text'}" data-about-field="${f.key}" ${f.key === 'resume' && state.resumeBusy ? 'disabled' : ''} maxlength="${f.max}" value="${escape(about[f.key] || '')}">`}</label>`).join('')}</div>
     <p class="note">Opens from the About box in the desktop sidebar and the hero top bar, and from the About buttons on phones. Leaving Bio, Experience and Skills all empty removes the About section.</p>
   </details>`;
 }
@@ -212,6 +221,7 @@ $('#collections').addEventListener('input', e => {
 });
 $('#collections').addEventListener('change', e => {
   const el = e.target;
+  if (el.matches('[data-resume-file]')) { addResume([...el.files]); el.value = ''; return; }
   if (el.matches('[data-collection-hidden]')) {
     const collection = state.content[el.closest('.collection').dataset.ci];
     if (el.checked) collection.hidden = true; else delete collection.hidden;
@@ -282,6 +292,8 @@ function dropTarget(e) {
   return null;
 }
 $('#collections').addEventListener('dragover', e => {
+  const resumeZone = e.target.closest('[data-resume-drop]');
+  if (resumeZone && e.dataTransfer.types.includes('Files')) { e.preventDefault(); clearDropMarks(); resumeZone.classList.add('over'); return; }
   if (state.dragCollection !== null) {
     const target = collectionTarget(e);
     if (!target) return;
@@ -298,8 +310,9 @@ $('#collections').addEventListener('dragover', e => {
   if (files) e.target.closest('[data-drop]')?.classList.add('over');
   else if (target.el?.classList.contains('card')) target.el.classList.add(target.after ? 'drop-after' : 'drop-before');
 });
-$('#collections').addEventListener('dragleave', e => { if (e.target.matches?.('[data-drop]')) e.target.classList.remove('over'); });
+$('#collections').addEventListener('dragleave', e => { if (e.target.matches?.('[data-drop],[data-resume-drop]')) e.target.classList.remove('over'); });
 $('#collections').addEventListener('drop', e => {
+  if (e.target.closest('[data-resume-drop]')) { e.preventDefault(); clearDropMarks(); if (e.dataTransfer.files.length) addResume([...e.dataTransfer.files]); return; }
   if (state.dragCollection !== null) {
     const target = collectionTarget(e), from = state.dragCollection;
     state.dragCollection = null; clearDropMarks();
@@ -360,13 +373,40 @@ async function encode(source, max) {
   }
 }
 const toBase64 = blob => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(',')[1]); reader.onerror = reject; reader.readAsDataURL(blob); });
-async function upload(path, blob) {
-  const { sha } = await api('/api/upload', { body: { data: await toBase64(blob) } });
+async function upload(path, blob, kind) {
+  const { sha } = await api('/api/upload', { body: { data: await toBase64(blob), kind } });
   state.uploads.set(path, sha);
   state.previews.set(path.replace(/^public/, ""), URL.createObjectURL(blob));
 }
 const slug = name => name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'image';
 const suffix = () => Math.random().toString(36).slice(2, 6);
+
+// PDFs follow the same staged upload / Publish flow as portfolio images.
+async function addResume(files) {
+  if (!files.length || state.resumeBusy) return;
+  if (files.length !== 1) return toast('Choose one résumé PDF at a time.', { error: true });
+  const file = files[0];
+  if (!/\.pdf$/i.test(file.name)) return toast('Choose a PDF résumé.', { error: true });
+  if (file.size > MAX_UPLOAD) return toast('The résumé PDF must be 3 MB or smaller.', { error: true });
+  state.resumeBusy = true; state.busy++; state.open.add('#about'); rerender(); updateStatus();
+  try {
+    if (await file.slice(0, 5).text() !== '%PDF-') throw new Error('Choose a valid PDF résumé.');
+    const path = `/resume/${slug(file.name)}-${crypto.randomUUID()}.pdf`;
+    await upload(`public${path}`, file, 'resume');
+    const previous = state.site.about?.resume;
+    if (previous && state.uploads.has(`public${previous}`)) {
+      state.uploads.delete(`public${previous}`);
+      URL.revokeObjectURL(state.previews.get(previous)); state.previews.delete(previous);
+    }
+    state.site.about = { ...(state.site.about || {}), resume: path };
+    changed();
+    toast('Résumé uploaded. Publish to make it live.');
+  } catch (error) { toast(escape(error.message || 'The résumé could not be uploaded. Try again.'), { error: true }); }
+  finally {
+    state.resumeBusy = false; state.busy--; rerender(); updateStatus();
+    $('[data-resume-file]')?.focus({ preventScroll: true });
+  }
+}
 
 // Turns one image into a full-size image and thumbnail, uploads both, and returns the item fields.
 async function prepare(blob, id) {
@@ -433,6 +473,7 @@ async function setVideo() {
 
 // ---------- Publish ----------
 $('#publish').onclick = async () => {
+  if (state.busy) return;
   const game = state.content.find(c => c.id === 'game');
   if (game?.storeUrl && !/^https:\/\//.test(game.storeUrl)) return toast('The store URL must start with https://', { error: true });
   const unnamed = state.content.find(c => !c.label?.trim());

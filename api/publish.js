@@ -1,6 +1,7 @@
 import { send, guard, github, fail, readJson, readSite, config } from './_lib.js';
 
 const ART = /^\/art\/[A-Za-z0-9_-]+\.(webp|jpe?g|png)$/;
+const RESUME = /^\/resume\/[A-Za-z0-9_-]+\.pdf$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$/;
 const text = (value, max) => typeof value === 'string' && value.length <= max;
 const https = value => typeof value === 'string' && /^https:\/\/[^\s"'<>]+$/.test(value) && value.length <= 600;
@@ -117,7 +118,8 @@ export default async function handler(req, res) {
   if (!guard(req, res, { write: true })) return;
   try {
     const { baseSha, siteSha = null, content, site, files = [] } = await readJson(req);
-    check(Array.isArray(files) && files.every(f => ART.test('/' + String(f.path).replace(/^public\//, '')) && String(f.path).startsWith('public/art/') && /^[0-9a-f]{40}$/.test(f.sha)), 'Invalid upload list.');
+    check(Array.isArray(files) && files.every(f => f && typeof f.path === 'string' && f.path.startsWith('public/') && (ART.test(f.path.slice(6)) || RESUME.test(f.path.slice(6))) && /^[0-9a-f]{40}$/.test(f.sha)), 'Invalid upload list.');
+    check(new Set(files.map(f => f.path)).size === files.length, 'Duplicate upload paths.');
     const repo = `/repos/${config.repo}`;
     const ref = await github(`${repo}/git/ref/heads/${config.branch}`);
     const head = await github(`${repo}/git/commits/${ref.object.sha}`);
@@ -131,11 +133,17 @@ export default async function handler(req, res) {
     const uploads = new Set(files.map(f => f.path.replace(/^public/, '')));
     const next = merge(current, content, uploads);
     const used = artPaths(next), before = artPaths(current);
+    const resume = nextSite.about?.resume, previousResume = currentSite.about?.resume;
+    if (RESUME.test(resume)) {
+      check(resume === previousResume || uploads.has(resume), 'Upload the résumé PDF before publishing.');
+      used.add(resume);
+    }
+    if (RESUME.test(previousResume)) before.add(previousResume);
     const tree = [
       { path: 'src/content.json', mode: '100644', type: 'blob', content: JSON.stringify(next, null, 2) + '\n' },
       ...(siteFile || Object.keys(nextSite).length ? [{ path: 'src/site.json', mode: '100644', type: 'blob', content: JSON.stringify(nextSite, null, 2) + '\n' }] : []),
       ...files.filter(f => used.has(f.path.replace(/^public/, ''))).map(f => ({ path: f.path, mode: '100644', type: 'blob', sha: f.sha })),
-      // Images no longer used anywhere are removed from the repository too.
+      // Remove replaced images and the previous locally hosted résumé atomically.
       ...[...before].filter(p => !used.has(p)).map(p => ({ path: `public${p}`, mode: '100644', type: 'blob', sha: null })),
     ];
     const newTree = await github(`${repo}/git/trees`, { method: 'POST', body: { base_tree: head.tree.sha, tree } });

@@ -91,6 +91,8 @@ Display text uses the bundled Nimbus Sans Bold with normalized UI metrics and ex
 
 The unmodified fallback font is from [Artifex's URW base35 collection](https://github.com/ArtifexSoftware/urw-base35-fonts). Its distribution license and copyright notices are retained in `public/fonts/LICENSE` and `public/fonts/COPYING`; the source repository contains its original font files.
 
+The About editor accepts a résumé PDF by drag and drop or file picker (up to 3 MB). Preview the staged PDF, then press Publish to replace the live résumé and its link together. Uploading a PDF does not change the About text. Discard keeps the current published résumé. An external HTTPS résumé link can still be entered manually.
+
 ## Vercel
 
 Import this Git repository into Vercel, choose Vite, and deploy. `vercel.json` defines the build command and `dist` output. No environment variables or backend services are required. Alternatively, run `npx vercel` from this directory. Production is deployed to https://colemasaki.com on the `colemasaki` Vercel project; https://www.colemasaki.com also serves the portfolio. The GitHub remote is `n1tz/colemasaki`.
