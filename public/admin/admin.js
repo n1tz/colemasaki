@@ -16,13 +16,16 @@ const SITE_FIELDS = [
 
 // The About section (site.json "about"). Empty fields are left off the page.
 const ABOUT_FIELDS = [
+  { key: 'location', label: 'Location', hint: 'City and country', max: 120 },
   { key: 'role', label: 'Role line', hint: 'Small line under your name', max: 120 },
   { key: 'status', label: 'Availability', hint: 'Highlighted line under the bio, e.g. what work you are open to', max: 200 },
   { key: 'intro', label: 'Bio', hint: 'Separate paragraphs with a blank line', max: 4000, rows: 10, wide: true },
-  { key: 'experience', label: 'Experience', hint: 'One per line. Put | before the time, e.g. Lead Designer, Company | 2.5 years', max: 2000, rows: 5, wide: true },
+  { key: 'experience', label: 'Experience', hint: 'One per line: Company — Role | Dates | Optional summary', max: 2000, rows: 5, wide: true },
   { key: 'skills', label: 'Skills & tools', hint: 'One per line. Put | after the area, e.g. 3D | Modeling, sculpting', max: 2000, rows: 6, wide: true },
+  { key: 'project', label: 'Independent project', hint: 'Title, then a blank line and description', max: 2000, rows: 4, wide: true },
+  { key: 'education', label: 'Education', hint: 'One per line: School | Study details', max: 2000, rows: 3, wide: true },
   { key: 'email', label: 'Contact email', hint: 'Shown as an Email button. Leave empty to hide', max: 120, type: 'email' },
-  { key: 'resume', label: 'Résumé link', hint: 'https:// link to a PDF. Leave empty to hide', max: 600, type: 'url' },
+  { key: 'resume', label: 'Résumé link', hint: 'https:// link or /resume/filename.pdf. Leave empty to hide', max: 600 },
 ];
 
 async function api(path, { body, raw } = {}) {
@@ -437,7 +440,7 @@ $('#publish').onclick = async () => {
   if (state.content.every(c => c.hidden)) return toast('At least one collection must stay visible.', { error: true });
   if (state.site.instagram?.trim() && !/^https:\/\//.test(state.site.instagram.trim())) return toast('The Instagram link must start with https://', { error: true });
   const about = state.site.about || {};
-  if (about.resume?.trim() && !/^https:\/\//.test(about.resume.trim())) return toast('The résumé link must start with https://', { error: true });
+  if (about.resume?.trim() && !/^https:\/\//.test(about.resume.trim()) && !/^\/resume\/[A-Za-z0-9_-]+\.pdf$/.test(about.resume.trim())) return toast('Use an https:// résumé link or /resume/filename.pdf', { error: true });
   if (about.email?.trim() && !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(about.email.trim())) return toast('The contact email does not look like an email address.', { error: true });
   const bad = state.content.flatMap(c => c.items).find(item => item.url && !/^https:\/\//.test(item.url));
   if (bad) return toast(`The link on “${escape(bad.title || bad.id)}” must start with https://`, { error: true });

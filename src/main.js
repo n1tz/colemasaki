@@ -13,6 +13,7 @@ import './typography.css';
 import './controls.css';
 import { createViewerZoom } from './viewer-zoom.js';
 import './viewer-zoom.css';
+import './about.css';
 
 const $=s=>document.querySelector(s);
 const pad=n=>String(n).padStart(2,'0');
@@ -22,12 +23,13 @@ const collections=allCollections.filter(c=>!c.hidden);
 const tagline=(site.tagline||'PORTFOLIO LIBRARY').toUpperCase(), instagram=site.instagram||'https://www.instagram.com/colemasaki/';
 const sentence=text=>text.charAt(0)+text.slice(1).toLowerCase();
 // About text comes from site.json (edited in /admin). Paragraphs are separated by blank lines;
-// experience and skills are one entry per line, split into two columns at "|".
+// Entries use "Label | detail"; experience also accepts a third field for a summary.
 const about=site.about||{};
 const hasAbout=Boolean(about.intro||about.experience||about.skills);
 const paragraphs=text=>String(text||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>`<p>${escapeHTML(p).replace(/\n/g,'<br>')}</p>`).join('');
 const rows=text=>String(text||'').split('\n').map(line=>line.trim()).filter(Boolean).map(line=>{const [term,...rest]=line.split('|');const detail=rest.join('|').trim();return `<div><dt>${escapeHTML(term.trim())}</dt>${detail?`<dd>${escapeHTML(detail)}</dd>`:''}</div>`;}).join('');
-const aboutSection=(heading,key,kind)=>about[key]?.trim()?`<section><h3>${heading}</h3><dl class="about-rows ${kind}">${rows(about[key])}</dl></section>`:'';
+const experienceRows=text=>String(text||'').split('\n').map(line=>line.trim()).filter(Boolean).map(line=>{const [title,date,...summary]=line.split('|').map(part=>part.trim());return `<div><dt>${escapeHTML(title)}</dt>${date?`<dd class="about-date">${escapeHTML(date)}</dd>`:''}${summary.length?`<dd class="about-summary">${escapeHTML(summary.join('|'))}</dd>`:''}</div>`;}).join('');
+const aboutSection=(heading,key,kind)=>about[key]?.trim()?`<section><h3>${heading}</h3><dl class="about-rows ${kind}">${kind==='experience'?experienceRows(about[key]):rows(about[key])}</dl></section>`:'';
 const isZine=index=>collections[index]?.id==='zine';
 const isGame=index=>collections[index]?.id==='game';
 const total=collections.reduce((n,c)=>n+c.items.length,0);
@@ -57,10 +59,10 @@ $('#app').innerHTML=`
   <div class="loading" role="status">LOADING WORKS…</div><div class="hover-label" hidden></div>
   <dialog class="viewer" aria-label="Artwork viewer"><div class="dialog-head"><span class="title" id="viewer-title"></span><button class="close" data-close="viewer" aria-label="Close artwork">CLOSE ×</button></div><div class="view-body"></div><aside class="viewer-info" id="viewer-info" aria-label="About this work" hidden><div class="viewer-info-head"><span>ABOUT THIS WORK</span><button class="viewer-info-close" aria-label="Hide description">HIDE ×</button></div><div class="viewer-info-body"><h3 id="viewer-info-title"></h3><p id="viewer-info-text"></p></div></aside><div class="viewer-store" hidden></div><div class="viewer-footer"><div class="pager"><button id="previous" aria-label="Previous work">←</button><span class="page-label" aria-live="polite" aria-atomic="true"></span><button id="next" aria-label="Next work">→</button></div><input id="page-range" type="range" min="1" aria-label="Go to zine page" hidden><div class="secondary"><button id="info-toggle" aria-controls="viewer-info" aria-expanded="false" hidden>INFO</button><button id="image-zoom" aria-pressed="false">ZOOM +</button><a id="original" target="_blank" rel="noopener">OPEN IMAGE ↗</a></div></div></dialog>
   <dialog class="index-dialog" aria-label="Work index"><div class="dialog-head"><span class="title">WORK INDEX / ${total} FILES</span><button class="close" data-close="index-dialog" aria-label="Close index">CLOSE ×</button></div><div class="index-content">${collections.map((c,ci)=>`<section class="index-section"><h3><span>${pad(ci+1)}</span>${escapeHTML(c.label)}</h3>${c.items.length?`<div class="index-grid">${c.items.map((item,i)=>`<button class="index-item" data-work="${ci},${i}"><img src="${item.thumb}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.title||(c.id==='zine'?'PAGE ':'WORK ')+pad(i+1))}</span></button>`).join('')}</div>`:'<p>No work added yet.</p>'}</section>`).join('')}</div></dialog>
-  ${hasAbout?`<dialog class="about-dialog" aria-labelledby="about-name"><div class="dialog-head"><span class="title">ABOUT</span><button class="close" data-close="about-dialog" aria-label="Close about">CLOSE ×</button></div><div class="about-content">
-    <div class="about-main"><h2 id="about-name">Cole Masaki</h2>${about.role?`<p class="about-role">${escapeHTML(about.role)}</p>`:''}<div class="about-text">${paragraphs(about.intro)}</div>${about.status?`<p class="about-status">${escapeHTML(about.status)}</p>`:''}
-      <div class="about-links"><button class="primary" data-index>WORK INDEX ↗</button>${about.email?`<a href="mailto:${escapeHTML(about.email)}">EMAIL ${escapeHTML(about.email)} ↗</a>`:''}${about.resume?`<a href="${escapeHTML(about.resume)}" target="_blank" rel="noopener">RÉSUMÉ ↗</a>`:''}<a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a></div></div>
-    <div class="about-side">${aboutSection('Experience','experience','experience')}${aboutSection('Skills & tools','skills','skills')}</div>
+  ${hasAbout?`<dialog class="about-dialog" aria-labelledby="about-name"><div class="dialog-head"><span class="title">ABOUT / RÉSUMÉ</span><button class="close" data-close="about-dialog" aria-label="Close about">CLOSE ×</button></div><div class="about-content">
+    <div class="about-main">${about.location?`<p class="about-location">${escapeHTML(about.location)}</p>`:''}<h2 id="about-name">Cole Masaki</h2>${about.role?`<p class="about-role">${escapeHTML(about.role)}</p>`:''}<div class="about-text">${paragraphs(about.intro)}</div>${about.status?`<p class="about-status">${escapeHTML(about.status)}</p>`:''}
+      <div class="about-links">${about.resume?`<a class="primary" href="${escapeHTML(about.resume)}" target="_blank" rel="noopener" aria-label="View full résumé (PDF, opens in a new tab)">FULL RÉSUMÉ / PDF ↗</a>`:''}${about.email?`<a href="mailto:${escapeHTML(about.email)}">EMAIL ${escapeHTML(about.email)} ↗</a>`:''}<button data-index>EXPLORE WORK ↗</button><a href="${escapeHTML(instagram)}" target="_blank" rel="noopener noreferrer">INSTAGRAM ↗</a></div></div>
+    <div class="about-side">${aboutSection('Experience','experience','experience')}${aboutSection('Skills & tools','skills','skills')}${about.project?`<section class="about-project"><h3>Independent project</h3>${paragraphs(about.project)}</section>`:''}${aboutSection('Education','education','education')}</div>
   </div></dialog>`:''}
   <dialog class="help-dialog" aria-label="Navigation help"><div class="dialog-head"><span class="title">NAVIGATION</span><button class="close" data-close="help-dialog" aria-label="Close help">CLOSE ×</button></div><div class="help-content"><dl><dt>Rotate</dt><dd>Drag / one finger</dd><dt>Browse work</dt><dd>Scroll the page / touch swipe</dd><dt>Zoom background</dt><dd>Sidebar + / −</dd><dt>Enter collection</dt><dd>Sidebar / collection preview</dd><dt>Open work</dt><dd>Click an artwork</dd><dt>Change collection</dt><dd>Menu / keys 1–${collections.length}</dd><dt>Overview</dt><dd>Key 0 / overview button</dd><dt>Previous / next work</dt><dd>Left / right arrow keys in the viewer</dd><dt>Artwork description</dt><dd>Key I / Info in the viewer</dd><dt>Close viewer</dt><dd>Escape</dd><dt>Pause animation</dt><dd>Ⅱ in the camera controls</dd></dl><p>Use the work index for direct access to every image. The zine reads in page order; select an image to enlarge it.</p></div></dialog>
 `;

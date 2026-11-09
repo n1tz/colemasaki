@@ -1,0 +1,40 @@
+/* All résumé styling is contained within About; the portfolio keeps its layout. */
+.about-dialog .about-content{grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);gap:48px;padding:36px;overscroll-behavior:contain;scrollbar-gutter:stable}
+.about-dialog .about-main{position:sticky;top:0;min-width:0}
+.about-dialog .about-location{margin:0 0 18px;color:var(--accent);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.about-dialog .about-main h2{font-size:clamp(36px,4vw,52px);line-height:1.08;margin-bottom:16px}
+.about-dialog .about-role{line-height:1.7;margin-bottom:24px;max-width:34ch;color:var(--ink)}
+.about-dialog .about-text p{font:400 16px/1.7 Arial,Helvetica,sans-serif}
+.about-dialog .about-status{font-size:11px;line-height:1.8;margin:24px 0}
+.about-dialog .about-links{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.about-dialog .about-links a,.about-dialog .about-links button{justify-content:space-between;min-height:46px;padding:12px 14px;line-height:1.6;font-size:10px}
+.about-dialog .about-side{min-width:0;margin-top:0}
+.about-dialog .about-side section+section{margin-top:32px}
+.about-dialog .about-side h3{font-size:11px;letter-spacing:.08em;color:var(--accent);line-height:1.6}
+.about-dialog .about-rows>div{padding:18px 0;gap:6px 16px}
+.about-dialog .about-rows dt{font:400 15px/1.5 Arial,Helvetica,sans-serif}
+.about-dialog .about-rows dd{font:400 14px/1.65 Arial,Helvetica,sans-serif;color:#b6b7ad}
+.about-dialog .about-rows.experience>div{grid-template-columns:minmax(0,1fr)}
+.about-dialog .about-rows.experience .about-date{font:400 11px/1.7 Mono,'Courier New',monospace;color:var(--muted);text-align:left;white-space:normal}
+.about-dialog .about-rows.experience .about-summary{text-align:left;white-space:normal;margin-top:4px}
+.about-dialog .about-rows.skills>div{grid-template-columns:100px minmax(0,1fr)}
+.about-dialog .about-project p{font:400 14px/1.7 Arial,Helvetica,sans-serif;color:#b6b7ad;margin:14px 0 0}
+.about-dialog .about-project p:first-of-type{font-size:15px;color:var(--ink)}
+@media(max-height:900px){
+ .about-dialog .about-main{position:static}
+}
+@media(max-width:1000px){
+ .about-dialog .about-content{grid-template-columns:minmax(0,1fr);gap:36px;padding:28px}
+ .about-dialog .about-main{position:static}
+ .about-dialog .about-text p{max-width:65ch}
+ .about-dialog .about-links{display:flex;flex-direction:row;flex-wrap:wrap}
+}
+@media(max-width:600px),(pointer:coarse) and (max-height:500px){
+ .about-dialog .about-content{display:grid;grid-template-columns:minmax(0,1fr);gap:36px;padding:24px max(20px,env(safe-area-inset-right)) max(32px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+ .about-dialog .about-main h2{font-size:42px}
+ .about-dialog .about-links{flex-direction:column}
+ .about-dialog .about-links a,.about-dialog .about-links button{min-height:48px;font-size:11px}
+ .about-dialog .about-rows.skills>div{grid-template-columns:minmax(0,1fr)}
+ .about-dialog .about-rows dt{font-size:16px}
+ .about-dialog .about-rows dd,.about-dialog .about-project p{font-size:15px}
+}

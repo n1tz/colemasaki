@@ -91,7 +91,7 @@ function mergeSite(current, incoming) {
   return next;
 }
 // The About section; empty fields are dropped so the site hides them.
-const ABOUT_TEXT = { role: 120, status: 200, intro: 4000, experience: 2000, skills: 2000 };
+const ABOUT_TEXT = { location: 120, project: 2000, education: 2000, role: 120, status: 200, intro: 4000, experience: 2000, skills: 2000 };
 function mergeAbout(current, incoming) {
   check(incoming && typeof incoming === 'object' && !Array.isArray(incoming), 'Invalid About section.');
   const next = { ...current };
@@ -106,7 +106,7 @@ function mergeAbout(current, incoming) {
     set('email', incoming.email);
   }
   if (incoming.resume !== undefined) {
-    check(text(incoming.resume, 600) && (!incoming.resume.trim() || https(incoming.resume.trim())), 'The résumé link must start with https://.');
+    check(text(incoming.resume, 600) && (!incoming.resume.trim() || https(incoming.resume.trim()) || /^\/resume\/[A-Za-z0-9_-]+\.pdf$/.test(incoming.resume.trim())), 'Use an https:// résumé link or /resume/filename.pdf.');
     set('resume', incoming.resume);
   }
   return next;
