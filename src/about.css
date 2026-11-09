@@ -8,7 +8,8 @@
 .about-dialog .about-status{font-size:11px;line-height:1.8;margin:24px 0}
 .about-dialog .about-links{display:flex;flex-direction:column;align-items:stretch;gap:8px}
 .about-dialog .about-links a,.about-dialog .about-links button{justify-content:space-between;min-height:46px;padding:12px 14px;line-height:1.6;font-size:10px}
-.about-dialog .about-side{min-width:0;margin-top:0}
+/* Keep a comfortable ending below the final section, inside the scrollable column. */
+.about-dialog .about-side{min-width:0;margin-top:0;padding-bottom:24px}
 .about-dialog .about-side section+section{margin-top:32px}
 .about-dialog .about-side h3{font-size:11px;letter-spacing:.08em;color:var(--accent);line-height:1.6}
 .about-dialog .about-rows>div{padding:18px 0;gap:6px 16px}
