@@ -116,7 +116,8 @@ export function createHero({ manager, url = '/models/knight.bin' }) {
           color=vec3(.5,.5,.48)*(.3+diffuse*1.1)+vec3(.9,.9,.85)*(rim*.35+spec*.45);
         }
         float seam=1.-smoothstep(0.,.07,edge);
-        color=mix(color,vec3(1.,.97,.9),seam*.85);
+        // Keep the thermal region free of the white seam; retain other modes.
+        if(mode<1.5||mode>=2.5)color=mix(color,vec3(1.,.97,.9),seam*.85);
         color=mix(color,vec3(1.,.5,.2),burn);
         // Lightweight CRT: scanlines, RGB aperture mask, a rolling band and flicker,
         // all from gl_FragCoord, so it costs no extra pass.

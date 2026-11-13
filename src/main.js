@@ -89,8 +89,15 @@ const artZoom=createViewerZoom($('.view-body'),{reducedMotion,onChange:state=>{
 }});
 $('#art-zoom-in').onclick=()=>artZoom.zoomIn();$('#art-zoom-out').onclick=()=>artZoom.zoomOut();$('#art-zoom-level').onclick=()=>artZoom.fit();
 
-const title=createTitle($('.brand h1'),reducedMotion);
-const taglineTitle=createTitle($('.hero-tagline'),reducedMotion);
+// A matching saturation layer removes color from the difference-blended text only.
+function splashOverlay(element){
+  const overlay=element.cloneNode(true);overlay.classList.add('splash-desaturation');
+  overlay.setAttribute('aria-hidden','true');element.after(overlay);return overlay;
+}
+const brandOverlay=splashOverlay($('.brand'));
+const taglineOverlay=splashOverlay($('.hero-tagline'));
+const title=createTitle($('.brand h1'),reducedMotion,brandOverlay.querySelector('h1'));
+const taglineTitle=createTitle($('.hero-tagline'),reducedMotion,taglineOverlay);
 let titleReady=false;
 const titleText=()=>active<0?'COLE MASAKI':collections[active].label.toUpperCase();
 title.set(titleText(),{animate:false});

@@ -1,12 +1,14 @@
 // Stable letter widths keep the heading centered while its glyphs resolve.
-export function createTitle(heading, reducedMotion) {
+export function createTitle(heading, reducedMotion, overlay = null) {
   const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@%*+<>/{}[]';
   let timer, target='';
+  function syncOverlay(){if(overlay){overlay.innerHTML=heading.innerHTML;overlay.style.fontSize=heading.style.fontSize;}}
   function fit(){
     heading.style.fontSize='';
     const run=heading.firstElementChild;if(!run)return;
     const width=run.getBoundingClientRect().width,available=heading.clientWidth;
     if(width>available)heading.style.fontSize=`${parseFloat(getComputedStyle(heading).fontSize)*available/width}px`;
+    syncOverlay();
   }
   function set(text,{animate=true,delay=0}={}){
     clearTimeout(timer);target=text;
@@ -32,6 +34,7 @@ export function createTitle(heading, reducedMotion) {
         complete=false;
         glyph.textContent=local<0?'':alphabet[Math.floor(Math.random()*alphabet.length)];
       });
+      syncOverlay();
       if(complete)heading.dataset.resolving='false';else timer=setTimeout(tick,65);
     }
     tick();
