@@ -636,19 +636,6 @@
     "label": "Fonts",
     "items": [
       {
-        "id": "font-gutz",
-        "title": "GUTZ",
-        "alt": "GUTZ — custom typeface specimen",
-        "source": "Gutz.ttf",
-        "origin": "custom-typeface",
-        "fontFamily": "Gutz",
-        "download": "/fonts/Gutz.ttf",
-        "src": "/art/font-gutz.webp",
-        "thumb": "/art/font-gutz-thumb.webp",
-        "width": 1400,
-        "height": 1400
-      },
-      {
         "id": "font-yomenee",
         "title": "Yomenee",
         "alt": "Yomenee — custom typeface specimen",
@@ -658,6 +645,19 @@
         "download": "/fonts/Yomenee.ttf",
         "src": "/art/font-yomenee.webp",
         "thumb": "/art/font-yomenee-thumb.webp",
+        "width": 1400,
+        "height": 1400
+      },
+      {
+        "id": "font-gutz",
+        "title": "GUTZ",
+        "alt": "GUTZ — custom typeface specimen",
+        "source": "Gutz.ttf",
+        "origin": "custom-typeface",
+        "fontFamily": "Gutz",
+        "download": "/fonts/Gutz.ttf",
+        "src": "/art/font-gutz.webp",
+        "thumb": "/art/font-gutz-thumb.webp",
         "width": 1400,
         "height": 1400
       }
