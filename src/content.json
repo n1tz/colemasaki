@@ -69,7 +69,8 @@
     "shortLabel": "Game",
     "intro": "Wheels Of Steel is a zombie-shooting roguelike with solo and online co-op play. Use gun recoil to propel your character, collect weapons, items, coins, and take a blackjack break before facing the next wave.",
     "hero": "/art/wheels-of-steel-hero.webp",
-    "logo": "/art/wheels-of-steel-logo.png"
+    "logo": "/art/wheels-of-steel-logo.png",
+    "storeUrl": "https://store.steampowered.com/app/5222680/Wheels_Of_Steel/"
   },
   {
     "id": "professional",
